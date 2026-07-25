@@ -7,7 +7,7 @@ export function Header({ onAddClick }) {
         <div className="flex items-center gap-2">
           <Film className="w-6 h-6 text-indigo-500" />
           <h1 className="text-xl font-bold tracking-tight text-zinc-100">
-            Mon Letterboxd
+            VicozWorld
           </h1>
         </div>
         <button
