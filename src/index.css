@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #6366f1; /* Indigo 500 */
+  --color-brand-hover: #4f46e5; /* Indigo 600 */
+}
+
+/* Base Styles pour forcer le Dark Mode avec un thème Slate/Zinc élégant */
+@layer base {
+  body {
+    @apply bg-zinc-950 text-zinc-300 font-sans antialiased selection:bg-indigo-500/30;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-zinc-100;
+  }
+}
