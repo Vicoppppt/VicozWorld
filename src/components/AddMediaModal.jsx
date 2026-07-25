@@ -191,19 +191,19 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
       title: selectedItem.title || selectedItem.name,
       type: typeMap[selectedItem.media_type] || "Film",
       cover: selectedItem.media_type === "manga"
-        ? selectedItem.poster_path 
-        : getImageUrl(selectedItem.poster_path, "w500"),
-      releaseDate: selectedItem.release_date || selectedItem.first_air_date,
-      director, // Seulement pour les films
-      cast, // Seulement pour les films
+        ? (selectedItem.poster_path || "")
+        : (selectedItem.poster_path ? getImageUrl(selectedItem.poster_path, "w500") : ""),
+      releaseDate: selectedItem.release_date || selectedItem.first_air_date || null,
+      director: director || null, // Seulement pour les films
+      cast: cast || null, // Seulement pour les films
       rating: (!isMultiSeason && formData.status !== "À voir") ? Number(formData.rating) : 0,
       tmdbRating: selectedItem.vote_average,
       tmdbId: selectedItem.id,
       status: formData.status,
       review: (!isMultiSeason && formData.status !== "À voir") ? formData.review : "",
       seasons: savedSeasons, // Ajout de la structure de saisons
-      chapterCount: selectedItem.details?.chapterCount,
-      volumeCount: selectedItem.details?.volumeCount
+      chapterCount: selectedItem.details?.chapterCount || null,
+      volumeCount: selectedItem.details?.volumeCount || null
     };
 
     onAdd(newMedia);
