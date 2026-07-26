@@ -11,7 +11,7 @@ export function Layout({ children }) {
     { name: "Accueil", path: "/", icon: <Globe className="w-5 h-5" />, active: location.pathname === "/" },
     { name: "Cinémathèque", path: "/cinematheque", icon: <Film className="w-5 h-5" />, active: location.pathname === "/cinematheque" },
     { name: "Portfolio", path: "/portfolio", icon: <Briefcase className="w-5 h-5" />, active: location.pathname === "/portfolio", disabled: true },
-    { name: "Notes", path: "/notes", icon: <FileText className="w-5 h-5" />, active: location.pathname === "/notes", disabled: true },
+    { name: "Notes", path: "/notes", icon: <FileText className="w-5 h-5" />, active: location.pathname === "/notes" },
   ];
 
   return (

@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import { db } from '../api/firebase';
 import { collection, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
-import { Header } from '../components/Header';
 import { FilterBar } from '../components/FilterBar';
 import { MediaGrid } from '../components/MediaGrid';
 import { AddMediaModal } from '../components/AddMediaModal';
@@ -159,8 +158,6 @@ export function Cinematheque() {
           },
         }}
       />
-      <Header onAddClick={() => setIsModalOpen(true)} />
-      
       <main className="flex-1 flex flex-col">
         <FilterBar 
           activeType={activeType} 
@@ -170,6 +167,7 @@ export function Cinematheque() {
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           count={filteredMedia.length}
+          onAddClick={() => setIsModalOpen(true)}
         />
         
         <MediaGrid mediaList={filteredMedia} onMediaClick={setSelectedMedia} />

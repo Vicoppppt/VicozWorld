@@ -1,7 +1,7 @@
 import { MEDIA_TYPES, MEDIA_STATUS } from "../data/mockData";
-import { Search } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 
-export function FilterBar({ activeType, setActiveType, activeStatus, setActiveStatus, searchQuery, setSearchQuery, count }) {
+export function FilterBar({ activeType, setActiveType, activeStatus, setActiveStatus, searchQuery, setSearchQuery, count, onAddClick }) {
   return (
     <div className="bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800/80 sticky top-0 z-30 shadow-xl shadow-black/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -57,10 +57,17 @@ export function FilterBar({ activeType, setActiveType, activeStatus, setActiveSt
             />
           </div>
 
-          <div className="flex items-center justify-center shrink-0">
-            <span className="px-4 py-2 bg-zinc-950 border border-zinc-800/80 rounded-xl text-zinc-400 text-sm font-semibold shadow-inner">
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="hidden md:inline-block px-4 py-2 bg-zinc-950 border border-zinc-800/80 rounded-xl text-zinc-400 text-sm font-semibold shadow-inner">
               <span className="text-zinc-100">{count}</span> {count > 1 ? "œuvres" : "œuvre"}
             </span>
+            <button
+              onClick={onAddClick}
+              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl font-semibold transition-all duration-300 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:-translate-y-0.5 active:translate-y-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Ajouter</span>
+            </button>
           </div>
           
         </div>

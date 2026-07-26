@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@plugin "@tailwindcss/typography";
 @theme {
   --color-brand: #6366f1; /* Indigo 500 */
   --color-brand-hover: #4f46e5; /* Indigo 600 */

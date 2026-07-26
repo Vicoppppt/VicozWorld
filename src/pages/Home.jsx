@@ -28,7 +28,7 @@ export function Home() {
       link: "/notes",
       color: "from-amber-500/20 to-orange-500/20",
       border: "hover:border-amber-500/50",
-      active: false,
+      active: true,
     }
   ];
 
