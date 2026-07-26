@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { searchMedia, getTrendingMedia, getMediaCredits, getImageUrl, getMediaDetails, getTvSeasonDetails } from "../api/tmdb";
 import { searchKitsuManga, getKitsuTrendingManga } from "../api/kitsu";
 import { StarRating } from "./StarRating";
+import { toast } from "react-hot-toast";
 
 export function AddMediaModal({ isOpen, onClose, onAdd }) {
   const [step, setStep] = useState(1);
@@ -174,7 +175,7 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
 
     if (!isMultiSeason) {
       if (formData.status !== "À voir" && (!formData.rating || formData.rating === 0)) {
-        alert("Une note est obligatoire si vous l'avez vu ou êtes en train de le lire/voir.");
+        toast.error("Une note est obligatoire si vous l'avez vu ou êtes en train de le lire/voir.");
         return;
       }
     }

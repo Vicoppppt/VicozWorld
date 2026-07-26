@@ -304,8 +304,14 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
                                     
                                     {season.watched ? (
                                       <StarRating rating={season.rating} readonly size="w-3.5 h-3.5" />
+                                    ) : season.watchedEpisodes > 0 ? (
+                                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/20">
+                                        En cours ({season.watchedEpisodes}/{season.episodeCount || '?'})
+                                      </span>
                                     ) : (
-                                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400">À voir</span>
+                                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400">
+                                        À voir
+                                      </span>
                                     )}
                                   </div>
                                 </div>

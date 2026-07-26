@@ -3,6 +3,7 @@ import { X, Check, Loader2 } from "lucide-react";
 import { StarRating } from "./StarRating";
 import { motion, AnimatePresence } from "framer-motion";
 import { getMediaDetails, getImageUrl } from "../api/tmdb";
+import { toast } from "react-hot-toast";
 
 export function EditMediaModal({ isOpen, onClose, media, onSave }) {
   const [formData, setFormData] = useState({
@@ -120,7 +121,7 @@ export function EditMediaModal({ isOpen, onClose, media, onSave }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!isMultiSeason && formData.status !== "À voir" && formData.rating === 0) {
-      alert("Une note est obligatoire si vous l'avez vu ou êtes en train de le lire/voir.");
+      toast.error("Une note est obligatoire si vous l'avez vu ou êtes en train de le lire/voir.");
       return;
     }
     
