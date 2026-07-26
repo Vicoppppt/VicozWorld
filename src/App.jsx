@@ -19,6 +19,7 @@ function App() {
 
   const [activeType, setActiveType] = useState("Tous");
   const [activeStatus, setActiveStatus] = useState("Terminé");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState(null);
@@ -65,9 +66,10 @@ function App() {
     return mediaList.filter((media) => {
       const typeMatch = activeType === "Tous" || media.type === activeType;
       const statusMatch = activeStatus === "Tous" || media.status === activeStatus;
-      return typeMatch && statusMatch;
+      const searchMatch = media.title.toLowerCase().includes(searchQuery.toLowerCase());
+      return typeMatch && statusMatch && searchMatch;
     });
-  }, [mediaList, activeType, activeStatus]);
+  }, [mediaList, activeType, activeStatus, searchQuery]);
 
   const handleAddMedia = async (newMedia) => {
     const exists = mediaList.some(m => 
@@ -169,6 +171,8 @@ function App() {
           setActiveType={setActiveType}
           activeStatus={activeStatus}
           setActiveStatus={setActiveStatus}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
           count={filteredMedia.length}
         />
         

@@ -1,6 +1,7 @@
 import { MEDIA_TYPES, MEDIA_STATUS } from "../data/mockData";
+import { Search } from "lucide-react";
 
-export function FilterBar({ activeType, setActiveType, activeStatus, setActiveStatus, count }) {
+export function FilterBar({ activeType, setActiveType, activeStatus, setActiveStatus, searchQuery, setSearchQuery, count }) {
   return (
     <div className="bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800/80 sticky top-0 z-30 shadow-xl shadow-black/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -42,6 +43,20 @@ export function FilterBar({ activeType, setActiveType, activeStatus, setActiveSt
             </div>
           </div>
           
+          {/* Barre de recherche */}
+          <div className="w-full md:w-64 relative shrink-0">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-zinc-500" />
+            </div>
+            <input
+              type="text"
+              placeholder="Rechercher un film, une série..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-zinc-950 border border-zinc-800/80 rounded-xl text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-zinc-600 shadow-inner"
+            />
+          </div>
+
           <div className="flex items-center justify-center shrink-0">
             <span className="px-4 py-2 bg-zinc-950 border border-zinc-800/80 rounded-xl text-zinc-400 text-sm font-semibold shadow-inner">
               <span className="text-zinc-100">{count}</span> {count > 1 ? "œuvres" : "œuvre"}
