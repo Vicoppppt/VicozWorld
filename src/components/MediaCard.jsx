@@ -2,6 +2,30 @@ import { StarRating } from "./StarRating";
 import { motion } from "framer-motion";
 
 export function MediaCard({ media, onClick }) {
+  const isMultiSeason = media.type === "Série" || media.type === "Animé";
+
+  let displayProgress = null;
+  if (media && (media.status === "En cours" || media.status === "En pause")) {
+    if (media.type === "Manga" && media.currentProgress) {
+      displayProgress = `Ch. ${media.currentProgress}`;
+    } else if (isMultiSeason && media.seasons?.length > 0) {
+      for (let i = media.seasons.length - 1; i >= 0; i--) {
+        const s = media.seasons[i];
+        if (s.watchedEpisodes > 0) {
+          if (s.watched) {
+            displayProgress = `S${s.seasonNumber} ✓`;
+          } else {
+            displayProgress = `S${s.seasonNumber} E${s.watchedEpisodes}`;
+          }
+          break;
+        }
+      }
+    }
+    if (!displayProgress && media.currentProgress && typeof media.currentProgress === "string") {
+      displayProgress = media.currentProgress;
+    }
+  }
+
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
@@ -39,9 +63,9 @@ export function MediaCard({ media, onClick }) {
             }`}>
               {media.status}
             </span>
-            {media.currentProgress && (media.status === "En cours" || media.status === "En pause") && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-800/80 text-zinc-300 border border-zinc-700 truncate max-w-[100px]" title={media.currentProgress}>
-                {media.currentProgress}
+            {displayProgress && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-800/80 text-zinc-300 border border-zinc-700 truncate max-w-[100px]" title={displayProgress}>
+                {displayProgress}
               </span>
             )}
           </div>

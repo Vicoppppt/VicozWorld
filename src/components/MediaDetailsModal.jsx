@@ -39,6 +39,29 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
 
   const isMultiSeason = media.type === "Série" || media.type === "Animé";
 
+  let displayProgress = null;
+  if (media && (media.status === "En cours" || media.status === "En pause")) {
+    if (media.type === "Manga" && media.currentProgress) {
+      displayProgress = `Chapitre ${media.currentProgress}${media.chapterCount ? ` / ${media.chapterCount}` : ""}`;
+    } else if (isMultiSeason && media.seasons?.length > 0) {
+      for (let i = media.seasons.length - 1; i >= 0; i--) {
+        const s = media.seasons[i];
+        if (s.watchedEpisodes > 0) {
+          if (s.watched) {
+            displayProgress = `Saison ${s.seasonNumber} terminée`;
+          } else {
+            displayProgress = `S${s.seasonNumber} • Ép ${s.watchedEpisodes}/${s.episodeCount || '?'}`;
+          }
+          break;
+        }
+      }
+    }
+    // Fallback for old string values if any
+    if (!displayProgress && media.currentProgress && typeof media.currentProgress === "string") {
+      displayProgress = media.currentProgress;
+    }
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -129,7 +152,7 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
                 </div>
               )}
 
-              {media.currentProgress && (media.status === "En cours" || media.status === "En pause") && (
+              {displayProgress && (
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 rounded-lg mb-8 font-medium">
                   {media.status === "En cours" && (
                     <span className="relative flex h-2.5 w-2.5">
@@ -140,7 +163,7 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
                   {media.status === "En pause" && (
                     <span className="w-2.5 h-2.5 rounded-sm bg-amber-500/80"></span>
                   )}
-                  <span className="text-sm">Progression : <strong className="text-white ml-1">{media.currentProgress}</strong></span>
+                  <span className="text-sm">Progression : <strong className="text-white ml-1">{displayProgress}</strong></span>
                 </div>
               )}
 

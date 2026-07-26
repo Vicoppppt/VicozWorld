@@ -10,7 +10,7 @@ export function EditMediaModal({ isOpen, onClose, media, onSave }) {
     rating: 0,
     review: "",
     seasons: {},
-    currentProgress: ""
+    currentProgress: 0
   });
   
   const [availableSeasons, setAvailableSeasons] = useState([]);
@@ -25,7 +25,7 @@ export function EditMediaModal({ isOpen, onClose, media, onSave }) {
         rating: media.rating || 0,
         review: media.review || "",
         seasons: {},
-        currentProgress: media.currentProgress || ""
+        currentProgress: media.currentProgress || 0
       });
 
       if (isMultiSeason && media.tmdbId) {
@@ -39,15 +39,16 @@ export function EditMediaModal({ isOpen, onClose, media, onSave }) {
             // Map the user's existing saved seasons
             const initialSeasonsState = {};
             validSeasons.forEach(s => {
-              const savedSeason = (media.seasons || []).find(ms => ms.seasonNumber === s.season_number);
-              if (savedSeason && savedSeason.watched) {
-                initialSeasonsState[s.season_number] = {
-                  watched: true,
-                  rating: savedSeason.rating || 0,
-                  review: savedSeason.review || ""
+              const existingSeason = (media.seasons || []).find(ms => ms.seasonNumber === s.season_number);
+              if (existingSeason) {
+                initialSeasonsState[s.season_number] = { 
+                  watched: existingSeason.watched, 
+                  rating: existingSeason.rating, 
+                  review: existingSeason.review,
+                  watchedEpisodes: existingSeason.watchedEpisodes || (existingSeason.watched ? s.episode_count : 0)
                 };
               } else {
-                initialSeasonsState[s.season_number] = { watched: false, rating: 0, review: "" };
+                initialSeasonsState[s.season_number] = { watched: false, rating: 0, review: "", watchedEpisodes: 0 };
               }
             });
             setFormData(prev => ({ ...prev, seasons: initialSeasonsState }));
@@ -65,19 +66,42 @@ export function EditMediaModal({ isOpen, onClose, media, onSave }) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const toggleSeasonWatched = (seasonNumber) => {
-    setFormData(prev => ({
-      ...prev,
-      seasons: {
-        ...prev.seasons,
-        [seasonNumber]: {
-          ...prev.seasons[seasonNumber],
-          watched: !prev.seasons[seasonNumber]?.watched,
-          rating: prev.seasons[seasonNumber]?.watched ? 0 : (prev.seasons[seasonNumber]?.rating || 0),
-          review: prev.seasons[seasonNumber]?.watched ? "" : (prev.seasons[seasonNumber]?.review || "")
+  const toggleSeasonWatched = (seasonNumber, maxEpisodes) => {
+    setFormData(prev => {
+      const isWatched = !prev.seasons[seasonNumber]?.watched;
+      return {
+        ...prev,
+        seasons: {
+          ...prev.seasons,
+          [seasonNumber]: {
+            ...prev.seasons[seasonNumber],
+            watched: isWatched,
+            watchedEpisodes: isWatched ? (maxEpisodes || 0) : 0,
+            rating: isWatched ? (prev.seasons[seasonNumber]?.rating || 0) : 0,
+            review: isWatched ? (prev.seasons[seasonNumber]?.review || "") : ""
+          }
         }
       }
-    }));
+    });
+  };
+
+  const handleEpisodeClick = (seasonNumber, epNum, maxEpisodes) => {
+    setFormData(prev => {
+      const isWatched = epNum === maxEpisodes;
+      return {
+        ...prev,
+        seasons: {
+          ...prev.seasons,
+          [seasonNumber]: {
+            ...prev.seasons[seasonNumber],
+            watchedEpisodes: epNum,
+            watched: isWatched,
+            rating: isWatched ? (prev.seasons[seasonNumber]?.rating || 0) : 0,
+            review: isWatched ? (prev.seasons[seasonNumber]?.review || "") : ""
+          }
+        }
+      }
+    });
   };
 
   const updateSeasonData = (seasonNumber, field, value) => {
@@ -111,6 +135,7 @@ export function EditMediaModal({ isOpen, onClose, media, onSave }) {
           posterPath: s.poster_path ? getImageUrl(s.poster_path, "w342") : null,
           episodeCount: s.episode_count || null,
           watched: userData?.watched || false,
+          watchedEpisodes: userData?.watchedEpisodes || (userData?.watched ? s.episode_count : 0),
           rating: userData?.watched ? userData.rating : 0,
           review: userData?.watched ? userData.review : ""
         };
@@ -201,16 +226,36 @@ export function EditMediaModal({ isOpen, onClose, media, onSave }) {
                       <>
                         {media.type === "Manga" && (formData.status === "En cours" || formData.status === "En pause") && (
                           <div className="mb-4 bg-zinc-950 p-4 rounded-xl border border-indigo-500/30">
-                            <label className="block text-sm font-medium text-indigo-300 mb-2">
-                              Où en êtes-vous ?
+                            <label className="block text-sm font-medium text-indigo-300 mb-3 text-center">
+                              Chapitres lus
                             </label>
-                            <input 
-                              type="text"
-                              value={formData.currentProgress || ""}
-                              onChange={(e) => setFormData(p => ({...p, currentProgress: e.target.value}))}
-                              className="w-full bg-zinc-900 border border-indigo-500/50 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                              placeholder="ex: Tome 12, Chapitre 105"
-                            />
+                            <div className="flex items-center justify-center gap-4">
+                              <button
+                                type="button"
+                                onClick={() => setFormData(p => ({ ...p, currentProgress: Math.max(0, (p.currentProgress || 0) - 1) }))}
+                                className="w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xl transition-colors"
+                              >
+                                -
+                              </button>
+                              <div className="flex flex-col items-center min-w-[80px]">
+                                <span className="text-2xl font-bold text-white">{formData.currentProgress || 0}</span>
+                                {media.chapterCount && (
+                                  <span className="text-xs text-zinc-500">/ {media.chapterCount}</span>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setFormData(p => ({ 
+                                  ...p, 
+                                  currentProgress: media.chapterCount 
+                                    ? Math.min(media.chapterCount, (p.currentProgress || 0) + 1)
+                                    : (p.currentProgress || 0) + 1 
+                                }))}
+                                className="w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xl transition-colors"
+                              >
+                                +
+                              </button>
+                            </div>
                           </div>
                         )}
                         <div>
@@ -255,22 +300,7 @@ export function EditMediaModal({ isOpen, onClose, media, onSave }) {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {(formData.status === "En cours" || formData.status === "En pause") && (
-                          <div className="mb-6 bg-zinc-950 p-4 rounded-xl border border-indigo-500/30">
-                            <label className="block text-sm font-medium text-indigo-300 mb-2">
-                              Où en êtes-vous ?
-                            </label>
-                            <input 
-                              type="text"
-                              value={formData.currentProgress || ""}
-                              onChange={(e) => setFormData(p => ({...p, currentProgress: e.target.value}))}
-                              className="w-full bg-zinc-900 border border-indigo-500/50 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                              placeholder="ex: Saison 2, Épisode 4"
-                            />
-                          </div>
-                        )}
-                        
-                        <h3 className="text-lg font-bold text-zinc-100 border-b border-zinc-800 pb-2">Détail des saisons</h3>
+                        <h3 className="text-lg font-bold text-zinc-100 border-b border-zinc-800 pb-2">Saisons et Épisodes</h3>
                         
                         {isLoadingSeasons ? (
                           <div className="flex justify-center py-8">
@@ -284,7 +314,7 @@ export function EditMediaModal({ isOpen, onClose, media, onSave }) {
                                 <div key={season.season_number} className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden transition-all">
                                   <div 
                                     className="flex items-center justify-between p-4 cursor-pointer hover:bg-zinc-900/50"
-                                    onClick={() => toggleSeasonWatched(season.season_number)}
+                                    onClick={() => toggleSeasonWatched(season.season_number, season.episode_count)}
                                   >
                                     <div className="flex items-center gap-3">
                                       <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${seasonData?.watched ? 'bg-indigo-500 border-indigo-500' : 'border-zinc-600 bg-zinc-900'}`}>
@@ -296,6 +326,48 @@ export function EditMediaModal({ isOpen, onClose, media, onSave }) {
                                       <StarRating rating={seasonData.rating} readonly size="w-3.5 h-3.5" />
                                     )}
                                   </div>
+                                  
+                                  {/* Grille d'épisodes (uniquement si En cours/pause et pas encore vu en entier) */}
+                                  <AnimatePresence>
+                                    {season.episode_count > 0 && (formData.status === "En cours" || formData.status === "En pause") && !seasonData?.watched && (
+                                      <motion.div 
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="overflow-hidden border-t border-zinc-800/50 bg-zinc-950/50"
+                                      >
+                                        <div className="p-4">
+                                          <div className="flex items-center justify-between mb-3">
+                                            <label className="text-xs font-medium text-zinc-400">Épisodes vus</label>
+                                            <span className="text-xs font-bold text-indigo-400">{seasonData?.watchedEpisodes || 0} / {season.episode_count}</span>
+                                          </div>
+                                          <div className="flex flex-wrap gap-1.5">
+                                            {Array.from({ length: season.episode_count }).map((_, i) => {
+                                              const epNum = i + 1;
+                                              const isWatched = epNum <= (seasonData?.watchedEpisodes || 0);
+                                              return (
+                                                <button
+                                                  key={epNum}
+                                                  type="button"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleEpisodeClick(season.season_number, epNum, season.episode_count);
+                                                  }}
+                                                  className={`w-7 h-7 flex items-center justify-center rounded text-[10px] font-bold transition-all ${
+                                                    isWatched 
+                                                      ? 'bg-indigo-500 text-white shadow-[0_0_8px_rgba(99,102,241,0.4)]' 
+                                                      : 'bg-zinc-800 text-zinc-500 hover:bg-zinc-700 hover:text-zinc-300'
+                                                  }`}
+                                                >
+                                                  {epNum}
+                                                </button>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
                                   
                                   <AnimatePresence>
                                     {seasonData?.watched && (
