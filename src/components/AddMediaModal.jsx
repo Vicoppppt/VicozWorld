@@ -22,8 +22,8 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
     status: "",
     rating: 0,
     review: "",
-    seasons: {} // { [seasonNumber]: { rating: 4, review: "...", watched: true } }
-  });
+    seasons: {}, // { [seasonNumber]: { rating: 4, review: "...", watched: true } }
+    currentProgress: ""
 
   // Load trending on category change
   useEffect(() => {
@@ -56,7 +56,8 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
         status: "",
         rating: 0,
         review: "",
-        seasons: {}
+        seasons: {},
+        currentProgress: ""
       });
     }
   }, [isOpen]);
@@ -203,6 +204,7 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
       status: formData.status,
       review: (!isMultiSeason && formData.status !== "À voir") ? formData.review : "",
       seasons: savedSeasons, // Ajout de la structure de saisons
+      currentProgress: (formData.status === "En cours" || formData.status === "En pause") ? formData.currentProgress : "",
       chapterCount: selectedItem.details?.chapterCount || null,
       volumeCount: selectedItem.details?.volumeCount || null
     };
@@ -427,6 +429,20 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
                         <>
                           {formData.status !== "À voir" && (
                             <>
+                              {selectedItem?.media_type === "manga" && (formData.status === "En cours" || formData.status === "En pause") && (
+                                <div className="mb-4 bg-zinc-950 p-4 rounded-xl border border-indigo-500/30">
+                                  <label className="block text-sm font-medium text-indigo-300 mb-2">
+                                    Où en êtes-vous ?
+                                  </label>
+                                  <input 
+                                    type="text"
+                                    value={formData.currentProgress || ""}
+                                    onChange={(e) => setFormData(p => ({...p, currentProgress: e.target.value}))}
+                                    className="w-full bg-zinc-900 border border-indigo-500/50 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                                    placeholder="ex: Tome 12, Chapitre 105"
+                                  />
+                                </div>
+                              )}
                               <div>
                                 <label className="block text-sm font-medium text-zinc-300 mb-3">
                                   Votre Note <span className="text-red-400">*</span>
@@ -469,6 +485,21 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
                             </div>
                           ) : (
                             <div className="space-y-4">
+                              {(formData.status === "En cours" || formData.status === "En pause") && (
+                                <div className="mb-6 bg-zinc-950 p-4 rounded-xl border border-indigo-500/30">
+                                  <label className="block text-sm font-medium text-indigo-300 mb-2">
+                                    Où en êtes-vous ?
+                                  </label>
+                                  <input 
+                                    type="text"
+                                    value={formData.currentProgress || ""}
+                                    onChange={(e) => setFormData(p => ({...p, currentProgress: e.target.value}))}
+                                    className="w-full bg-zinc-900 border border-indigo-500/50 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                                    placeholder="ex: Saison 2, Épisode 4"
+                                  />
+                                </div>
+                              )}
+                              
                               <h3 className="text-lg font-bold text-zinc-100 border-b border-zinc-800 pb-2">Détail des saisons</h3>
                               
                               {selectedItem?.details?.seasons?.length > 0 ? (

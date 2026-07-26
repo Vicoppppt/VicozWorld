@@ -129,6 +129,21 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
                 </div>
               )}
 
+              {media.currentProgress && (media.status === "En cours" || media.status === "En pause") && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 rounded-lg mb-8 font-medium">
+                  {media.status === "En cours" && (
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
+                    </span>
+                  )}
+                  {media.status === "En pause" && (
+                    <span className="w-2.5 h-2.5 rounded-sm bg-amber-500/80"></span>
+                  )}
+                  <span className="text-sm">Progression : <strong className="text-white ml-1">{media.currentProgress}</strong></span>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                 {media.tmdbRating && (
                   <div className="flex items-center gap-3 text-zinc-300 bg-zinc-950/50 p-3 rounded-xl border border-zinc-800">

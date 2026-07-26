@@ -39,6 +39,11 @@ export function MediaCard({ media, onClick }) {
             }`}>
               {media.status}
             </span>
+            {media.currentProgress && (media.status === "En cours" || media.status === "En pause") && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-800/80 text-zinc-300 border border-zinc-700 truncate max-w-[100px]" title={media.currentProgress}>
+                {media.currentProgress}
+              </span>
+            )}
           </div>
 
           {(media.type === "Film" || media.type === "Manga") && media.review && (
