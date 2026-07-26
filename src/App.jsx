@@ -1,4 +1,4 @@
-import { HashRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { Home } from "./pages/Home";
 import { Cinematheque } from "./pages/Cinematheque";
@@ -14,6 +14,7 @@ function App() {
           <Route path="/cinematheque" element={<Cinematheque />} />
           <Route path="/notes" element={<Notes />} />
           <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
           {/* Les futures pages viendront ici */}
         </Routes>
       </Layout>

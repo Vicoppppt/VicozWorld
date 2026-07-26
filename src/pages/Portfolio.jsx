@@ -1,4 +1,4 @@
-import { MapPin, Mail, Phone, ExternalLink, GraduationCap, Code2, Briefcase, Languages, Image as ImageIcon, X } from "lucide-react";
+import { MapPin, Mail, Phone, GraduationCap, Code2, Briefcase, Languages, Image as ImageIcon, X } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 

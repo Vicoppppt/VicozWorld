@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Globe, Film, Briefcase, FileText, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Toaster } from "react-hot-toast";
 
 export function Layout({ children }) {
   const location = useLocation();
@@ -16,6 +17,16 @@ export function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col text-zinc-100">
+      <Toaster
+        position="bottom-center"
+        toastOptions={{
+          style: {
+            background: '#18181b',
+            color: '#f4f4f5',
+            border: '1px solid #27272a',
+          },
+        }}
+      />
       {/* Global Top Navbar */}
       <nav className="bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

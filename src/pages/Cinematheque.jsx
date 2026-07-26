@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Toaster, toast } from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 import { db } from '../api/firebase';
 import { collection, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { FilterBar } from '../components/FilterBar';
@@ -9,7 +9,7 @@ import { MediaDetailsModal } from '../components/MediaDetailsModal';
 import { EditMediaModal } from '../components/EditMediaModal';
 import { DirectorFilmographyModal } from '../components/DirectorFilmographyModal';
 
-const STORAGE_KEY = "mon-letterboxd-data";
+
 
 export function Cinematheque() {
   const [mediaList, setMediaList] = useState([]);
@@ -39,17 +39,23 @@ export function Cinematheque() {
   }, []);
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = localStorage.getItem("mon-letterboxd-data");
     if (saved && !isLoading && mediaList.length === 0) {
       try {
         const localData = JSON.parse(saved);
         if (localData.length > 0) {
           toast.loading("Migration de vos données vers le Cloud...", { id: "migration" });
-          localData.forEach(async (media) => {
-            await setDoc(doc(db, "medias", media.id), media);
-          });
-          toast.success("Migration terminée avec succès !", { id: "migration" });
-          localStorage.removeItem(STORAGE_KEY);
+          Promise.all(
+            localData.map((media) => setDoc(doc(db, "medias", media.id), media))
+          )
+            .then(() => {
+              toast.success("Migration terminée avec succès !", { id: "migration" });
+              localStorage.removeItem("mon-letterboxd-data");
+            })
+            .catch((e) => {
+              console.error("Erreur de migration", e);
+              toast.error("Erreur lors de la migration.", { id: "migration" });
+            });
         }
       } catch (e) {
         console.error("Erreur de migration", e);
@@ -61,7 +67,7 @@ export function Cinematheque() {
     return mediaList.filter((media) => {
       const typeMatch = activeType === "Tous" || media.type === activeType;
       const statusMatch = activeStatus === "Tous" || media.status === activeStatus;
-      const searchMatch = media.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const searchMatch = (media.title || "").toLowerCase().includes(searchQuery.toLowerCase());
       return typeMatch && statusMatch && searchMatch;
     });
   }, [mediaList, activeType, activeStatus, searchQuery]);
@@ -148,16 +154,6 @@ export function Cinematheque() {
 
   return (
     <div className="flex-1 flex flex-col relative w-full h-full">
-      <Toaster 
-        position="bottom-center"
-        toastOptions={{
-          style: {
-            background: '#18181b',
-            color: '#f4f4f5',
-            border: '1px solid #27272a',
-          },
-        }}
-      />
       <main className="flex-1 flex flex-col">
         <FilterBar 
           activeType={activeType} 

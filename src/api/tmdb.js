@@ -10,6 +10,15 @@ const options = {
 };
 
 /**
+ * Helper : vérifie que la réponse HTTP est OK avant de parser le JSON
+ */
+async function fetchJson(url) {
+  const res = await fetch(url, options);
+  if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}`);
+  return res.json();
+}
+
+/**
  * Recherche ciblée (Film ou Série)
  */
 export async function searchMedia(query, type = "movie") {
@@ -24,11 +33,9 @@ export async function searchMedia(query, type = "movie") {
   }
   
   try {
-    const res = await fetch(`${BASE_URL}/search/${type}?query=${encodeURIComponent(query)}&api_key=${API_KEY}&language=fr-FR&page=1`, options);
-    const data = await res.json();
-    
+    const data = await fetchJson(`${BASE_URL}/search/${type}?query=${encodeURIComponent(query)}&api_key=${API_KEY}&language=fr-FR&page=1`);
     // On ajoute explicitement le media_type car l'endpoint spécifique ne le renvoie pas toujours
-    return data.results.map(item => ({ ...item, media_type: type }));
+    return (data.results || []).map(item => ({ ...item, media_type: type }));
   } catch (error) {
     console.error("Erreur lors de la recherche TMDB :", error);
     return [];
@@ -43,9 +50,8 @@ export async function getTrendingMedia(type = "movie") {
   if (type === "manga") return [];
 
   try {
-    const res = await fetch(`${BASE_URL}/trending/${type}/day?api_key=${API_KEY}&language=fr-FR`, options);
-    const data = await res.json();
-    return data.results.slice(0, 6).map(item => ({ ...item, media_type: type }));
+    const data = await fetchJson(`${BASE_URL}/trending/${type}/day?api_key=${API_KEY}&language=fr-FR`);
+    return (data.results || []).slice(0, 6).map(item => ({ ...item, media_type: type }));
   } catch (error) {
     console.error("Erreur lors de la récupération des tendances :", error);
     return [];
@@ -60,8 +66,7 @@ export async function getMediaCredits(mediaId, mediaType) {
   if (mediaType === "manga") return { cast: [], crew: [] };
   
   try {
-    const res = await fetch(`${BASE_URL}/${mediaType}/${mediaId}/credits?api_key=${API_KEY}`, options);
-    return await res.json();
+    return await fetchJson(`${BASE_URL}/${mediaType}/${mediaId}/credits?api_key=${API_KEY}`);
   } catch (error) {
     console.error("Erreur lors de la récupération des crédits :", error);
     return { cast: [], crew: [] };
@@ -75,9 +80,7 @@ export async function getMediaDetails(mediaId, mediaType) {
   if (!API_KEY || mediaType === "manga") return null;
   
   try {
-    const res = await fetch(`${BASE_URL}/${mediaType}/${mediaId}?api_key=${API_KEY}&language=fr-FR`, options);
-    const data = await res.json();
-    return data;
+    return await fetchJson(`${BASE_URL}/${mediaType}/${mediaId}?api_key=${API_KEY}&language=fr-FR`);
   } catch (error) {
     console.error("Erreur lors de la récupération des détails :", error);
     return null;
@@ -90,8 +93,7 @@ export async function getMediaDetails(mediaId, mediaType) {
 export async function searchPerson(name) {
   if (!API_KEY) return null;
   try {
-    const res = await fetch(`${BASE_URL}/search/person?query=${encodeURIComponent(name)}&api_key=${API_KEY}&language=fr-FR`, options);
-    const data = await res.json();
+    const data = await fetchJson(`${BASE_URL}/search/person?query=${encodeURIComponent(name)}&api_key=${API_KEY}&language=fr-FR`);
     return data.results && data.results.length > 0 ? data.results[0] : null;
   } catch (error) {
     console.error("Erreur lors de la recherche de personne :", error);
@@ -105,10 +107,9 @@ export async function searchPerson(name) {
 export async function getDirectorFilmography(personId) {
   if (!API_KEY) return [];
   try {
-    const res = await fetch(`${BASE_URL}/person/${personId}/movie_credits?api_key=${API_KEY}&language=fr-FR`, options);
-    const data = await res.json();
+    const data = await fetchJson(`${BASE_URL}/person/${personId}/movie_credits?api_key=${API_KEY}&language=fr-FR`);
     // On garde uniquement les films où le job est "Director"
-    const directedMovies = data.crew.filter(c => c.job === "Director");
+    const directedMovies = (data.crew || []).filter(c => c.job === "Director");
     // On retire les doublons potentiels (même ID)
     const uniqueMovies = Array.from(new Map(directedMovies.map(item => [item.id, item])).values());
     
@@ -128,9 +129,7 @@ export async function getDirectorFilmography(personId) {
 export async function getTvSeasonDetails(tvId, seasonNumber) {
   if (!API_KEY) return null;
   try {
-    const res = await fetch(`${BASE_URL}/tv/${tvId}/season/${seasonNumber}/credits?api_key=${API_KEY}`, options);
-    const data = await res.json();
-    return data;
+    return await fetchJson(`${BASE_URL}/tv/${tvId}/season/${seasonNumber}/credits?api_key=${API_KEY}`);
   } catch (error) {
     console.error(`Erreur lors de la récupération de la saison ${seasonNumber} :`, error);
     return null;

@@ -1,7 +1,7 @@
 import { MEDIA_TYPES, MEDIA_STATUS } from "../data/mockData";
 import { Search, Plus } from "lucide-react";
 
-export function FilterBar({ activeType, setActiveType, activeStatus, setActiveStatus, searchQuery, setSearchQuery, count, onAddClick }) {
+export function FilterBar({ activeType, setActiveType, activeStatus, setActiveStatus, searchQuery, setSearchQuery, onAddClick }) {
   return (
     <div className="bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800/80 sticky top-0 z-30 shadow-xl shadow-black/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
