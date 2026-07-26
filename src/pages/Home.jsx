@@ -19,7 +19,7 @@ export function Home() {
       link: "/portfolio",
       color: "from-emerald-500/20 to-teal-500/20",
       border: "hover:border-emerald-500/50",
-      active: false,
+      active: true,
     },
     {
       title: "Notes & Brouillons",

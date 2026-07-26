@@ -7,17 +7,17 @@ export function FilterBar({ activeType, setActiveType, activeStatus, setActiveSt
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           
-          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 w-full md:w-auto">
             {/* Filter by Type */}
-            <div className="flex p-1.5 bg-zinc-950/80 border border-zinc-800/50 rounded-xl w-full sm:w-auto overflow-x-auto scrollbar-hide">
+            <div className="flex flex-wrap gap-1.5 w-full sm:w-auto">
               {MEDIA_TYPES.map(type => (
                 <button
                   key={type}
                   onClick={() => setActiveType(type)}
-                  className={`flex-1 sm:flex-none px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-300 ${
+                  className={`px-3.5 py-1.5 text-sm font-semibold rounded-full transition-all duration-300 ${
                     activeType === type
-                      ? "bg-indigo-500/10 text-indigo-400 shadow-[inset_0_0_0_1px_rgba(99,102,241,0.2)]"
-                      : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
+                      ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/20"
+                      : "bg-zinc-900/50 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 border border-zinc-800/50"
                   }`}
                 >
                   {type}
@@ -25,16 +25,19 @@ export function FilterBar({ activeType, setActiveType, activeStatus, setActiveSt
               ))}
             </div>
             
+            {/* Divider */}
+            <div className="hidden sm:block w-px h-6 bg-zinc-800"></div>
+
             {/* Filter by Status */}
-            <div className="flex p-1.5 bg-zinc-950/80 border border-zinc-800/50 rounded-xl w-full sm:w-auto overflow-x-auto scrollbar-hide">
+            <div className="flex flex-wrap gap-1.5 w-full sm:w-auto">
               {MEDIA_STATUS.map(status => (
                 <button
                   key={status}
                   onClick={() => setActiveStatus(status)}
-                  className={`flex-1 sm:flex-none px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-300 ${
+                  className={`px-3.5 py-1.5 text-sm font-semibold rounded-full transition-all duration-300 ${
                     activeStatus === status
-                      ? "bg-indigo-500/10 text-indigo-400 shadow-[inset_0_0_0_1px_rgba(99,102,241,0.2)]"
-                      : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
+                      ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
+                      : "bg-zinc-900/50 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 border border-zinc-800/50"
                   }`}
                 >
                   {status}

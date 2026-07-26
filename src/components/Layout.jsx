@@ -10,7 +10,7 @@ export function Layout({ children }) {
   const navItems = [
     { name: "Accueil", path: "/", icon: <Globe className="w-5 h-5" />, active: location.pathname === "/" },
     { name: "Cinémathèque", path: "/cinematheque", icon: <Film className="w-5 h-5" />, active: location.pathname === "/cinematheque" },
-    { name: "Portfolio", path: "/portfolio", icon: <Briefcase className="w-5 h-5" />, active: location.pathname === "/portfolio", disabled: true },
+    { name: "Portfolio", path: "/portfolio", icon: <Briefcase className="w-5 h-5" />, active: location.pathname === "/portfolio" },
     { name: "Notes", path: "/notes", icon: <FileText className="w-5 h-5" />, active: location.pathname === "/notes" },
   ];
 
