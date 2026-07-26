@@ -24,6 +24,7 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
     review: "",
     seasons: {}, // { [seasonNumber]: { rating: 4, review: "...", watched: true } }
     currentProgress: ""
+  });
 
   // Load trending on category change
   useEffect(() => {
