@@ -257,7 +257,13 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
                                 )}
                                 <div>
                                   <h4 className={`font-bold ${season.watched ? 'text-zinc-100' : 'text-zinc-500'}`}>{season.name}</h4>
-                                  <div className="flex items-center gap-2 mt-1">
+                                  <div className="flex items-center gap-2 mt-1 border-t-transparent">
+                                    {season.episodeCount ? (
+                                      <span className="text-[11px] font-medium text-zinc-500 bg-zinc-800/50 px-2 py-0.5 rounded mr-1">
+                                        {season.episodeCount} épisodes
+                                      </span>
+                                    ) : null}
+                                    
                                     {season.watched ? (
                                       <StarRating rating={season.rating} readonly size="w-3.5 h-3.5" />
                                     ) : (

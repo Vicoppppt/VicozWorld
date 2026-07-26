@@ -107,6 +107,7 @@ export function EditMediaModal({ isOpen, onClose, media, onSave }) {
           seasonNumber: s.season_number,
           name: s.name,
           posterPath: s.poster_path ? getImageUrl(s.poster_path, "w342") : null,
+          episodeCount: s.episode_count || null,
           watched: userData?.watched || false,
           rating: userData?.watched ? userData.rating : 0,
           review: userData?.watched ? userData.review : ""
