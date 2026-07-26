@@ -1,7 +1,10 @@
-import { MapPin, Mail, Phone, ExternalLink, GraduationCap, Code2, Briefcase, Languages } from "lucide-react";
+import { MapPin, Mail, Phone, ExternalLink, GraduationCap, Code2, Briefcase, Languages, Image as ImageIcon, X } from "lucide-react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 
 export function Portfolio() {
+  const [selectedImage, setSelectedImage] = useState(null);
+
   const experiences = [
     {
       period: "Juillet 2025 - Septembre 2025",
@@ -72,6 +75,15 @@ export function Portfolio() {
   const languages = [
     { name: "Français", level: "Langue maternelle" },
     { name: "Anglais", level: "Niveau B2" }
+  ];
+
+  const gallery = [
+    { id: 1, url: "https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&q=80&w=800", title: "Photographie 1" },
+    { id: 2, url: "https://images.unsplash.com/photo-1516802273409-68526ee1bdd6?auto=format&fit=crop&q=80&w=800", title: "Poster Design" },
+    { id: 3, url: "https://images.unsplash.com/photo-1551334787-21e6bd3ab135?auto=format&fit=crop&q=80&w=800", title: "Photographie 2" },
+    { id: 4, url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=800", title: "Design Graphique" },
+    { id: 5, url: "https://images.unsplash.com/photo-1534337623306-e13f1674fd6e?auto=format&fit=crop&q=80&w=800", title: "Photographie 3" },
+    { id: 6, url: "https://images.unsplash.com/photo-1627398514808-724bbba320e8?auto=format&fit=crop&q=80&w=800", title: "Poster Film" }
   ];
 
   return (
@@ -260,7 +272,62 @@ export function Portfolio() {
           </div>
         </div>
         
+        {/* Section Galerie */}
+        <div className="mt-20 pt-16 border-t border-zinc-800/80">
+          <div className="mb-8 flex items-center gap-3">
+            <div className="p-2 bg-zinc-900 rounded-xl border border-zinc-800">
+              <ImageIcon className="w-6 h-6 text-zinc-300" />
+            </div>
+            <h2 className="text-2xl font-bold text-white">Galerie & Créations</h2>
+          </div>
+          <p className="text-zinc-400 mb-8 max-w-2xl">
+            Un aperçu de mes photographies, designs de posters et créations graphiques. 
+            (Les images actuelles sont des exemples, elles seront remplacées via CasaOS très bientôt).
+          </p>
+          
+          {/* Grille Masonry simplifiée en CSS */}
+          <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
+            {gallery.map((img) => (
+              <motion.div
+                key={img.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="relative group overflow-hidden rounded-2xl cursor-pointer break-inside-avoid"
+                onClick={() => setSelectedImage(img)}
+              >
+                <img 
+                  src={img.url} 
+                  alt={img.title} 
+                  className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-zinc-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                  <span className="text-white font-bold">{img.title}</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
       </div>
+
+      {/* Lightbox Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/95 backdrop-blur-sm" onClick={() => setSelectedImage(null)}>
+          <button 
+            className="absolute top-6 right-6 p-2 text-zinc-400 hover:text-white bg-zinc-900 rounded-full transition-colors"
+            onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img 
+            src={selectedImage.url} 
+            alt={selectedImage.title} 
+            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+          />
+        </div>
+      )}
     </div>
   );
 }
