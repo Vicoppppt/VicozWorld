@@ -56,24 +56,29 @@ export function Banque() {
   // Calcul du simulateur
   const projectionData = useMemo(() => {
     const data = [];
-    let currentCapital = initialCapital;
-    const monthlyRate = (annualRate / 100) / 12;
+    const pCapital = Number(initialCapital) || 0;
+    const pMonthly = Number(monthlyContribution) || 0;
+    const pRate = Number(annualRate) || 0;
+    const pDuration = Number(durationYears) || 0;
 
-    for (let year = 0; year <= durationYears; year++) {
+    let currentCapital = pCapital;
+    const monthlyRate = (pRate / 100) / 12;
+
+    for (let year = 0; year <= pDuration; year++) {
       if (year === 0) {
         data.push({
           year: `Année ${year}`,
-          TotalVersé: initialCapital,
-          Capital: initialCapital,
+          TotalVersé: pCapital,
+          Capital: pCapital,
           Intérêts: 0
         });
         continue;
       }
 
-      let yearTotalInvested = initialCapital + (monthlyContribution * 12 * year);
+      let yearTotalInvested = pCapital + (pMonthly * 12 * year);
       
       for (let month = 1; month <= 12; month++) {
-        currentCapital = currentCapital * (1 + monthlyRate) + monthlyContribution;
+        currentCapital = currentCapital * (1 + monthlyRate) + pMonthly;
       }
 
       data.push({
@@ -247,7 +252,7 @@ export function Banque() {
                     <input 
                       type="number" 
                       value={initialCapital}
-                      onChange={(e) => setInitialCapital(Number(e.target.value))}
+                      onChange={(e) => setInitialCapital(e.target.value === '' ? '' : Number(e.target.value))}
                       className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"
                     />
                   </div>
@@ -256,7 +261,7 @@ export function Banque() {
                     <input 
                       type="number" 
                       value={monthlyContribution}
-                      onChange={(e) => setMonthlyContribution(Number(e.target.value))}
+                      onChange={(e) => setMonthlyContribution(e.target.value === '' ? '' : Number(e.target.value))}
                       className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"
                     />
                   </div>
@@ -266,7 +271,7 @@ export function Banque() {
                       type="number" 
                       step="0.1"
                       value={annualRate}
-                      onChange={(e) => setAnnualRate(Number(e.target.value))}
+                      onChange={(e) => setAnnualRate(e.target.value === '' ? '' : Number(e.target.value))}
                       className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"
                     />
                   </div>
@@ -275,7 +280,7 @@ export function Banque() {
                     <input 
                       type="number" 
                       value={durationYears}
-                      onChange={(e) => setDurationYears(Number(e.target.value))}
+                      onChange={(e) => setDurationYears(e.target.value === '' ? '' : Number(e.target.value))}
                       className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"
                     />
                   </div>
