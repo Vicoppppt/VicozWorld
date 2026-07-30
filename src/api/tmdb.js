@@ -116,9 +116,31 @@ export async function getDirectorFilmography(personId) {
     // On trie par date de sortie la plus récente
     return uniqueMovies
       .map(item => ({ ...item, media_type: "movie" }))
-      .sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
+      .sort((a, b) => new Date(b.release_date || 0) - new Date(a.release_date || 0));
   } catch (error) {
     console.error("Erreur lors de la récupération de la filmographie :", error);
+    return [];
+  }
+}
+
+/**
+ * Récupère les films joués par un acteur
+ */
+export async function getActorFilmography(personId) {
+  if (!API_KEY) return [];
+  try {
+    const data = await fetchJson(`${BASE_URL}/person/${personId}/movie_credits?api_key=${API_KEY}&language=fr-FR`);
+    // On garde uniquement les films où l'acteur a joué (cast)
+    const actedMovies = data.cast || [];
+    // On retire les doublons potentiels (même ID)
+    const uniqueMovies = Array.from(new Map(actedMovies.map(item => [item.id, item])).values());
+    
+    // On trie par date de sortie la plus récente
+    return uniqueMovies
+      .map(item => ({ ...item, media_type: "movie" }))
+      .sort((a, b) => new Date(b.release_date || 0) - new Date(a.release_date || 0));
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la filmographie acteur :", error);
     return [];
   }
 }

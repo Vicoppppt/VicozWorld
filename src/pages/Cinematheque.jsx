@@ -7,7 +7,7 @@ import { MediaGrid } from '../components/MediaGrid';
 import { AddMediaModal } from '../components/AddMediaModal';
 import { MediaDetailsModal } from '../components/MediaDetailsModal';
 import { EditMediaModal } from '../components/EditMediaModal';
-import { DirectorFilmographyModal } from '../components/DirectorFilmographyModal';
+import { PersonFilmographyModal } from '../components/PersonFilmographyModal';
 import { getMediaDetails, getTvSeason } from '../api/tmdb';
 
 
@@ -22,7 +22,8 @@ export function Cinematheque() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState(null);
-  const [selectedDirector, setSelectedDirector] = useState(null);
+  const [selectedPerson, setSelectedPerson] = useState(null);
+  const [selectedPersonRole, setSelectedPersonRole] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "medias"), (snapshot) => {
@@ -273,7 +274,13 @@ export function Cinematheque() {
         onEditClick={() => setIsEditModalOpen(true)}
         onDirectorClick={(directorName) => {
           setSelectedMedia(null);
-          setSelectedDirector(directorName);
+          setSelectedPerson(directorName);
+          setSelectedPersonRole("director");
+        }}
+        onActorClick={(actorName) => {
+          setSelectedMedia(null);
+          setSelectedPerson(actorName);
+          setSelectedPersonRole("actor");
         }}
         onDeleteClick={() => {
           if(window.confirm("Voulez-vous vraiment supprimer cette œuvre de votre journal ?")) {
@@ -289,10 +296,14 @@ export function Cinematheque() {
         onSave={handleEditMedia}
       />
 
-      <DirectorFilmographyModal
-        isOpen={!!selectedDirector}
-        directorName={selectedDirector}
-        onClose={() => setSelectedDirector(null)}
+      <PersonFilmographyModal
+        isOpen={!!selectedPerson}
+        personName={selectedPerson}
+        personRole={selectedPersonRole}
+        onClose={() => {
+          setSelectedPerson(null);
+          setSelectedPersonRole(null);
+        }}
         mediaList={mediaList}
         onQuickAddWatchlist={handleQuickAddWatchlist}
       />

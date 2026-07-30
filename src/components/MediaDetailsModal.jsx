@@ -4,7 +4,7 @@ import { StarRating } from "./StarRating";
 import { motion, AnimatePresence } from "framer-motion";
 import { getTvSeasonDetails, getImageUrl } from "../api/tmdb";
 
-export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDeleteClick, onDirectorClick }) {
+export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDeleteClick, onDirectorClick, onActorClick }) {
   const [expandedSeason, setExpandedSeason] = useState(null);
   const [seasonDetailsCache, setSeasonDetailsCache] = useState({});
   const [isLoadingSeason, setIsLoadingSeason] = useState(false);
@@ -254,7 +254,11 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
                         </h3>
                         <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
                           {media.cast.map((actor, index) => (
-                            <div key={index} className="flex-none w-24 sm:w-28 text-center group">
+                            <div 
+                              key={index} 
+                              className={`flex-none w-24 sm:w-28 text-center group ${onActorClick ? 'cursor-pointer' : ''}`}
+                              onClick={() => onActorClick && onActorClick(actor.name)}
+                            >
                               <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden bg-zinc-800 mx-auto mb-3 border-2 border-zinc-800 group-hover:border-indigo-500 transition-colors">
                                 {actor.profilePath ? (
                                   <img 
@@ -385,10 +389,14 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
                                     {sDetails && sDetails.cast && sDetails.cast.length > 0 && (
                                       <div>
                                         <h5 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Casting</h5>
-                                        <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
-                                          {sDetails.cast.slice(0, 10).map((actor) => (
-                                            <div key={actor.id} className="flex-none w-20 text-center">
-                                              <div className="w-16 h-16 rounded-full overflow-hidden bg-zinc-800 mx-auto mb-2 border border-zinc-700">
+                                        <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
+                                          {sDetails.cast.map((actor, index) => (
+                                            <div 
+                                              key={index} 
+                                              className={`flex-none w-20 text-center group ${onActorClick ? 'cursor-pointer' : ''}`}
+                                              onClick={() => onActorClick && onActorClick(actor.name)}
+                                            >
+                                              <div className="w-16 h-16 rounded-full overflow-hidden bg-zinc-800 mx-auto mb-2 border border-zinc-700 group-hover:border-indigo-500 transition-colors">
                                                 {actor.profile_path ? (
                                                   <img 
                                                     src={getImageUrl(actor.profile_path, "w185")} 
