@@ -72,6 +72,40 @@ export function Cinematheque() {
     });
   }, [mediaList, activeType, activeStatus, searchQuery]);
 
+  const watchTime = useMemo(() => {
+    let totalMinutes = 0;
+    
+    filteredMedia.forEach(media => {
+      if (media.type === "Manga") return;
+      
+      if (media.type === "Film") {
+        if (media.status === "Terminé" && media.duration) {
+          totalMinutes += media.duration;
+        }
+      } else if (media.type === "Série" || media.type === "Animé") {
+        const epDuration = media.episodeDuration || 24; // fallback to 24m
+        if (media.seasons) {
+          media.seasons.forEach(season => {
+            if (season.watchedEpisodes) {
+              totalMinutes += season.watchedEpisodes * epDuration;
+            }
+          });
+        }
+      }
+    });
+
+    if (totalMinutes === 0) return null;
+    
+    const days = Math.floor(totalMinutes / (24 * 60));
+    const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+    const mins = totalMinutes % 60;
+    
+    if (days > 0) {
+      return `${days}j ${hours}h ${mins.toString().padStart(2, '0')}m`;
+    }
+    return `${hours}h ${mins.toString().padStart(2, '0')}m`;
+  }, [filteredMedia]);
+
   const handleAddMedia = async (newMedia) => {
     const exists = mediaList.some(m => 
       (newMedia.tmdbId && m.tmdbId === newMedia.tmdbId) || 
@@ -163,6 +197,7 @@ export function Cinematheque() {
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           count={filteredMedia.length}
+          watchTime={watchTime}
           onAddClick={() => setIsModalOpen(true)}
         />
         

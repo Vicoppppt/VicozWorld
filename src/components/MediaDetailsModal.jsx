@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Calendar, User, Users, Trash2, Edit3, ChevronDown, ChevronUp, Loader2, BookOpen } from "lucide-react";
+import { X, Calendar, User, Users, Trash2, Edit3, ChevronDown, ChevronUp, Loader2, BookOpen, Clock } from "lucide-react";
 import { StarRating } from "./StarRating";
 import { motion, AnimatePresence } from "framer-motion";
 import { getTvSeasonDetails, getImageUrl } from "../api/tmdb";
@@ -219,6 +219,26 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
                     <div>
                       <p className="text-xs text-zinc-500 uppercase font-semibold tracking-wider">Tomes & Chapitres</p>
                       <p className="font-medium">{media.volumeCount || '?'} Tomes, {media.chapterCount} Chapitres</p>
+                    </div>
+                  </div>
+                )}
+
+                {media.type === "Film" && media.duration > 0 && (
+                  <div className="flex items-center gap-3 text-zinc-300 bg-zinc-950/50 p-3 rounded-xl border border-zinc-800">
+                    <Clock className="w-5 h-5 text-indigo-400" />
+                    <div>
+                      <p className="text-xs text-zinc-500 uppercase font-semibold tracking-wider">Durée</p>
+                      <p className="font-medium">{Math.floor(media.duration / 60)}h {(media.duration % 60).toString().padStart(2, '0')}m</p>
+                    </div>
+                  </div>
+                )}
+
+                {(media.type === "Série" || media.type === "Animé") && media.episodeDuration > 0 && (
+                  <div className="flex items-center gap-3 text-zinc-300 bg-zinc-950/50 p-3 rounded-xl border border-zinc-800">
+                    <Clock className="w-5 h-5 text-indigo-400" />
+                    <div>
+                      <p className="text-xs text-zinc-500 uppercase font-semibold tracking-wider">Durée / Épisode</p>
+                      <p className="font-medium">{media.episodeDuration} min</p>
                     </div>
                   </div>
                 )}

@@ -1,7 +1,7 @@
 import { MEDIA_TYPES, MEDIA_STATUS } from "../data/mockData";
 import { Search, Plus } from "lucide-react";
 
-export function FilterBar({ activeType, setActiveType, activeStatus, setActiveStatus, searchQuery, setSearchQuery, onAddClick }) {
+export function FilterBar({ activeType, setActiveType, activeStatus, setActiveStatus, searchQuery, setSearchQuery, onAddClick, watchTime }) {
   return (
     <div className="bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800/80 sticky top-0 z-30 shadow-xl shadow-black/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -58,6 +58,12 @@ export function FilterBar({ activeType, setActiveType, activeStatus, setActiveSt
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
+            {watchTime && activeType !== "Manga" && (
+              <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-zinc-950/50 border border-zinc-800/80 rounded-xl">
+                <span className="text-sm text-zinc-400">Temps de visionnage:</span>
+                <span className="text-sm font-bold text-indigo-400">{watchTime}</span>
+              </div>
+            )}
             <button
               onClick={onAddClick}
               className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 active:translate-y-0"

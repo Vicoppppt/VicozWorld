@@ -92,10 +92,11 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
   const handleSelectMedia = async (item) => {
     setSelectedItem(item);
     
-    // Fetch additional details if it's a TV show or Anime (for seasons)
+    setIsSearching(true);
+    let details = null;
+    
     if (item.media_type === "tv" || item.media_type === "anime") {
-      setIsSearching(true);
-      const details = await getMediaDetails(item.id, "tv");
+      details = await getMediaDetails(item.id, "tv");
       if (details) {
         // Filtrer la saison 0 (Specials)
         const validSeasons = (details.seasons || []).filter(s => s.season_number > 0);
@@ -108,8 +109,14 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
         });
         setFormData(prev => ({ ...prev, seasons: initialSeasons }));
       }
-      setIsSearching(false);
+    } else if (item.media_type === "movie") {
+      details = await getMediaDetails(item.id, "movie");
+      if (details) {
+        setSelectedItem(prev => ({ ...prev, details }));
+      }
     }
+    
+    setIsSearching(false);
     
     goToStep(2);
   };
@@ -232,7 +239,11 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
       seasons: savedSeasons, // Ajout de la structure de saisons
       currentProgress: (formData.status === "En cours" || formData.status === "En pause") ? formData.currentProgress : "",
       chapterCount: selectedItem.details?.chapterCount || null,
-      volumeCount: selectedItem.details?.volumeCount || null
+      volumeCount: selectedItem.details?.volumeCount || null,
+      duration: selectedItem.media_type === "movie" ? (selectedItem.details?.runtime || 0) : 0,
+      episodeDuration: (selectedItem.media_type === "tv" || selectedItem.media_type === "anime") 
+        ? (selectedItem.details?.episode_run_time?.[0] || selectedItem.details?.last_episode_to_air?.runtime || 24) 
+        : 0
     };
 
     onAdd(newMedia);
