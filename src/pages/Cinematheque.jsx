@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import { User, Users } from 'lucide-react';
 import { db } from '../api/firebase';
 import { collection, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { FilterBar } from '../components/FilterBar';
@@ -8,7 +9,7 @@ import { AddMediaModal } from '../components/AddMediaModal';
 import { MediaDetailsModal } from '../components/MediaDetailsModal';
 import { EditMediaModal } from '../components/EditMediaModal';
 import { PersonFilmographyModal } from '../components/PersonFilmographyModal';
-import { getMediaDetails, getTvSeason } from '../api/tmdb';
+import { getMediaDetails, getTvSeason, searchPersons, getImageUrl } from '../api/tmdb';
 
 
 
@@ -24,6 +25,7 @@ export function Cinematheque() {
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [selectedPersonRole, setSelectedPersonRole] = useState(null);
+  const [personSearchResults, setPersonSearchResults] = useState([]);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "medias"), (snapshot) => {
@@ -39,6 +41,21 @@ export function Cinematheque() {
 
     return () => unsubscribe();
   }, []);
+
+  // Recherche de personnes
+  useEffect(() => {
+    if (activeType !== "Tous" || searchQuery.length < 3) {
+      setPersonSearchResults([]);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      const results = await searchPersons(searchQuery);
+      setPersonSearchResults(results);
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery, activeType]);
 
   // Background migration for missing duration fields
   useEffect(() => {
@@ -258,6 +275,42 @@ export function Cinematheque() {
           onAddClick={() => setIsModalOpen(true)}
         />
         
+        {personSearchResults.length > 0 && (
+          <div className="px-6 py-4 bg-zinc-900/50 border-b border-zinc-800">
+            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Users className="w-4 h-4" /> Personnes
+            </h3>
+            <div className="flex overflow-x-auto gap-4 pb-2 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
+              {personSearchResults.map((person) => (
+                <div 
+                  key={person.id} 
+                  className="flex-none w-24 text-center group cursor-pointer"
+                  onClick={() => {
+                    setSelectedPerson(person.name);
+                    setSelectedPersonRole(person.known_for_department === "Directing" ? "director" : "actor");
+                  }}
+                >
+                  <div className="w-20 h-20 rounded-full overflow-hidden bg-zinc-800 mx-auto mb-3 border-2 border-zinc-800 group-hover:border-indigo-500 transition-colors">
+                    {person.profile_path ? (
+                      <img 
+                        src={getImageUrl(person.profile_path, "w185")} 
+                        alt={person.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <User className="w-8 h-8 text-zinc-600" />
+                      </div>
+                    )}
+                  </div>
+                  <p className="font-medium text-zinc-200 text-[11px] leading-tight line-clamp-2">{person.name}</p>
+                  <p className="text-[10px] text-zinc-500 mt-0.5">{person.known_for_department === "Directing" ? "Réalisateur" : "Acteur"}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <MediaGrid mediaList={filteredMedia} onMediaClick={setSelectedMedia} />
       </main>
 

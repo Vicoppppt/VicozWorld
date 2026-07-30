@@ -102,6 +102,20 @@ export async function searchPerson(name) {
 }
 
 /**
+ * Recherche une liste de personnes (acteurs, réalisateurs)
+ */
+export async function searchPersons(name) {
+  if (!API_KEY || !name) return [];
+  try {
+    const data = await fetchJson(`${BASE_URL}/search/person?query=${encodeURIComponent(name)}&api_key=${API_KEY}&language=fr-FR`);
+    return data.results || [];
+  } catch (error) {
+    console.error("Erreur lors de la recherche de personnes :", error);
+    return [];
+  }
+}
+
+/**
  * Récupère les films réalisés par une personne
  */
 export async function getDirectorFilmography(personId) {
