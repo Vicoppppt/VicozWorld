@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Landmark, RefreshCw, AlertCircle, CreditCard, Wallet, TrendingUp, LineChart as LineChartIcon, Settings2, Calculator } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { CalculatorWidget } from '../components/Calculator';
 
 export function Banque() {
   const [balances, setBalances] = useState({ accounts: [], total: 0 });
@@ -367,6 +368,9 @@ export function Banque() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Floating Calculator */}
+      <CalculatorWidget />
     </div>
   );
 }
