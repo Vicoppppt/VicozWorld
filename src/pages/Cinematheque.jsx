@@ -8,6 +8,7 @@ import { AddMediaModal } from '../components/AddMediaModal';
 import { MediaDetailsModal } from '../components/MediaDetailsModal';
 import { EditMediaModal } from '../components/EditMediaModal';
 import { DirectorFilmographyModal } from '../components/DirectorFilmographyModal';
+import { getMediaDetails } from '../api/tmdb';
 
 
 
@@ -37,6 +38,42 @@ export function Cinematheque() {
 
     return () => unsubscribe();
   }, []);
+
+  // Background migration for missing duration fields
+  useEffect(() => {
+    if (mediaList.length === 0) return;
+
+    const fixMissingDurations = async () => {
+      const missingMedias = mediaList.filter(m => {
+        if (m.type === "Film" && typeof m.duration !== "number") return true;
+        if ((m.type === "Série" || m.type === "Animé") && typeof m.episodeDuration !== "number") return true;
+        return false;
+      });
+
+      if (missingMedias.length === 0) return;
+
+      for (const media of missingMedias) {
+        if (media.tmdbId) {
+          try {
+            const details = await getMediaDetails(media.tmdbId, media.type === "Film" ? "movie" : "tv");
+            if (details) {
+              const updatedMedia = { ...media };
+              if (media.type === "Film") {
+                updatedMedia.duration = details.runtime || 0;
+              } else {
+                updatedMedia.episodeDuration = details.episode_run_time?.[0] || details.last_episode_to_air?.runtime || 24;
+              }
+              await setDoc(doc(db, "medias", updatedMedia.id), updatedMedia);
+            }
+          } catch (e) {
+            console.error("Error migrating media", media.title, e);
+          }
+        }
+        await new Promise(r => setTimeout(r, 500)); // Rate limit protection
+      }
+    };
+    fixMissingDurations();
+  }, [mediaList.length]); // Only re-run if length changes, no need to run on every update
 
   useEffect(() => {
     const saved = localStorage.getItem("mon-letterboxd-data");
@@ -155,7 +192,11 @@ export function Cinematheque() {
       tmdbId: tmdbMedia.id,
       status: "À voir",
       currentProgress: "",
-      review: ""
+      review: "",
+      duration: tmdbMedia.media_type === "movie" ? (tmdbMedia.details?.runtime || 0) : 0,
+      episodeDuration: (tmdbMedia.media_type === "tv" || tmdbMedia.media_type === "anime")
+        ? (tmdbMedia.details?.episode_run_time?.[0] || tmdbMedia.details?.last_episode_to_air?.runtime || 24)
+        : 0
     };
     
     try {

@@ -321,6 +321,12 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
                                         {season.episodeCount} épisodes
                                       </span>
                                     ) : null}
+                                    {season.episodeCount && media.episodeDuration ? (
+                                      <span className="text-[11px] font-medium text-zinc-500 bg-zinc-800/50 px-2 py-0.5 rounded mr-1 flex items-center gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        {Math.floor((season.episodeCount * media.episodeDuration) / 60)}h {((season.episodeCount * media.episodeDuration) % 60).toString().padStart(2, '0')}m
+                                      </span>
+                                    ) : null}
                                     
                                     {season.watched ? (
                                       <StarRating rating={season.rating} readonly size="w-3.5 h-3.5" />
