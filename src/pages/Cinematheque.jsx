@@ -8,7 +8,7 @@ import { AddMediaModal } from '../components/AddMediaModal';
 import { MediaDetailsModal } from '../components/MediaDetailsModal';
 import { EditMediaModal } from '../components/EditMediaModal';
 import { DirectorFilmographyModal } from '../components/DirectorFilmographyModal';
-import { getMediaDetails } from '../api/tmdb';
+import { getMediaDetails, getTvSeason } from '../api/tmdb';
 
 
 
@@ -46,7 +46,11 @@ export function Cinematheque() {
     const fixMissingDurations = async () => {
       const missingMedias = mediaList.filter(m => {
         if (m.type === "Film" && typeof m.duration !== "number") return true;
-        if ((m.type === "Série" || m.type === "Animé") && typeof m.episodeDuration !== "number") return true;
+        if (m.type === "Série" || m.type === "Animé") {
+          if (m.seasons && m.seasons.length > 0) {
+            return m.seasons.some(s => !s.episodesRuntimes);
+          }
+        }
         return false;
       });
 
@@ -62,6 +66,13 @@ export function Cinematheque() {
                 updatedMedia.duration = details.runtime || 0;
               } else {
                 updatedMedia.episodeDuration = details.episode_run_time?.[0] || details.last_episode_to_air?.runtime || 24;
+                if (updatedMedia.seasons && updatedMedia.seasons.length > 0) {
+                  const seasonsData = await Promise.all(updatedMedia.seasons.map(s => getTvSeason(media.tmdbId, s.seasonNumber)));
+                  updatedMedia.seasons = updatedMedia.seasons.map((s, idx) => ({
+                    ...s,
+                    episodesRuntimes: seasonsData[idx]?.episodes?.map(ep => ep.runtime || 0) || []
+                  }));
+                }
               }
               await setDoc(doc(db, "medias", updatedMedia.id), updatedMedia);
             }
@@ -124,7 +135,11 @@ export function Cinematheque() {
         if (media.seasons) {
           media.seasons.forEach(season => {
             if (season.watchedEpisodes) {
-              totalMinutes += season.watchedEpisodes * epDuration;
+              if (season.episodesRuntimes && season.episodesRuntimes.length > 0) {
+                totalMinutes += season.episodesRuntimes.slice(0, season.watchedEpisodes).reduce((a, b) => a + (b || epDuration), 0);
+              } else {
+                totalMinutes += season.watchedEpisodes * epDuration;
+              }
             }
           });
         }

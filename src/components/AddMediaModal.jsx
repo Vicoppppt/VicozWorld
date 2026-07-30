@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Search, Loader2, Image as ImageIcon, ChevronLeft, Check, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { searchMedia, getTrendingMedia, getMediaCredits, getImageUrl, getMediaDetails, getTvSeasonDetails } from "../api/tmdb";
+import { searchMedia, getTrendingMedia, getMediaCredits, getImageUrl, getMediaDetails, getTvSeasonDetails, getTvSeason } from "../api/tmdb";
 import { searchKitsuManga, getKitsuTrendingManga } from "../api/kitsu";
 import { StarRating } from "./StarRating";
 import { toast } from "react-hot-toast";
@@ -104,7 +104,12 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
         
         // Initialiser le state des saisons
         const initialSeasons = {};
-        validSeasons.forEach(s => {
+        
+        // Fetch episode runtimes for each season in parallel
+        const seasonsData = await Promise.all(validSeasons.map(s => getTvSeason(item.id, s.season_number)));
+        
+        validSeasons.forEach((s, idx) => {
+          s.episodesRuntimes = seasonsData[idx]?.episodes?.map(ep => ep.runtime || 0) || [];
           initialSeasons[s.season_number] = { watched: false, rating: 0, review: "", watchedEpisodes: 0 };
         });
         setFormData(prev => ({ ...prev, seasons: initialSeasons }));
@@ -236,7 +241,10 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
       tmdbId: selectedItem.id,
       status: formData.status,
       review: (!isMultiSeason && formData.status !== "À voir") ? formData.review : "",
-      seasons: savedSeasons, // Ajout de la structure de saisons
+      seasons: savedSeasons.map(s => ({
+        ...s,
+        episodesRuntimes: selectedItem.details.seasons.find(ds => ds.season_number === s.seasonNumber)?.episodesRuntimes || []
+      })),
       currentProgress: (formData.status === "En cours" || formData.status === "En pause") ? formData.currentProgress : "",
       chapterCount: selectedItem.details?.chapterCount || null,
       volumeCount: selectedItem.details?.volumeCount || null,

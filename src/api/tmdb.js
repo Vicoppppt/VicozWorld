@@ -137,6 +137,19 @@ export async function getTvSeasonDetails(tvId, seasonNumber) {
 }
 
 /**
+ * Récupère les détails complets d'une saison (épisodes, durées, etc)
+ */
+export async function getTvSeason(tvId, seasonNumber) {
+  if (!API_KEY) return null;
+  try {
+    return await fetchJson(`${BASE_URL}/tv/${tvId}/season/${seasonNumber}?api_key=${API_KEY}&language=fr-FR`);
+  } catch (error) {
+    console.error(`Erreur lors de la récupération de la saison ${seasonNumber} :`, error);
+    return null;
+  }
+}
+
+/**
  * Construit l'URL complète d'une image TMDB
  */
 export function getImageUrl(path, size = "w500") {

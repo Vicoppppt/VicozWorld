@@ -138,7 +138,8 @@ export function EditMediaModal({ isOpen, onClose, media, onSave }) {
           watched: userData?.watched || false,
           watchedEpisodes: userData?.watchedEpisodes || (userData?.watched ? s.episode_count : 0),
           rating: userData?.watched ? userData.rating : 0,
-          review: userData?.watched ? userData.review : ""
+          review: userData?.watched ? userData.review : "",
+          episodesRuntimes: media.seasons?.find(ms => ms.seasonNumber === s.season_number)?.episodesRuntimes || []
         };
       });
     }

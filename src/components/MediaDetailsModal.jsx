@@ -233,15 +233,6 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
                   </div>
                 )}
 
-                {(media.type === "Série" || media.type === "Animé") && media.episodeDuration > 0 && (
-                  <div className="flex items-center gap-3 text-zinc-300 bg-zinc-950/50 p-3 rounded-xl border border-zinc-800">
-                    <Clock className="w-5 h-5 text-indigo-400" />
-                    <div>
-                      <p className="text-xs text-zinc-500 uppercase font-semibold tracking-wider">Durée / Épisode</p>
-                      <p className="font-medium">{media.episodeDuration} min</p>
-                    </div>
-                  </div>
-                )}
               </div>
 
               <div className="space-y-6">
@@ -321,10 +312,15 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
                                         {season.episodeCount} épisodes
                                       </span>
                                     ) : null}
-                                    {season.episodeCount && media.episodeDuration ? (
+                                    {season.episodeCount && (season.episodesRuntimes?.length > 0 || media.episodeDuration) ? (
                                       <span className="text-[11px] font-medium text-zinc-500 bg-zinc-800/50 px-2 py-0.5 rounded mr-1 flex items-center gap-1">
                                         <Clock className="w-3 h-3" />
-                                        {Math.floor((season.episodeCount * media.episodeDuration) / 60)}h {((season.episodeCount * media.episodeDuration) % 60).toString().padStart(2, '0')}m
+                                        {(() => {
+                                          const totalMins = season.episodesRuntimes?.length > 0
+                                            ? season.episodesRuntimes.reduce((a, b) => a + (b || media.episodeDuration || 24), 0)
+                                            : season.episodeCount * (media.episodeDuration || 24);
+                                          return `${Math.floor(totalMins / 60)}h ${(totalMins % 60).toString().padStart(2, '0')}m`;
+                                        })()}
                                       </span>
                                     ) : null}
                                     
