@@ -146,7 +146,7 @@ export function PersonFilmographyModal({ personName, personRole = "director", is
                       ) : (
                         /* FILM NON VU (GRISÉ + QUICK ADD) */
                         <div 
-                          onClick={() => onQuickAddWatchlist({ ...movie, director: directorName })}
+                          onClick={() => onQuickAddWatchlist({ ...movie, director: personRole === "director" ? personName : null })}
                           className="relative bg-zinc-950 border border-zinc-800/50 rounded-xl overflow-hidden aspect-[2/3] cursor-pointer hover:border-indigo-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/20 group-hover:-translate-y-1"
                         >
                           <img
