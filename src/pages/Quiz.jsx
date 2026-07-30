@@ -110,7 +110,7 @@ export function Quiz() {
     const allActorsWithMedia = [];
     medias.forEach(m => {
       if (m.cast && m.cast.length > 0) {
-        m.cast.forEach(a => {
+        m.cast.slice(0, 3).forEach(a => {
           if (a.name) {
             allActorsWithMedia.push({ actor: a.name, character: a.character, mediaTitle: m.title });
           }
