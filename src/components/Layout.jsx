@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Globe, Film, Briefcase, FileText, Menu, X } from "lucide-react";
+import { Globe, Film, Briefcase, FileText, Menu, X, Gamepad2 } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Toaster } from "react-hot-toast";
@@ -11,6 +11,7 @@ export function Layout({ children }) {
   const navItems = [
     { name: "Accueil", path: "/", icon: <Globe className="w-5 h-5" />, active: location.pathname === "/" },
     { name: "Cinémathèque", path: "/cinematheque", icon: <Film className="w-5 h-5" />, active: location.pathname === "/cinematheque" },
+    { name: "Quiz", path: "/quiz", icon: <Gamepad2 className="w-5 h-5" />, active: location.pathname === "/quiz" },
     { name: "Portfolio", path: "/portfolio", icon: <Briefcase className="w-5 h-5" />, active: location.pathname === "/portfolio" },
     { name: "Notes", path: "/notes", icon: <FileText className="w-5 h-5" />, active: location.pathname === "/notes" },
   ];
