@@ -43,7 +43,7 @@ export function Quiz() {
         const querySnapshot = await getDocs(collection(db, "medias"));
         const data = querySnapshot.docs.map(doc => doc.data());
         // On ne garde que les terminés et ceux qui ont des données utiles
-        const finishedMedias = data.filter(m => m.status === "Terminé");
+        const finishedMedias = data.filter(m => m.status === "Terminé" && (m.type === "Film" || m.type === "Série"));
         setMedias(finishedMedias);
       } catch (error) {
         console.error("Erreur chargement médias :", error);
