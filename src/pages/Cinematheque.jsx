@@ -276,7 +276,7 @@ export function Cinematheque() {
         />
         
         {personSearchResults.length > 0 && (
-          <div className="px-6 py-4 bg-zinc-900/50 border-b border-zinc-800">
+          <div className="px-4 py-3 md:px-6 md:py-4 bg-zinc-900/50 border-b border-zinc-800">
             <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4 flex items-center gap-2">
               <Users className="w-4 h-4" /> Personnes
             </h3>

@@ -65,7 +65,7 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6">
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -79,7 +79,7 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="relative w-full max-w-5xl bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
+            className="relative w-full max-w-5xl bg-zinc-900 border border-zinc-800 rounded-none sm:rounded-2xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col md:flex-row h-[100dvh] sm:h-auto sm:max-h-[90vh]"
           >
             
             {/* Actions Button Top Right */}
@@ -140,7 +140,7 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
             </div>
 
             {/* Info */}
-            <div className="flex-1 p-6 md:p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
+            <div className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
               
               <div className="mb-6 pt-8 md:pt-0">
                 <h2 className="text-3xl font-bold text-zinc-100 pr-12">{media.title}</h2>

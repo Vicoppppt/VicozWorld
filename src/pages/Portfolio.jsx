@@ -88,9 +88,9 @@ export function Portfolio() {
 
   return (
     <div className="flex-1 w-full bg-zinc-950 text-zinc-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
         
-        <div className="flex flex-col lg:flex-row gap-12">
+        <div className="flex flex-col lg:flex-row gap-8 md:gap-12">
           
           {/* Colonne Gauche : Profil & Infos */}
           <div className="w-full lg:w-1/3 xl:w-1/4 shrink-0 space-y-8">
@@ -98,7 +98,7 @@ export function Portfolio() {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 relative overflow-hidden"
+              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 md:p-8 relative overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-bl-full blur-3xl"></div>
               
@@ -139,7 +139,7 @@ export function Portfolio() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8"
+              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 md:p-8"
             >
               <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-3">
                 <Code2 className="w-5 h-5 text-emerald-400" />
@@ -159,7 +159,7 @@ export function Portfolio() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8"
+              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 md:p-8"
             >
               <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-3">
                 <GraduationCap className="w-5 h-5 text-amber-400" />
@@ -180,7 +180,7 @@ export function Portfolio() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8"
+              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 md:p-8"
             >
               <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-3">
                 <Languages className="w-5 h-5 text-rose-400" />
@@ -226,7 +226,7 @@ export function Portfolio() {
             </div>
 
             {/* Timeline */}
-            <div className="relative border-l-2 border-zinc-800/80 ml-4 sm:ml-6 md:ml-8 space-y-12 pb-12">
+            <div className="relative border-l-2 border-zinc-800/80 ml-3 sm:ml-4 md:ml-8 space-y-12 pb-12">
               {experiences.map((exp, index) => (
                 <motion.div 
                   key={index}
@@ -234,12 +234,12 @@ export function Portfolio() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-100px" }}
                   transition={{ delay: index * 0.1 }}
-                  className="relative pl-8 sm:pl-12"
+                  className="relative pl-6 sm:pl-8 md:pl-12"
                 >
                   {/* Timeline Dot */}
                   <div className={`absolute -left-[11px] top-1.5 w-5 h-5 rounded-full border-4 border-zinc-950 bg-gradient-to-br ${exp.color} shadow-lg`}></div>
                   
-                  <div className="bg-zinc-900/50 border border-zinc-800/80 hover:border-zinc-700 rounded-2xl p-6 sm:p-8 transition-colors">
+                  <div className="bg-zinc-900/50 border border-zinc-800/80 hover:border-zinc-700 rounded-2xl p-4 sm:p-6 md:p-8 transition-colors">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
                       <div>
                         <h3 className="text-xl font-bold text-white mb-1">{exp.role}</h3>

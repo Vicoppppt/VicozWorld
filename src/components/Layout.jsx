@@ -1,20 +1,17 @@
 import { Link, useLocation } from "react-router-dom";
-import { Globe, Film, Briefcase, FileText, Menu, X, Gamepad2, Landmark } from "lucide-react";
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { Globe, Film, Briefcase, FileText, Gamepad2, Landmark } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
 export function Layout({ children }) {
   const location = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { name: "Accueil", path: "/", icon: <Globe className="w-5 h-5" />, active: location.pathname === "/" },
-    { name: "Cinémathèque", path: "/cinematheque", icon: <Film className="w-5 h-5" />, active: location.pathname === "/cinematheque" },
-    { name: "Quiz", path: "/quiz", icon: <Gamepad2 className="w-5 h-5" />, active: location.pathname === "/quiz" },
-    { name: "Banque", path: "/banque", icon: <Landmark className="w-5 h-5" />, active: location.pathname === "/banque" },
-    { name: "Portfolio", path: "/portfolio", icon: <Briefcase className="w-5 h-5" />, active: location.pathname === "/portfolio" },
-    { name: "Notes", path: "/notes", icon: <FileText className="w-5 h-5" />, active: location.pathname === "/notes" },
+    { name: "Accueil", shortName: "Accueil", path: "/", icon: Globe, active: location.pathname === "/" },
+    { name: "Cinémathèque", shortName: "Ciné", path: "/cinematheque", icon: Film, active: location.pathname === "/cinematheque" },
+    { name: "Quiz", shortName: "Quiz", path: "/quiz", icon: Gamepad2, active: location.pathname === "/quiz" },
+    { name: "Banque", shortName: "Banque", path: "/banque", icon: Landmark, active: location.pathname === "/banque" },
+    { name: "Portfolio", shortName: "Folio", path: "/portfolio", icon: Briefcase, active: location.pathname === "/portfolio" },
+    { name: "Notes", shortName: "Notes", path: "/notes", icon: FileText, active: location.pathname === "/notes" },
   ];
 
   return (
@@ -32,14 +29,14 @@ export function Layout({ children }) {
       {/* Global Top Navbar */}
       <nav className="bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-14 md:h-16">
             
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-3 group">
+            <Link to="/" className="flex items-center gap-2 md:gap-3 group">
               <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white font-black shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
                 V
               </div>
-              <span className="text-xl font-bold tracking-tight text-white group-hover:text-indigo-200 transition-colors">
+              <span className="text-lg md:text-xl font-bold tracking-tight text-white group-hover:text-indigo-200 transition-colors">
                 VicozWorld
               </span>
             </Link>
@@ -48,91 +45,57 @@ export function Layout({ children }) {
             <div className="hidden md:flex flex-1 justify-center">
               <div className="flex items-center gap-1 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800/50">
                 {navItems.map((item) => (
-                  item.disabled ? (
-                    <div 
-                      key={item.name}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-zinc-600 cursor-not-allowed opacity-50"
-                      title="Bientôt disponible"
-                    >
-                      {item.icon}
-                      {item.name}
-                    </div>
-                  ) : (
-                    <Link
-                      key={item.name}
-                      to={item.path}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                        item.active 
-                          ? "bg-zinc-800 text-white shadow-sm" 
-                          : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50"
-                      }`}
-                    >
-                      {item.icon}
-                      {item.name}
-                    </Link>
-                  )
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                      item.active 
+                        ? "bg-zinc-800 text-white shadow-sm" 
+                        : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50"
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    {item.name}
+                  </Link>
                 ))}
               </div>
             </div>
 
-            {/* Mobile Menu Button */}
-            <div className="flex md:hidden">
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 focus:outline-none transition-colors"
-              >
-                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
-            </div>
+            {/* Spacer for mobile to keep logo centered-ish */}
+            <div className="w-8 md:hidden" />
           </div>
         </div>
       </nav>
 
-      {/* Mobile Menu Dropdown */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="md:hidden border-b border-zinc-800 bg-zinc-950 overflow-hidden"
-          >
-            <div className="px-4 py-3 space-y-1">
-              {navItems.map((item) => (
-                item.disabled ? (
-                  <div 
-                    key={item.name}
-                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-base font-medium text-zinc-600 opacity-50"
-                  >
-                    {item.icon}
-                    {item.name}
-                    <span className="ml-auto text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-500">
-                      Bientôt
-                    </span>
-                  </div>
-                ) : (
-                  <Link
-                    key={item.name}
-                    to={item.path}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-3 rounded-xl text-base font-medium transition-colors ${
-                      item.active 
-                        ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" 
-                        : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900"
-                    }`}
-                  >
-                    {item.icon}
-                    {item.name}
-                  </Link>
-                )
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Page Content with bottom padding for mobile tab bar */}
+      <div className="flex-1 flex flex-col pb-[72px] md:pb-0">
+        {children}
+      </div>
 
-      {/* Page Content */}
-      {children}
+      {/* Mobile Bottom Tab Bar */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-zinc-950/95 backdrop-blur-lg border-t border-zinc-800">
+        <div className="flex items-stretch justify-around px-1 safe-area-pb">
+          {navItems.map((item) => (
+            <Link
+              key={item.name}
+              to={item.path}
+              className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-h-[56px] py-2 transition-colors ${
+                item.active 
+                  ? "text-indigo-400" 
+                  : "text-zinc-500 active:text-zinc-300"
+              }`}
+            >
+              <item.icon className={`w-5 h-5 ${item.active ? 'drop-shadow-[0_0_6px_rgba(99,102,241,0.5)]' : ''}`} />
+              <span className={`text-[10px] font-semibold leading-tight ${item.active ? 'text-indigo-400' : ''}`}>
+                {item.shortName}
+              </span>
+              {item.active && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-indigo-500" />
+              )}
+            </Link>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }

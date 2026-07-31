@@ -61,7 +61,7 @@ export function NoteEditorModal({ isOpen, onClose, note, onSave }) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6">
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -75,7 +75,7 @@ export function NoteEditorModal({ isOpen, onClose, note, onSave }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="relative w-full max-w-4xl bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col h-[85vh]"
+            className="relative w-full max-w-4xl bg-zinc-900 border border-zinc-800 rounded-none sm:rounded-2xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col h-[100dvh] sm:h-[85vh]"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-900/50 shrink-0">
@@ -140,7 +140,7 @@ export function NoteEditorModal({ isOpen, onClose, note, onSave }) {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-zinc-800 bg-zinc-900/50 flex items-center justify-between shrink-0">
+            <div className="px-4 py-3 md:px-6 md:py-4 border-t border-zinc-800 bg-zinc-900/50 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden sm:block">Couleur</span>
                 <div className="flex gap-1.5">

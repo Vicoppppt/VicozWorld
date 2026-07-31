@@ -95,7 +95,7 @@ export function Banque() {
   const finalProjection = projectionData[projectionData.length - 1] || { Capital: 0, TotalVersé: 0, Intérêts: 0 };
 
   return (
-    <div className="flex-1 flex flex-col relative min-h-screen overflow-hidden p-6 md:p-12">
+    <div className="flex-1 flex flex-col relative min-h-screen overflow-hidden p-4 md:p-6 lg:p-12">
       {/* Effets de fond */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-teal-600/10 rounded-full blur-[120px] pointer-events-none" />
@@ -115,7 +115,7 @@ export function Banque() {
           <div className="flex flex-col sm:flex-row items-center gap-4 bg-zinc-900/50 p-2 rounded-2xl border border-zinc-800">
             <button
               onClick={() => setActiveTab('comptes')}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
+              className={`flex items-center gap-2 px-6 py-3 min-h-[44px] rounded-xl font-medium transition-all ${
                 activeTab === 'comptes' 
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' 
                 : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
@@ -126,7 +126,7 @@ export function Banque() {
             </button>
             <button
               onClick={() => setActiveTab('simulateur')}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
+              className={`flex items-center gap-2 px-6 py-3 min-h-[44px] rounded-xl font-medium transition-all ${
                 activeTab === 'simulateur' 
                 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' 
                 : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
@@ -172,14 +172,14 @@ export function Banque() {
               ) : (
                 <>
                   {/* Total Card */}
-                  <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-3xl p-8 md:p-10 shadow-2xl relative overflow-hidden group">
+                  <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-3xl p-5 md:p-8 lg:p-10 shadow-2xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px] group-hover:bg-emerald-500/10 transition-colors duration-700" />
                     <div className="relative z-10">
                       <div className="flex items-center gap-3 text-zinc-400 mb-4">
                         <TrendingUp className="w-5 h-5 text-emerald-400" />
                         <span className="font-medium uppercase tracking-wider text-sm">Solde Global</span>
                       </div>
-                      <h2 className="text-5xl md:text-7xl font-black text-white tracking-tight">
+                      <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-white tracking-tight">
                         {formatCurrency(balances.total)}
                       </h2>
                     </div>
@@ -241,7 +241,7 @@ export function Banque() {
               className="space-y-8"
             >
               {/* Controles du simulateur */}
-              <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-6 md:p-8 backdrop-blur-sm">
+              <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-4 md:p-6 lg:p-8 backdrop-blur-sm">
                 <div className="flex items-center gap-3 mb-8 text-indigo-400">
                   <Settings2 className="w-6 h-6" />
                   <h3 className="text-xl font-bold text-zinc-100">Paramètres de la simulation</h3>
@@ -292,24 +292,24 @@ export function Banque() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl flex flex-col justify-center">
                   <p className="text-zinc-500 text-sm font-medium uppercase tracking-wider mb-2">Total versé (Effort)</p>
-                  <p className="text-3xl font-bold text-white">{formatCurrency(finalProjection.TotalVersé)}</p>
+                  <p className="text-2xl md:text-3xl font-bold text-white">{formatCurrency(finalProjection.TotalVersé)}</p>
                 </div>
                 <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl flex flex-col justify-center relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/20 rounded-full blur-[30px]" />
                   <p className="text-emerald-500/80 text-sm font-medium uppercase tracking-wider mb-2">Intérêts générés</p>
-                  <p className="text-3xl font-bold text-emerald-400">+{formatCurrency(finalProjection.Intérêts)}</p>
+                  <p className="text-2xl md:text-3xl font-bold text-emerald-400">+{formatCurrency(finalProjection.Intérêts)}</p>
                 </div>
                 <div className="bg-indigo-600 border border-indigo-500 p-6 rounded-2xl flex flex-col justify-center relative overflow-hidden shadow-lg shadow-indigo-600/20">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-[40px]" />
                   <p className="text-indigo-200 text-sm font-medium uppercase tracking-wider mb-2 flex items-center gap-2">
                     <Calculator className="w-4 h-4" /> Capital Final
                   </p>
-                  <p className="text-4xl font-black text-white">{formatCurrency(finalProjection.Capital)}</p>
+                  <p className="text-3xl md:text-4xl font-black text-white">{formatCurrency(finalProjection.Capital)}</p>
                 </div>
               </div>
 
               {/* Graphique */}
-              <div className="bg-zinc-900/30 border border-zinc-800 rounded-3xl p-6 md:p-8 h-[500px]">
+              <div className="bg-zinc-900/30 border border-zinc-800 rounded-3xl p-4 md:p-6 lg:p-8 h-[350px] md:h-[500px] overflow-x-auto">
                 <h3 className="text-lg font-bold text-zinc-300 mb-6">Évolution du patrimoine</h3>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart

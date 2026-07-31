@@ -43,7 +43,7 @@ export function CalculatorWidget() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 p-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full shadow-2xl shadow-indigo-600/30 transition-all hover:scale-110 flex items-center justify-center group"
+        className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 p-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full shadow-2xl shadow-indigo-600/30 transition-all hover:scale-110 flex items-center justify-center group"
       >
         <CalcIcon className="w-6 h-6" />
         <span className="absolute right-full mr-4 bg-zinc-900 text-zinc-300 text-sm px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-zinc-800">
@@ -54,7 +54,7 @@ export function CalculatorWidget() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-72 bg-zinc-950 border border-zinc-800 rounded-3xl shadow-2xl shadow-black overflow-hidden flex flex-col">
+    <div className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 w-[calc(100vw-2rem)] sm:w-72 bg-zinc-950 border border-zinc-800 rounded-3xl shadow-2xl shadow-black overflow-hidden flex flex-col">
       <div className="flex items-center justify-between p-4 border-b border-zinc-800/50 bg-zinc-900/50">
         <div className="flex items-center gap-2 text-indigo-400 font-medium">
           <CalcIcon className="w-4 h-4" />
@@ -88,7 +88,7 @@ export function CalculatorWidget() {
               key={idx}
               onClick={() => handlePress(btn)}
               className={`
-                p-4 text-lg font-semibold rounded-xl transition-colors
+                p-3 md:p-4 min-h-[44px] text-lg font-semibold rounded-xl transition-colors
                 ${isZero ? 'col-span-2' : ''}
                 ${isOperator 
                   ? 'bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white' 

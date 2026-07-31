@@ -205,7 +205,7 @@ export function Quiz() {
   }
 
   return (
-    <div className="flex-1 flex flex-col relative min-h-screen overflow-hidden p-6 md:p-12">
+    <div className="flex-1 flex flex-col relative min-h-screen overflow-hidden p-4 md:p-6 lg:p-12">
       {/* Effets de fond */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
@@ -226,17 +226,17 @@ export function Quiz() {
               <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 mb-8 shadow-2xl shadow-indigo-500/20">
                 <Gamepad2 className="w-10 h-10" />
               </div>
-              <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-zinc-100 to-zinc-400 mb-4">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-zinc-100 to-zinc-400 mb-4">
                 VicozQuiz
               </h1>
               <p className="text-zinc-400 text-lg mb-12 max-w-lg mx-auto">
                 Testez vos connaissances sur les œuvres que vous avez regardées ! 10 questions, 10 secondes par question.
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
                 <button 
                   onClick={() => generateQuestions('director')}
-                  className="group relative p-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl hover:bg-indigo-500/10 hover:border-indigo-500/50 transition-all duration-300 text-left overflow-hidden flex flex-col"
+                  className="group relative min-h-[44px] p-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl hover:bg-indigo-500/10 hover:border-indigo-500/50 transition-all duration-300 text-left overflow-hidden flex flex-col"
                 >
                   <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
                     <Clapperboard className="w-32 h-32 text-indigo-400" />
@@ -248,7 +248,7 @@ export function Quiz() {
 
                 <button 
                   onClick={() => generateQuestions('actor')}
-                  className="group relative p-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl hover:bg-blue-500/10 hover:border-blue-500/50 transition-all duration-300 text-left overflow-hidden flex flex-col"
+                  className="group relative min-h-[44px] p-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl hover:bg-blue-500/10 hover:border-blue-500/50 transition-all duration-300 text-left overflow-hidden flex flex-col"
                 >
                   <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
                     <Users className="w-32 h-32 text-blue-400" />
@@ -260,7 +260,7 @@ export function Quiz() {
 
                 <button 
                   onClick={() => generateQuestions('all')}
-                  className="group relative p-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl hover:bg-emerald-500/10 hover:border-emerald-500/50 transition-all duration-300 text-left overflow-hidden flex flex-col md:col-span-1 sm:col-span-2"
+                  className="group relative min-h-[44px] p-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl hover:bg-emerald-500/10 hover:border-emerald-500/50 transition-all duration-300 text-left overflow-hidden flex flex-col md:col-span-1 sm:col-span-2"
                 >
                   <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
                     <Sparkles className="w-32 h-32 text-emerald-400" />
@@ -311,7 +311,7 @@ export function Quiz() {
                 <p className="text-sm text-indigo-400 font-semibold tracking-widest uppercase mb-4">
                   {questions[currentIndex].context}
                 </p>
-                <h2 className="text-2xl md:text-3xl font-bold leading-tight">
+                <h2 className="text-xl md:text-2xl lg:text-3xl font-bold leading-tight">
                   {questions[currentIndex].text}
                 </h2>
               </div>
@@ -336,7 +336,7 @@ export function Quiz() {
                       key={index}
                       disabled={isAnswerRevealed}
                       onClick={() => handleAnswer(choice)}
-                      className={`relative w-full p-4 rounded-xl border-2 text-left font-medium transition-all duration-300 flex items-center justify-between group ${btnStateClass}`}
+                      className={`relative w-full p-3 md:p-4 min-h-[48px] rounded-xl border-2 text-left font-medium transition-all duration-300 flex items-center justify-between group ${btnStateClass}`}
                     >
                       <span>{choice}</span>
                       {!isAnswerRevealed && (
@@ -361,7 +361,7 @@ export function Quiz() {
               key="result"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center bg-zinc-900/50 border border-zinc-800 p-8 md:p-12 rounded-3xl backdrop-blur-md max-w-xl mx-auto w-full"
+              className="text-center bg-zinc-900/50 border border-zinc-800 p-6 md:p-8 lg:p-12 rounded-3xl backdrop-blur-md max-w-xl mx-auto w-full"
             >
               <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-amber-500/20 border-4 border-amber-500/30 text-amber-400 mb-6 shadow-2xl shadow-amber-500/20">
                 <Trophy className="w-12 h-12" />
@@ -382,14 +382,14 @@ export function Quiz() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button
                   onClick={() => generateQuestions(mode)}
-                  className="w-full sm:w-auto px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-600/20"
+                  className="w-full sm:w-auto min-h-[44px] px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-600/20"
                 >
                   <RotateCcw className="w-5 h-5" />
                   Rejouer
                 </button>
                 <button
                   onClick={resetGame}
-                  className="w-full sm:w-auto px-8 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all"
+                  className="w-full sm:w-auto min-h-[44px] px-8 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all"
                 >
                   Menu principal
                   <ArrowRight className="w-5 h-5" />

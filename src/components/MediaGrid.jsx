@@ -27,7 +27,7 @@ export function MediaGrid({ mediaList, onMediaClick }) {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 space-y-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-20 md:py-6 md:pb-24 space-y-12">
       {sortedTypes.map(type => (
         <section key={type} className="animate-in fade-in duration-500">
           <div className="flex items-center gap-3 mb-6">
@@ -36,7 +36,7 @@ export function MediaGrid({ mediaList, onMediaClick }) {
               {grouped[type].length}
             </span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
             {grouped[type].map((media) => (
               <MediaCard key={media.id} media={media} onClick={() => onMediaClick(media)} />
             ))}

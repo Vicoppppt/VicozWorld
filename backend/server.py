@@ -48,12 +48,34 @@ def get_balances():
         accounts_data = []
         total_balance = 0.0
 
+        # Mapping pour de plus jolis noms
+        BANK_NAMES = {
+            "cragr": "Crédit Agricole",
+            "boursorama": "BoursoBank",
+            "caisseepargne": "Caisse d'Épargne",
+            "societegenerale": "Société Générale",
+            "creditmutuel": "Crédit Mutuel",
+            "banquepopulaire": "Banque Populaire",
+            "bnporc": "BNP Paribas",
+            "lcl": "LCL",
+            "fortuneo": "Fortuneo"
+        }
+
         # On itère sur tous les comptes bancaires récupérés par Woob
         for account in woob.iter_accounts():
             # Récupérer le nom du backend (ex: 'creditagricole', 'boursorama')
-            backend_name = account.backend.name if account.backend else "Banque inconnue"
+            if isinstance(account.backend, str):
+                backend_name = account.backend
+            else:
+                backend_name = getattr(account.backend, 'name', "Banque inconnue") if account.backend else "Banque inconnue"
             
-            balance = float(account.balance)
+            display_name = BANK_NAMES.get(backend_name.lower(), backend_name.capitalize())
+
+            try:
+                balance = float(account.balance)
+            except (ValueError, TypeError):
+                balance = 0.0
+                
             total_balance += balance
 
             accounts_data.append(AccountBalance(
@@ -61,7 +83,7 @@ def get_balances():
                 label=account.label,
                 balance=balance,
                 currency=account.currency or "EUR",
-                bank_name=backend_name.capitalize()
+                bank_name=display_name
             ))
 
         return BalancesResponse(accounts=accounts_data, total=total_balance)

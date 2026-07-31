@@ -33,9 +33,9 @@ export function Home() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-      <div className="max-w-3xl mb-12">
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-zinc-100 to-zinc-400 tracking-tight mb-4">
+    <div className="flex-1 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 w-full">
+      <div className="max-w-3xl mb-8 md:mb-12">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-zinc-100 to-zinc-400 tracking-tight mb-4">
           Bienvenue dans VicozWorld
         </h1>
         <p className="text-lg text-zinc-400 leading-relaxed">
@@ -49,7 +49,7 @@ export function Home() {
             <Link 
               key={index}
               to={section.link}
-              className={`group flex flex-col justify-between p-8 rounded-2xl bg-gradient-to-br ${section.color} bg-zinc-900/50 border border-zinc-800 ${section.border} transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/10 min-h-[240px]`}
+              className={`group flex flex-col justify-between p-6 md:p-8 rounded-2xl bg-gradient-to-br ${section.color} bg-zinc-900/50 border border-zinc-800 ${section.border} transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/10 min-h-[200px] md:min-h-[240px]`}
             >
               <div>
                 <div className="w-16 h-16 rounded-2xl bg-zinc-950/50 flex items-center justify-center mb-6 border border-zinc-800/50 group-hover:scale-110 transition-transform duration-300">
@@ -65,7 +65,7 @@ export function Home() {
           ) : (
             <div 
               key={index}
-              className="flex flex-col justify-between p-8 rounded-2xl bg-zinc-900/20 border border-zinc-800/50 min-h-[240px] opacity-70 cursor-not-allowed relative overflow-hidden"
+              className="flex flex-col justify-between p-6 md:p-8 rounded-2xl bg-zinc-900/20 border border-zinc-800/50 min-h-[200px] md:min-h-[240px] opacity-70 cursor-not-allowed relative overflow-hidden"
             >
               <div className="absolute top-4 right-4 px-3 py-1 bg-zinc-800/80 rounded-full text-[10px] font-bold text-zinc-400 uppercase tracking-wider backdrop-blur-sm">
                 Bientôt

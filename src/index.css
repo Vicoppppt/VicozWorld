@@ -7,11 +7,26 @@
 
 /* Base Styles pour forcer le Dark Mode avec un thème Slate/Zinc élégant */
 @layer base {
+  html {
+    @apply overflow-x-hidden;
+  }
+  
   body {
-    @apply bg-zinc-950 text-zinc-300 font-sans antialiased selection:bg-indigo-500/30;
+    @apply bg-zinc-950 text-zinc-300 font-sans antialiased selection:bg-indigo-500/30 overflow-x-hidden;
   }
   
   h1, h2, h3, h4, h5, h6 {
     @apply text-zinc-100;
+  }
+}
+
+/* Utilitaire pour masquer les scrollbars */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }

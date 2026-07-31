@@ -48,8 +48,8 @@ export function MediaCard({ media, onClick }) {
           {media.type}
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-zinc-950 via-zinc-950/90 to-transparent">
-          <h3 className="font-bold text-zinc-100 text-lg leading-tight line-clamp-2">{media.title}</h3>
+        <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 bg-gradient-to-t from-zinc-950 via-zinc-950/90 to-transparent">
+          <h3 className="font-bold text-zinc-100 text-base md:text-lg leading-tight line-clamp-2">{media.title}</h3>
           
           <div className="flex items-center gap-2 mt-1.5 mb-2">
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-zinc-800/80 text-zinc-300">

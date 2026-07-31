@@ -273,7 +273,7 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -287,7 +287,7 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col h-[85vh] sm:h-[80vh]"
+          className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-none sm:rounded-2xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col h-[100dvh] sm:h-[85vh] md:h-[80vh]"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-900/50 shrink-0 z-10">
@@ -337,7 +337,7 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.3, ease: "anticipate" }}
-                className="absolute inset-0 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent"
+                className="absolute inset-0 overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent"
               >
                 
                 {/* STEP 1: SEARCH */}
@@ -435,7 +435,7 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
                       <button
                         key={status}
                         onClick={() => handleSelectStatus(status)}
-                        className={`w-full p-4 rounded-xl border text-lg font-semibold transition-all duration-300 flex items-center justify-between group ${
+                        className={`w-full p-3 md:p-4 min-h-[48px] rounded-xl border text-lg font-semibold transition-all duration-300 flex items-center justify-between group ${
                           formData.status === status
                             ? "bg-indigo-500/20 border-indigo-500 text-indigo-300"
                             : "bg-zinc-950 border-zinc-800 text-zinc-300 hover:border-zinc-600 hover:bg-zinc-900"

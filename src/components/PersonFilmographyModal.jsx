@@ -42,7 +42,7 @@ export function PersonFilmographyModal({ personName, personRole = "director", is
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -56,10 +56,10 @@ export function PersonFilmographyModal({ personName, personRole = "director", is
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="relative w-full max-w-6xl bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col h-[90vh]"
+          className="relative w-full max-w-6xl bg-zinc-900 border border-zinc-800 rounded-none sm:rounded-2xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col h-[100dvh] sm:h-[90vh]"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 md:px-8 py-6 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-md shrink-0 z-10 sticky top-0">
+          <div className="flex items-center justify-between px-4 py-4 md:px-8 md:py-6 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-md shrink-0 z-10 sticky top-0">
             <div className="flex items-center gap-4">
               {personData?.profile_path && (
                 <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-indigo-500/50">
@@ -71,7 +71,7 @@ export function PersonFilmographyModal({ personName, personRole = "director", is
                 </div>
               )}
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-zinc-100 leading-tight">
+                <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-zinc-100 leading-tight">
                   {personName}
                 </h2>
                 <p className="text-zinc-500 font-medium">Filmographie complète ({filmography.length} films)</p>
@@ -86,7 +86,7 @@ export function PersonFilmographyModal({ personName, personRole = "director", is
                     placeholder="Chercher un film..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-48 sm:w-64 bg-zinc-950 border border-zinc-800 rounded-full pl-9 pr-4 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all"
+                    className="hidden sm:block w-48 md:w-64 bg-zinc-950 border border-zinc-800 rounded-full pl-9 pr-4 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all"
                   />
                 </div>
                 <button 
@@ -99,7 +99,7 @@ export function PersonFilmographyModal({ personName, personRole = "director", is
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 md:p-8 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center h-full gap-4 text-zinc-500">
                 <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
@@ -110,7 +110,7 @@ export function PersonFilmographyModal({ personName, personRole = "director", is
                 <p className="text-lg">Aucun film trouvé pour cette recherche.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6 pb-12">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 lg:gap-6 pb-12">
                 {filteredFilmography.map(movie => {
                   // Vérifier si le film est dans le journal
                   const inJournal = mediaList.find(m => m.tmdbId === movie.id || (m.title.toLowerCase() === movie.title.toLowerCase() && m.type === "Film"));
