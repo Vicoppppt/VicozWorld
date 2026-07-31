@@ -116,15 +116,16 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
             </div>
 
             {/* Poster */}
-            <div className="w-full md:w-1/3 xl:w-1/4 aspect-[2/3] md:aspect-auto md:h-auto shrink-0 relative bg-zinc-950">
+            <div className="w-full md:w-1/3 xl:w-1/4 h-44 sm:h-60 md:h-auto shrink-0 relative bg-zinc-950 overflow-hidden">
               {media.cover && (
                 <img 
                   src={media.cover} 
                   alt={media.title} 
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-cover object-top md:object-cover"
                 />
               )}
-              <div className="absolute top-4 left-4 flex flex-col gap-2">
+              <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/30 to-black/50 md:hidden" />
+              <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
                  <span className="px-3 py-1.5 bg-black/70 backdrop-blur-md rounded-lg text-xs font-bold uppercase tracking-wider text-zinc-200 w-fit">
                   {media.type}
                 </span>
@@ -142,7 +143,7 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
             {/* Info */}
             <div className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
               
-              <div className="mb-6 pt-8 md:pt-0">
+              <div className="mb-6 pt-2 md:pt-0">
                 <h2 className="text-3xl font-bold text-zinc-100 pr-12">{media.title}</h2>
               </div>
 

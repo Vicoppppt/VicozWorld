@@ -516,7 +516,7 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
                                   <StarRating 
                                     rating={formData.rating} 
                                     onChange={(val) => setFormData(p => ({ ...p, rating: val }))} 
-                                    size="w-10 h-10"
+                                    size="w-7 h-7 sm:w-9 sm:h-9"
                                   />
                                 </div>
                               </div>

@@ -1,5 +1,5 @@
 import { MEDIA_TYPES, MEDIA_STATUS } from "../data/mockData";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Clock } from "lucide-react";
 
 export function FilterBar({ activeType, setActiveType, activeStatus, setActiveStatus, searchQuery, setSearchQuery, onAddClick, watchTime }) {
   return (
@@ -59,9 +59,10 @@ export function FilterBar({ activeType, setActiveType, activeStatus, setActiveSt
 
           <div className="flex items-center gap-3 shrink-0">
             {watchTime && activeType !== "Manga" && (
-              <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-zinc-950/50 border border-zinc-800/80 rounded-xl">
-                <span className="text-sm text-zinc-400">Temps de visionnage:</span>
-                <span className="text-sm font-bold text-indigo-400">{watchTime}</span>
+              <div className="flex items-center gap-1.5 px-3 py-2 bg-zinc-950/50 border border-zinc-800/80 rounded-xl min-h-[44px]">
+                <Clock className="w-4 h-4 text-indigo-400 shrink-0" />
+                <span className="hidden sm:inline text-xs sm:text-sm text-zinc-400">Visionnage:</span>
+                <span className="text-xs sm:text-sm font-bold text-indigo-400 whitespace-nowrap">{watchTime}</span>
               </div>
             )}
             <button

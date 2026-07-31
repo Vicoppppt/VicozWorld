@@ -47,7 +47,7 @@ export function StarRating({ rating, onChange, readonly = false, size = "w-8 h-8
         );
       })}
       {!readonly && (
-        <span className="ml-3 text-lg font-bold text-indigo-400 w-8 text-center animate-in fade-in duration-200">
+        <span className="ml-2 sm:ml-3 text-base sm:text-lg font-bold text-indigo-400 min-w-[28px] text-center animate-in fade-in duration-200">
           {displayRating > 0 ? displayRating : "-"}
         </span>
       )}

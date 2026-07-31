@@ -108,7 +108,7 @@ export function Notes() {
             <div
               key={note.id}
               onClick={() => openEditNote(note)}
-              className={`group relative bg-zinc-900 border border-zinc-800 rounded-2xl p-5 cursor-pointer hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300 overflow-hidden ${note.color || 'bg-zinc-900'}`}
+              className={`group relative bg-zinc-900 border border-zinc-800 rounded-2xl p-4 sm:p-5 cursor-pointer hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300 overflow-hidden ${note.color || 'bg-zinc-900'}`}
               style={{
                 backgroundColor: note.color ? `${note.color}15` : '',
                 borderColor: note.color ? `${note.color}40` : ''
@@ -124,7 +124,7 @@ export function Notes() {
                 </button>
               </div>
 
-              <h3 className="font-bold text-zinc-100 text-lg mb-2 pr-8 line-clamp-2">
+              <h3 className="font-bold text-zinc-100 text-base sm:text-lg mb-2 pr-8 line-clamp-2">
                 {note.title || "Sans titre"}
               </h3>
               
