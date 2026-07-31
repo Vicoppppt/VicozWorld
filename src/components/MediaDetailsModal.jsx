@@ -65,7 +65,7 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-0 sm:p-4 md:p-6">
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -116,7 +116,7 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
             </div>
 
             {/* Poster */}
-            <div className="w-full md:w-1/3 xl:w-1/4 h-44 sm:h-60 md:h-auto shrink-0 relative bg-zinc-950 overflow-hidden">
+            <div className="w-full md:w-1/3 xl:w-1/4 h-48 sm:h-60 md:h-auto shrink-0 relative bg-zinc-950 overflow-hidden">
               {media.cover && (
                 <img 
                   src={media.cover} 
@@ -124,7 +124,7 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
                   className="absolute inset-0 w-full h-full object-cover object-top md:object-cover"
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/30 to-black/50 md:hidden" />
+              <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/40 to-black/60 md:hidden" />
               <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
                  <span className="px-3 py-1.5 bg-black/70 backdrop-blur-md rounded-lg text-xs font-bold uppercase tracking-wider text-zinc-200 w-fit">
                   {media.type}
@@ -138,13 +138,20 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
                   {media.status}
                 </span>
               </div>
+
+              {/* Title on mobile backdrop */}
+              <div className="absolute bottom-3 left-4 right-4 z-10 md:hidden">
+                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] line-clamp-2 leading-tight">
+                  {media.title}
+                </h2>
+              </div>
             </div>
 
             {/* Info */}
-            <div className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
+            <div className="flex-1 p-4 md:p-6 lg:p-8 pb-28 md:pb-8 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
               
               <div className="mb-6 pt-2 md:pt-0">
-                <h2 className="text-3xl font-bold text-zinc-100 pr-12">{media.title}</h2>
+                <h2 className="hidden md:block text-3xl font-bold text-zinc-100 pr-12">{media.title}</h2>
               </div>
 
               {!isMultiSeason && media.status === "Terminé" && (
@@ -257,10 +264,10 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
                           {media.cast.map((actor, index) => (
                             <div 
                               key={index} 
-                              className={`flex-none w-24 sm:w-28 text-center group ${onActorClick ? 'cursor-pointer' : ''}`}
+                              className={`flex-none w-20 sm:w-28 text-center group ${onActorClick ? 'cursor-pointer' : ''}`}
                               onClick={() => onActorClick && onActorClick(actor.name)}
                             >
-                              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden bg-zinc-800 mx-auto mb-3 border-2 border-zinc-800 group-hover:border-indigo-500 transition-colors">
+                              <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full overflow-hidden bg-zinc-800 mx-auto mb-2 border-2 border-zinc-800 group-hover:border-indigo-500 transition-colors">
                                 {actor.profilePath ? (
                                   <img 
                                     src={actor.profilePath} 
@@ -269,12 +276,12 @@ export function MediaDetailsModal({ media, isOpen, onClose, onEditClick, onDelet
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center">
-                                    <User className="w-8 h-8 text-zinc-600" />
+                                    <User className="w-6 h-6 sm:w-8 sm:h-8 text-zinc-600" />
                                   </div>
                                 )}
                               </div>
-                              <p className="font-medium text-zinc-200 text-sm line-clamp-1">{actor.name}</p>
-                              <p className="text-xs text-zinc-500 mt-0.5 line-clamp-1">{actor.character}</p>
+                              <p className="font-semibold text-zinc-200 text-xs sm:text-sm line-clamp-1">{actor.name}</p>
+                              <p className="text-[11px] sm:text-xs text-zinc-500 mt-0.5 line-clamp-1">{actor.character}</p>
                             </div>
                           ))}
                         </div>

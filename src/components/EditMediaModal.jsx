@@ -162,7 +162,7 @@ export function EditMediaModal({ isOpen, onClose, media, onSave }) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-0 sm:p-4">
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -189,7 +189,7 @@ export function EditMediaModal({ isOpen, onClose, media, onSave }) {
               </button>
             </div>
 
-            <form id="edit-media-form" onSubmit={handleSubmit} className="overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
+            <form id="edit-media-form" onSubmit={handleSubmit} className="overflow-y-auto p-4 md:p-6 pb-28 md:pb-6 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
               <div className="space-y-6">
                 
                 <div className="flex items-center gap-4 bg-zinc-950/50 p-4 rounded-xl border border-zinc-800/50">

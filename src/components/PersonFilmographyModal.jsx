@@ -42,7 +42,7 @@ export function PersonFilmographyModal({ personName, personRole = "director", is
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6">
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-0 sm:p-4 md:p-6">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -71,35 +71,42 @@ export function PersonFilmographyModal({ personName, personRole = "director", is
                 </div>
               )}
               <div>
-                <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-zinc-100 leading-tight">
+                <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-zinc-100 flex items-center gap-3">
                   {personName}
+                  {personRole && (
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-normal">
+                      {personRole === "director" ? "Réalisateur" : "Acteur"}
+                    </span>
+                  )}
                 </h2>
-                <p className="text-zinc-500 font-medium">Filmographie complète ({filmography.length} films)</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                  <input
-                    type="text"
-                    placeholder="Chercher un film..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="hidden sm:block w-48 md:w-64 bg-zinc-950 border border-zinc-800 rounded-full pl-9 pr-4 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all"
-                  />
-                </div>
-                <button 
-                  onClick={onClose}
-                  className="p-2.5 text-zinc-400 hover:text-white bg-zinc-950 hover:bg-zinc-800 rounded-full transition-colors border border-zinc-800"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+                <p className="text-xs md:text-sm text-zinc-400 mt-1">
+                  Filmographie complète issue de TMDB
+                </p>
               </div>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
+            <div className="flex items-center gap-3">
+              <div className="relative hidden sm:block">
+                <input
+                  type="text"
+                  placeholder="Chercher un film..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-48 md:w-64 bg-zinc-950 border border-zinc-800 rounded-full pl-9 pr-4 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all"
+                />
+                <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              </div>
+              <button 
+                onClick={onClose}
+                className="p-2.5 text-zinc-400 hover:text-white bg-zinc-950 hover:bg-zinc-800 rounded-full transition-colors border border-zinc-800"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-28 md:pb-8 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center h-full gap-4 text-zinc-500">
                 <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />

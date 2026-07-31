@@ -273,7 +273,7 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4">
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-0 sm:p-4">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -337,7 +337,7 @@ export function AddMediaModal({ isOpen, onClose, onAdd }) {
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.3, ease: "anticipate" }}
-                className="absolute inset-0 overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent"
+                className="absolute inset-0 overflow-y-auto p-4 md:p-6 pb-28 md:pb-6 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent"
               >
                 
                 {/* STEP 1: SEARCH */}

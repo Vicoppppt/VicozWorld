@@ -61,7 +61,7 @@ export function NoteEditorModal({ isOpen, onClose, note, onSave }) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-0 sm:p-4 md:p-6">
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
