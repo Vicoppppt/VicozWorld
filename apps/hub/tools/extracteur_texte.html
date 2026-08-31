@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Extracteur de Texte PDF & Images (OCR)</title>
+
+  <!-- PDF.js library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --success: #16a34a;
+      --success-hover: #15803d;
+      --ai-purple: #7c3aed;
+      --ai-purple-light: #f5f3ff;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px 16px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 960px;
+    }
+
+    /* Top Nav */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 0.95rem;
+      background: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: all 0.2s ease;
+    }
+
+    .back-btn:hover {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      transform: translateX(-2px);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      display: inline-block;
+      background-color: #f3e8ff;
+      color: #6b21a8;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    /* AI Toggle Card */
+    .ai-banner {
+      background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+      border: 1px solid #c4b5fd;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .ai-banner-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ai-banner-title {
+      font-weight: 700;
+      color: #5b21b6;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ai-banner-desc {
+      font-size: 0.82rem;
+      color: #6b21a8;
+      margin-top: 2px;
+    }
+
+    /* Toggle Switch */
+    .switch-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #cbd5e1;
+      transition: .25s ease;
+      border-radius: 26px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .25s ease;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    input:checked + .slider {
+      background-color: var(--ai-purple);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(22px);
+    }
+
+    .switch-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #5b21b6;
+    }
+
+    /* Drop Zone */
+    .drop-zone {
+      border: 2px dashed #c4b5fd;
+      background: var(--ai-purple-light);
+      border-radius: 14px;
+      padding: 34px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--ai-purple);
+      background: #ede9fe;
+      transform: scale(1.005);
+    }
+
+    .drop-zone-badges {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .dz-badge {
+      background: rgba(124, 58, 237, 0.12);
+      color: #6d28d9;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(124, 58, 237, 0.2);
+    }
+
+    .drop-zone-icon {
+      font-size: 2.6rem;
+      margin-bottom: 6px;
+    }
+
+    .drop-zone-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #5b21b6;
+      margin-bottom: 6px;
+    }
+
+    .drop-zone-desc {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+
+    .paste-hint {
+      display: inline-block;
+      background: #ffffff;
+      border: 1px solid #c4b5fd;
+      color: #6d28d9;
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-top: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+
+    .file-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    /* Image Preview */
+    .image-preview-box {
+      display: none;
+      margin-top: 16px;
+      padding: 12px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .preview-thumb {
+      max-height: 80px;
+      max-width: 120px;
+      border-radius: 6px;
+      object-fit: contain;
+      border: 1px solid #cbd5e1;
+    }
+
+    .preview-info {
+      flex: 1;
+      font-size: 0.88rem;
+    }
+
+    .separator {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 20px 0;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .separator::before, .separator::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .separator:not(:empty)::before {
+      margin-right: 1em;
+    }
+
+    .separator:not(:empty)::after {
+      margin-left: 1em;
+    }
+
+    /* Output / Editor Section */
+    .output-section {
+      display: none;
+    }
+
+    .output-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stats-info {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-success {
+      background-color: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background-color: var(--success-hover);
+    }
+
+    .btn-outline {
+      background: white;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-outline:hover {
+      background: #f1f5f9;
+    }
+
+    /* Textarea */
+    .editor-wrapper {
+      position: relative;
+    }
+
+    .text-editor {
+      width: 100%;
+      min-height: 380px;
+      max-height: 600px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #0f172a;
+      background: #fff;
+      font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+      outline: none;
+      resize: vertical;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .text-editor:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    /* Quick Clean Toolbar */
+    .quick-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .tool-chip {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .tool-chip:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    /* Notification Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Loading Spinner */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .instructions {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-size: 0.9rem;
+      color: #475569;
+    }
+
+    .instructions h3 {
+      font-size: 0.95rem;
+      color: #0f172a;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .instructions ol {
+      padding-left: 20px;
+    }
+
+    .instructions li {
+      margin-bottom: 4px;
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 20px 0;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="top-nav">
+      <a href="/" class="back-btn">
+        ⬅ Retour au Hub d'applications
+      </a>
+      <span style="font-size: 0.85rem; color: var(--text-muted);">Portail CasaOS</span>
+    </div>
+
+    <header>
+      <div class="badge">📝 Outil PDF & Images (OCR)</div>
+      <h1>Extracteur & Nettoyeur de Texte</h1>
+      <p class="subtitle">Glissez un PDF, une image ou collez directement une capture d'écran (Ctrl+V) !</p>
+    </header>
+
+    <!-- AI Toggle Switch (Gemini 2.5) -->
+    <div class="ai-banner">
+      <div class="ai-banner-left">
+        <span style="font-size: 1.5rem;">✨</span>
+        <div>
+          <div class="ai-banner-title">
+            <span>Relecture & Restauration Typographique IA</span>
+          </div>
+          <div class="ai-banner-desc">L'IA Gemini 2.5 lit le texte, répare tous les accents, supprime les coupures et reformate les vrais paragraphes.</div>
+        </div>
+      </div>
+      <label class="switch-container">
+        <span class="switch-label" id="aiSwitchText">Activée</span>
+        <div class="switch">
+          <input type="checkbox" id="aiToggle" checked onchange="updateAiToggleText()">
+          <span class="slider"></span>
+        </div>
+      </label>
+    </div>
+
+    <!-- Drop Zone & Paste Support -->
+    <div class="card">
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-zone-badges">
+          <span class="dz-badge">📄 Documents PDF</span>
+          <span class="dz-badge">🖼️ Images (PNG, JPG, WebP)</span>
+          <span class="dz-badge">📸 Captures d'écran</span>
+        </div>
+        <div class="drop-zone-icon">📄 ➔ 📝</div>
+        <div class="drop-zone-title">Glissez votre PDF ou Image ici</div>
+        <div class="drop-zone-desc">ou cliquez pour choisir un fichier sur votre ordinateur</div>
+        <div>
+          <span class="paste-hint">💡 Astuce : faites simplement Ctrl+V n'importe où pour coller une image !</span>
+        </div>
+        <input type="file" id="fileInput" class="file-input" accept="application/pdf,image/*">
+      </div>
+
+      <!-- Preview Image if image pasted -->
+      <div class="image-preview-box" id="imagePreviewBox">
+        <img id="previewImg" class="preview-thumb" src="" alt="Aperçu de l'image">
+        <div class="preview-info">
+          <div style="font-weight: 700; color: #0f172a;" id="previewFileName">Image détectée</div>
+          <div style="color: var(--text-muted); font-size: 0.8rem;" id="previewFileSize">Prête pour l'extraction</div>
+        </div>
+      </div>
+
+      <div class="separator">OU COLLEZ DU TEXTE DÉJÀ BRUT / ABÎMÉ</div>
+
+      <div style="display: flex; gap: 10px;">
+        <input type="text" id="pasteInput" placeholder="Collez ici un texte avec des coupures ou caractères bizarres..." style="flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem;">
+        <button class="btn btn-primary" onclick="handlePastedText()">Nettoyer le texte</button>
+      </div>
+    </div>
+
+    <!-- Output / Editor Section -->
+    <div class="card output-section" id="outputSection">
+      <div class="output-header">
+        <div class="stats-info">
+          <span>📊 <strong id="wordCount">0</strong> mots</span>
+          <span>•</span>
+          <span><strong id="charCount">0</strong> caractères</span>
+          <span id="aiBadge" style="display: none; background: #f3e8ff; color: #6b21a8; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">✨ Transcrit par l'IA</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-success" onclick="copyCleanText()">
+            📋 Copier dans Word
+          </button>
+          <button class="btn btn-outline" onclick="downloadTextFile()">
+            💾 Télécharger (.txt)
+          </button>
+        </div>
+      </div>
+
+      <div class="editor-wrapper">
+        <textarea id="textEditor" class="text-editor" placeholder="Le texte propre apparaîtra ici. Vous pouvez le modifier directement si besoin..."></textarea>
+      </div>
+
+      <!-- Quick Clean Tools -->
+      <div class="quick-toolbar">
+        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); align-self: center; margin-right: 4px;">Outils rapides :</span>
+        <button class="tool-chip" onclick="fixParagraphs()">🔗 Fusionner les lignes cassées</button>
+        <button class="tool-chip" onclick="fixAccentsEntities()">🔤 Corriger les accents/symboles</button>
+        <button class="tool-chip" onclick="removeExtraSpaces()">🧹 Supprimer les doubles espaces</button>
+        <button class="tool-chip" onclick="capitalizeSentences()">🔠 Majuscules en début de phrase</button>
+        <button class="tool-chip" onclick="clearText()" style="color: #ef4444; border-color: #fca5a5;">🗑️ Effacer</button>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="instructions">
+      <h3>💡 Comment ça fonctionne ?</h3>
+      <ol>
+        <li><strong>Depuis un PDF ou une photo</strong> : glissez le fichier ou cliquez pour le sélectionner.</li>
+        <li><strong>Depuis une capture d'écran</strong> : faites votre capture (ex: <code>Windows + Shift + S</code>), venez sur la page et faites <code>Ctrl + V</code> !</li>
+        <li>L'outil extrait le texte, élimine les mots coupés (ex: <code>trans- formation</code> ➔ <code>transformation</code>), rétablit les accents français et structure les paragraphes.</li>
+        <li>Cliquez sur <strong>« 📋 Copier dans Word »</strong> : votre texte est prêt !</li>
+      </ol>
+    </div>
+
+    <footer>
+      Outil sur mesure pour simplifier la vie des enseignants ✨
+    </footer>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <span>✅</span>
+    <span id="toastMsg">Texte copié dans le presse-papiers !</span>
+  </div>
+
+  <!-- Loading Modal -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div id="loadingText" style="font-size: 1.1rem; font-weight: 600;">Extraction et nettoyage en cours...</div>
+  </div>
+
+  <script>
+    // Clé API Google Gemini (stockée localement dans le navigateur)
+    function getGeminiApiKey() {
+      let key = localStorage.getItem("gemini_api_key") || "";
+      if (!key) {
+        key = prompt("Veuillez entrer votre clé API Google Gemini (ou annuler pour utiliser l'extraction basique) :") || "";
+        if (key.trim()) {
+          localStorage.setItem("gemini_api_key", key.trim());
+        }
+      }
+      return key.trim();
+    }
+    const EMBEDDED_API_KEY = localStorage.getItem("gemini_api_key") || "";
+
+    // Initialize PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const pasteInput = document.getElementById('pasteInput');
+    const outputSection = document.getElementById('outputSection');
+    const textEditor = document.getElementById('textEditor');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingText = document.getElementById('loadingText');
+    const aiToggle = document.getElementById('aiToggle');
+    const wordCount = document.getElementById('wordCount');
+    const charCount = document.getElementById('charCount');
+    const aiBadge = document.getElementById('aiBadge');
+    const imagePreviewBox = document.getElementById('imagePreviewBox');
+    const previewImg = document.getElementById('previewImg');
+    const previewFileName = document.getElementById('previewFileName');
+    const previewFileSize = document.getElementById('previewFileSize');
+
+    function updateAiToggleText() {
+      const isChecked = aiToggle.checked;
+      document.getElementById('aiSwitchText').textContent = isChecked ? 'Activée' : 'Désactivée';
+    }
+
+    // Drag & Drop events
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+      }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files.length > 0) handleIncomingFile(files[0]);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) handleIncomingFile(e.target.files[0]);
+    });
+
+    // Global Paste (Ctrl+V) listener for Images / Screenshots / Text
+    window.addEventListener('paste', (e) => {
+      // If user is typing in textarea or input, let standard paste happen unless clipboard contains an image
+      const activeEl = document.activeElement;
+      const isTyping = activeEl && (activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'INPUT');
+
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      let foundImage = false;
+
+      for (const item of items) {
+        if (item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile();
+          if (file) {
+            e.preventDefault();
+            foundImage = true;
+            showToast("📸 Image collée depuis le presse-papiers !");
+            handleIncomingFile(file);
+            break;
+          }
+        }
+      }
+
+      if (!foundImage && !isTyping) {
+        const text = e.clipboardData.getData('text');
+        if (text && text.length > 10) {
+          e.preventDefault();
+          showToast("📝 Texte collé et nettoyé !");
+          const cleaned = cleanExtractedText(text);
+          displayText(cleaned);
+        }
+      }
+    });
+
+    textEditor.addEventListener('input', updateStats);
+
+    async function handleIncomingFile(file) {
+      if (!file) return;
+
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      const isImage = file.type.startsWith('image/') || /\.(png|jpe?g|webp|bmp|gif)$/i.test(file.name);
+
+      if (!isPdf && !isImage) {
+        alert("Format non reconnu. Veuillez déposer un fichier PDF ou une Image (PNG, JPG, capture d'écran).");
+        return;
+      }
+
+      if (isImage) {
+        await processImageFile(file);
+      } else {
+        imagePreviewBox.style.display = 'none';
+        await processPdfFile(file);
+      }
+    }
+
+    /**
+     * Traitement d'une image (Photo, Scan, Capture d'écran collée)
+     */
+    async function processImageFile(file) {
+      showLoading(true, "Analyse et transcription de l'image...");
+
+      // Display thumbnail preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImg.src = e.target.result;
+        previewFileName.textContent = file.name || "Capture d'écran collée";
+        previewFileSize.textContent = `${(file.size / 1024).toFixed(1)} Ko • Format image`;
+        imagePreviewBox.style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+
+      try {
+        const base64Data = await new Promise((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => resolve(r.result.split(',')[1]);
+          r.onerror = reject;
+          r.readAsDataURL(file);
+        });
+
+        const mimeType = file.type || 'image/png';
+        const transcribedText = await transcribeImageWithGemini(base64Data, mimeType, EMBEDDED_API_KEY);
+
+        aiBadge.style.display = 'inline-block';
+        displayText(transcribedText);
+      } catch (err) {
+        console.error(err);
+        alert("Erreur lors de l'analyse de l'image : " + err.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    /**
+     * Traitement d'un PDF
+     */
+    async function processPdfFile(file) {
+      showLoading(true, "1/2 Extraction du texte du PDF...");
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        let extractedText = await extractTextFromPdf(arrayBuffer);
+
+        extractedText = cleanExtractedText(extractedText);
+
+        const useAI = aiToggle.checked && EMBEDDED_API_KEY;
+        if (useAI) {
+          showLoading(true, "2/2 Relecture & restauration typographique par l'IA Gemini...");
+          try {
+            const aiRefined = await refinePdfWithGemini(file, extractedText, EMBEDDED_API_KEY);
+            if (aiRefined && aiRefined.length > 20) {
+              extractedText = aiRefined;
+              aiBadge.style.display = 'inline-block';
+            }
+          } catch (aiErr) {
+            console.warn("IA indisponible, conservation du texte nettoyé localement :", aiErr);
+            aiBadge.style.display = 'none';
+          }
+        } else {
+          aiBadge.style.display = 'none';
+        }
+
+        displayText(extractedText);
+      } catch (err) {
+        console.error(err);
+        alert("Erreur lors de la lecture du document : " + err.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function handlePastedText() {
+      const raw = pasteInput.value.trim();
+      if (!raw) return;
+
+      const cleaned = cleanExtractedText(raw);
+      displayText(cleaned);
+      pasteInput.value = '';
+    }
+
+    /**
+     * Extraction locale PDF.js
+     */
+    async function extractTextFromPdf(arrayBuffer) {
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = "";
+
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        const items = textContent.items;
+
+        if (items.length === 0) continue;
+
+        let lastY = null;
+        let pageText = "";
+
+        for (const item of items) {
+          const str = item.str;
+          if (!str) continue;
+
+          const currentY = Math.round(item.transform[5]);
+
+          if (lastY === null) {
+            pageText += str;
+          } else if (Math.abs(currentY - lastY) > 8) {
+            pageText += "\n" + str;
+          } else {
+            pageText += (str.startsWith(' ') || pageText.endsWith(' ') ? '' : ' ') + str;
+          }
+
+          lastY = currentY;
+        }
+
+        fullText += pageText + "\n\n";
+      }
+
+      return fullText;
+    }
+
+    /**
+     * Nettoyage automatique des encodages, ligatures, coupures de mots et paragraphes
+     */
+    function cleanExtractedText(raw) {
+      if (!raw) return "";
+
+      let text = raw;
+
+      const doc = new DOMParser().parseFromString(text, 'text/html');
+      text = doc.body.textContent || text;
+
+      const mojibakeMap = {
+        'Ã©': 'é', 'Ã¨': 'è', 'Ãª': 'ê', 'Ã«': 'ë',
+        'Ã ': 'à', 'Ã¢': 'â', 'Ã®': 'î', 'Ã¯': 'ï',
+        'Ã´': 'ô', 'Ã¹': 'ù', 'Ã»': 'û', 'Ã¼': 'ü',
+        'Ã§': 'ç', 'Å“': 'œ', 'Ã¦': 'æ',
+        'Ã‰': 'É', 'Ãˆ': 'È', 'ÃŠ': 'Ê', 'Ã€': 'À', 'Ã‡': 'Ç',
+        '&amp;': '&', '&quot;': '"', '&#39;': "'", '&rsquo;': "'",
+        'â€™': "'", 'â€œ': '"', 'â€\x9d': '"', 'â€”': '—', 'â€“': '–',
+        'â€¦': '...', 'Â«': '«', 'Â»': '»', 'Â ': ' '
+      };
+
+      for (const [bad, good] of Object.entries(mojibakeMap)) {
+        text = text.replaceAll(bad, good);
+      }
+
+      text = text.replace(/([a-zA-Zà-ÿÀ-ÖØ-ß]+)-\s*\n\s*([a-zA-Zà-ÿÀ-ÖØ-ß]+)/g, '$1$2');
+      text = text.replace(/\n\s*Page\s+\d+(\s*\/\s*\d+)?\s*\n/gi, '\n');
+      text = text.replace(/\n\s*\d+\s*\n/g, '\n');
+
+      const lines = text.split('\n');
+      let reformed = "";
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) {
+          reformed += "\n\n";
+          continue;
+        }
+
+        if (reformed.endsWith("\n\n") || reformed === "") {
+          reformed += line;
+        } else if (/[.?!:;»"]$/.test(reformed.trim())) {
+          reformed += "\n\n" + line;
+        } else {
+          reformed += " " + line;
+        }
+      }
+
+      reformed = reformed.replace(/[ \t]+/g, ' ');
+      reformed = reformed.replace(/\n{3,}/g, '\n\n');
+
+      return reformed.trim();
+    }
+
+    /**
+     * Transcription d'Image / Capture d'écran avec Gemini 2.5 Flash
+     */
+    async function transcribeImageWithGemini(base64Data, mimeType, apiKey) {
+      const prompt = `Tu es un expert en OCR, transcription et typographie française pour enseignants.
+Analyse attentivement cette image / capture d'écran / page de livre.
+Transcris l'intégralité du texte visible avec une perfection absolue :
+1. Rétablis les vrais paragraphes naturels (sans coupures artificielles en milieu de phrase).
+2. Rétablis tous les accents corrects (é, è, ê, à, ç, etc.), les ligatures (œ, æ) et les guillemets français (« »).
+3. Raccorde tous les mots coupés par un tiret de fin de ligne.
+4. Respecte scrupuleusement le texte d'origine sans rien résumer ni omettre.
+
+Renvoie UNIQUEMENT le texte propre reformaté, prêt à être copié dans Word. Ne mets aucune phrase d'introduction ni de conclusion.`;
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: prompt },
+              {
+                inline_data: {
+                  mime_type: mimeType,
+                  data: base64Data
+                }
+              }
+            ]
+          }],
+          generationConfig: {
+            temperature: 0.1
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur Gemini (${response.status})`);
+      }
+
+      const resJson = await response.json();
+      return resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    }
+
+    /**
+     * Relecture PDF avec Gemini 2.5 Flash
+     */
+    async function refinePdfWithGemini(file, extractedText, apiKey) {
+      const base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const prompt = `Tu es un expert en traitement de texte et typographie pour enseignants.
+Voici un document PDF contenant un texte ou un extrait littéraire/pédagogique.
+Extrais l'intégralité du texte principal avec une propreté absolue :
+1. Rétablis les vrais paragraphes naturels (sans couper les phrases en plein milieu).
+2. Répare tous les accents (é, è, ê, à, ç, etc.), les ligatures (œ, æ) et les guillemets français (« »).
+3. Raccorde tous les mots coupés par un tiret.
+4. Supprime les éléments parasites (numéros de page, en-têtes répétitifs).
+5. Respecte à 100% le texte d'origine.
+
+Renvoie UNIQUEMENT le texte propre reformaté, prêt à être collé dans Word.`;
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: prompt },
+              {
+                inline_data: {
+                  mime_type: 'application/pdf',
+                  data: base64Data
+                }
+              }
+            ]
+          }],
+          generationConfig: {
+            temperature: 0.1
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur Gemini (${response.status})`);
+      }
+
+      const resJson = await response.json();
+      return resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    }
+
+    function displayText(text) {
+      textEditor.value = text;
+      outputSection.style.display = 'block';
+      updateStats();
+      outputSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function updateStats() {
+      const text = textEditor.value.trim();
+      const words = text ? text.split(/\s+/).length : 0;
+      wordCount.textContent = words;
+      charCount.textContent = text.length;
+    }
+
+    function fixParagraphs() {
+      let t = textEditor.value;
+      t = t.replace(/([^\n.?!:;])\n([^\n])/g, '$1 $2');
+      textEditor.value = t.replace(/\n{3,}/g, '\n\n');
+      updateStats();
+      showToast("Lignes fusionnées avec succès !");
+    }
+
+    function fixAccentsEntities() {
+      textEditor.value = cleanExtractedText(textEditor.value);
+      updateStats();
+      showToast("Accents et symboles corrigés !");
+    }
+
+    function removeExtraSpaces() {
+      let t = textEditor.value;
+      t = t.replace(/[ \t]+/g, ' ').replace(/\n /g, '\n');
+      textEditor.value = t;
+      updateStats();
+      showToast("Espaces nettoyés !");
+    }
+
+    function capitalizeSentences() {
+      let t = textEditor.value;
+      t = t.replace(/(^|[.?!]\s+)([a-zà-öø-ÿ])/g, (m, p1, p2) => p1 + p2.toUpperCase());
+      textEditor.value = t;
+      updateStats();
+      showToast("Majuscules appliquées !");
+    }
+
+    function clearText() {
+      if (confirm("Effacer tout le texte ?")) {
+        textEditor.value = "";
+        imagePreviewBox.style.display = 'none';
+        updateStats();
+      }
+    }
+
+    async function copyCleanText() {
+      const text = textEditor.value;
+      if (!text) return;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast("Texte copié ! Prêt à coller dans Word (Ctrl+V)");
+      } catch (e) {
+        textEditor.select();
+        document.execCommand('copy');
+        showToast("Texte copié dans le presse-papiers !");
+      }
+    }
+
+    function downloadTextFile() {
+      const text = textEditor.value;
+      if (!text) return;
+
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = "texte_extrait_propre.txt";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function showLoading(show, text = "") {
+      loadingText.textContent = text;
+      loadingOverlay.style.display = show ? 'flex' : 'none';
+    }
+  </script>
+</body>
+</html>

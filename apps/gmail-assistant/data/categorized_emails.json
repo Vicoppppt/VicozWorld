@@ -1,0 +1,186 @@
+{
+  "uids": [
+    "30170",
+    "30185",
+    "30147",
+    "30183",
+    "30171",
+    "30164",
+    "30175",
+    "30176",
+    "30173",
+    "30156",
+    "30160",
+    "30159",
+    "30189",
+    "30140",
+    "30179",
+    "30188",
+    "30158",
+    "30184",
+    "30154",
+    "30149"
+  ],
+  "items": {
+    "30189": {
+      "uid": "30189",
+      "label": "Achats",
+      "subject": "Tentative de livraison : « Litter Genie - LitterLocker... »",
+      "sender": "\"Amazon.fr\" <order-update@amazon.fr>",
+      "date": "Fri, 28 Aug 2026 13:14",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30188": {
+      "uid": "30188",
+      "label": "Achats",
+      "subject": "Votre colis n'a pas pu être livré",
+      "sender": "Colis Prive <livraison@notification.colisprive.com>",
+      "date": "Fri, 28 Aug 2026 13:10",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30185": {
+      "uid": "30185",
+      "label": "Achats",
+      "subject": "Livré : « FELIWAY Classic Spray 60 ml... »",
+      "sender": "\"Amazon.fr\" <order-update@amazon.fr>",
+      "date": "Fri, 28 Aug 2026 11:36",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30184": {
+      "uid": "30184",
+      "label": "Achats",
+      "subject": "En cours de livraison : « FELIWAY Classic Spray 60 ml... »",
+      "sender": "\"Amazon.fr\" <shipment-tracking@amazon.fr>",
+      "date": "Fri, 28 Aug 2026 09:46",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30183": {
+      "uid": "30183",
+      "label": "Achats",
+      "subject": "Votre colis est en cours de livraison",
+      "sender": "Colis Prive <livraison@notification.colisprive.com>",
+      "date": "Fri, 28 Aug 2026 09:16",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30179": {
+      "uid": "30179",
+      "label": "Achats",
+      "subject": "Rappel : Colis en attente de retrait : retrait à Amazon Locker - Nica d’ici 30 août",
+      "sender": "Amazon <pickup-point@amazon.fr>",
+      "date": "Fri, 28 Aug 2026 06:22",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30175": {
+      "uid": "30175",
+      "label": "Achats",
+      "subject": "Nous avons un colis pour vous !",
+      "sender": "Colis Prive <livraison@notification.colisprive.com>",
+      "date": "Thu, 27 Aug 2026 16:16",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30173": {
+      "uid": "30173",
+      "label": "Achats",
+      "subject": "Colis prêt pour le retrait : retrait à Amazon Locker - Nica Gare Sncf Calais 46 Avenue du Président Wilson  France , 62100 d’ici 30 août",
+      "sender": "Amazon <pickup-point@amazon.fr>",
+      "date": "Thu, 27 Aug 2026 15:03",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30170": {
+      "uid": "30170",
+      "label": "Achats",
+      "subject": "Votre commande #6624 est en route",
+      "sender": "Mosaïque Magazine <store+90029523323@t.shopifyemail.com>",
+      "date": "Thu, 27 Aug 2026 13:43",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30164": {
+      "uid": "30164",
+      "label": "Achats",
+      "subject": "Expédié : \"Litter Genie - LitterLocker...\"",
+      "sender": "\"Amazon.fr\" <confirmation-commande@amazon.fr>",
+      "date": "Thu, 27 Aug 2026 10:44",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30156": {
+      "uid": "30156",
+      "label": "Achats",
+      "subject": "Expédié : \"PGYTECH CreateMate Lecteur...\"",
+      "sender": "\"Amazon.fr\" <confirmation-commande@amazon.fr>",
+      "date": "Wed, 26 Aug 2026 22:55",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30147": {
+      "uid": "30147",
+      "label": "Achats",
+      "subject": "Commandés : « PGYTECH CreateMate Lecteur... » et 2 articles supplémentaires",
+      "sender": "\"Amazon.fr\" <confirmation-commande@amazon.fr>",
+      "date": "Wed, 26 Aug 2026 08:10",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30160": {
+      "uid": "30160",
+      "label": "Banque",
+      "subject": "Le solde de votre compte est bas",
+      "sender": "BoursoBank <noreply@boursobank.com>",
+      "date": "Thu, 27 Aug 2026 08:28",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30159": {
+      "uid": "30159",
+      "label": "Factures",
+      "subject": "Dossier Social Etudiant : Paiement de votre mensualité",
+      "sender": "DSE-nepasrepondre@lescrous.fr",
+      "date": "Thu, 27 Aug 2026 05:10",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30176": {
+      "uid": "30176",
+      "label": "Pro",
+      "subject": "[GitHub] Cursor is requesting updated permissions",
+      "sender": "GitHub <noreply@github.com>",
+      "date": "Thu, 27 Aug 2026 21:07",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30171": {
+      "uid": "30171",
+      "label": "Pro",
+      "subject": "Vous avez partagé certaines données de votre compte Google avec Aroma-Zone",
+      "sender": "Google <noreply-accounts@google.com>",
+      "date": "Thu, 27 Aug 2026 07:30",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30154": {
+      "uid": "30154",
+      "label": "Pro",
+      "subject": "La ligne 21JET est remplacée dès le 31/08 : ce qu'il faut savoir",
+      "sender": "RTM - La Métropole Mobilité<lametropolemobilite@info.rtm.fr>",
+      "date": "Wed, 26 Aug 2026 10:33",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30158": {
+      "uid": "30158",
+      "label": "Voyages",
+      "subject": "N'oubliez pas votre demande contre la compagnie aérienne !",
+      "sender": "Flightright <service@flightright.fr>",
+      "date": "Thu, 27 Aug 2026 03:38",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30149": {
+      "uid": "30149",
+      "label": "Voyages",
+      "subject": "Bus sans marquage FlixBus pour votre trajet pour Lille 🚌",
+      "sender": "Flix <noreply@me.flixbus.com>",
+      "date": "Wed, 26 Aug 2026 09:35",
+      "categorized_at": "2026-08-29 01:37:29"
+    },
+    "30140": {
+      "uid": "30140",
+      "label": "Voyages",
+      "subject": "E-mail de justificatif de paiement",
+      "sender": "Flix <noreply@fs.flixbus.com>",
+      "date": "Tue, 25 Aug 2026 15:41",
+      "categorized_at": "2026-08-29 01:37:29"
+    }
+  }
+}

@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # 🌐 Portail Central & Outils Web (Hub d'accueil)
+  hub:
+    build:
+      context: ./apps/hub
+      dockerfile: Dockerfile
+    container_name: mon-hub-outils
+    restart: unless-stopped
+    ports:
+      - "8085:80"
+    environment:
+      - TZ=Europe/Paris
+    networks:
+      - app-network
+
+  # 🎬 Mon Letterboxd - Frontend (React 19 + Vite)
+  letterboxd-frontend:
+    build:
+      context: ./apps/letterboxd/frontend
+      dockerfile: Dockerfile
+    container_name: letterboxd-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - letterboxd-backend
+    environment:
+      - TZ=Europe/Paris
+    networks:
+      - app-network
+
+  # ⚙️ Mon Letterboxd - Backend (FastAPI + SQLite + Woob)
+  letterboxd-backend:
+    build:
+      context: ./apps/letterboxd/backend
+      dockerfile: Dockerfile
+    container_name: letterboxd-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATA_DIR=/app/data
+      - TZ=Europe/Paris
+    volumes:
+      - ./data/letterboxd:/app/data
+      - letterboxd-woob-config:/root/.config/woob
+      - letterboxd-woob-data:/root/.local/share/woob
+    networks:
+      app-network:
+        aliases:
+          - backend
+          - letterboxd-backend
+
+  # 📧 Gmail Assistant IA (Streamlit + Gemini IA)
+  gmail-assistant:
+    build:
+      context: ./apps/gmail-assistant
+      dockerfile: Dockerfile
+    container_name: gmail-assistant
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    environment:
+      - DATA_DIR=/app/data
+      - TZ=Europe/Paris
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GMAIL_EMAIL=${GMAIL_EMAIL:-}
+      - GMAIL_PASSWORD=${GMAIL_PASSWORD:-}
+    volumes:
+      - ./data/gmail:/app/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  letterboxd-woob-config:
+    driver: local
+  letterboxd-woob-data:
+    driver: local

@@ -1,0 +1,56 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@theme {
+  --color-brand: #6366f1; /* Indigo 500 */
+  --color-brand-hover: #4f46e5; /* Indigo 600 */
+}
+
+/* Base Styles pour forcer le Dark Mode avec un thème Slate/Zinc élégant */
+@layer base {
+  html {
+    @apply overflow-x-hidden;
+  }
+  
+  body {
+    @apply bg-zinc-950 text-zinc-300 font-sans antialiased selection:bg-indigo-500/30 overflow-x-hidden;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-zinc-100;
+  }
+}
+
+/* Utilitaire pour masquer les scrollbars */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Family Chart D3 Dark Mode Customization */
+.f3 {
+  --background-color: transparent !important;
+  --text-color: #f4f4f5 !important;
+  --female-color: #f43f5e !important;
+  --male-color: #0284c7 !important;
+}
+
+.f3 .f3-cont {
+  background-color: #09090b !important;
+}
+
+.f3 path.link {
+  stroke: #4f46e5 !important;
+  stroke-width: 2px !important;
+  stroke-opacity: 0.75 !important;
+}
+
+.f3 .card-main-outline {
+  stroke: #6366f1 !important;
+  stroke-width: 2.5px !important;
+}
+

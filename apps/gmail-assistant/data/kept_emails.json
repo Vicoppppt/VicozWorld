@@ -1,0 +1,1406 @@
+{
+  "uids": [
+    "28819",
+    "28447",
+    "29435",
+    "30100",
+    "30057",
+    "28836",
+    "29988",
+    "29373",
+    "29440",
+    "29457",
+    "28483",
+    "28828",
+    "30058",
+    "28835",
+    "30183",
+    "29329",
+    "29455",
+    "29449",
+    "28981",
+    "30188",
+    "30072",
+    "30019",
+    "28904",
+    "28892",
+    "28815",
+    "28871",
+    "29268",
+    "28881",
+    "29017",
+    "29659",
+    "30127",
+    "30030",
+    "28700",
+    "29113",
+    "29361",
+    "28893",
+    "28834",
+    "29562",
+    "30099",
+    "28709",
+    "28856",
+    "30189",
+    "30184",
+    "28872",
+    "30109",
+    "28632",
+    "28857",
+    "28907",
+    "28806",
+    "30179",
+    "29436",
+    "29263",
+    "29456",
+    "28873",
+    "30176",
+    "29986",
+    "29513",
+    "28337",
+    "28826",
+    "29444",
+    "30147",
+    "29442",
+    "30049",
+    "29896",
+    "28887",
+    "30017",
+    "29262",
+    "30173",
+    "28832",
+    "29459",
+    "29362",
+    "28859",
+    "28879",
+    "30106",
+    "30095",
+    "29267",
+    "30063",
+    "30159",
+    "29453",
+    "28391",
+    "29333",
+    "29516",
+    "28829",
+    "29167",
+    "28671",
+    "29448",
+    "28747",
+    "30164",
+    "30067",
+    "30160",
+    "29344",
+    "29447",
+    "30018",
+    "30158",
+    "29921",
+    "30156",
+    "28866",
+    "30073",
+    "28792",
+    "28539",
+    "30140",
+    "29556",
+    "30085",
+    "29259",
+    "28905",
+    "28850",
+    "30175",
+    "29433",
+    "30075",
+    "29983",
+    "29987",
+    "28825",
+    "28691",
+    "28860",
+    "29443",
+    "28392",
+    "28855",
+    "29432",
+    "28841",
+    "30071",
+    "29264",
+    "29437",
+    "30171",
+    "28902",
+    "28845",
+    "28538",
+    "29276",
+    "30069",
+    "28846",
+    "29981",
+    "28840",
+    "28628",
+    "30047",
+    "28785",
+    "30185",
+    "28818",
+    "29445",
+    "30070",
+    "30139",
+    "29438",
+    "29961",
+    "29446",
+    "29658",
+    "28880",
+    "28882",
+    "28710",
+    "29561",
+    "30066",
+    "30154",
+    "30094",
+    "29266",
+    "30170",
+    "30061",
+    "28641",
+    "29123",
+    "30149",
+    "28630",
+    "29265",
+    "29979",
+    "30056",
+    "28812",
+    "29891",
+    "28796",
+    "29557",
+    "29363",
+    "29441",
+    "28906",
+    "29558",
+    "28784",
+    "28824",
+    "30083",
+    "29451",
+    "28680",
+    "29998",
+    "28858"
+  ],
+  "items": {
+    "28337": {
+      "uid": "28337",
+      "subject": "IMPORTANT - Etape 2 renouvellement / Step 2 of renewal",
+      "sender": "Logement - ALL LA CATHO <logement@all-lacatho.fr>",
+      "date": "Mon, 16 Mar 2026 14:50:06 +0000",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28391": {
+      "uid": "28391",
+      "subject": "EVKUFZ | Mise à jour importante pour tous les passagers",
+      "sender": "\"Ryanair\" <service@service.ryanairemail.com>",
+      "date": "Fri, 20 Mar 2026 14:15:52 GMT",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28392": {
+      "uid": "28392",
+      "subject": "All - IMPORTANT DERNIER RAPPEL RENOUVELLEMENT / LATEST RENEWAL\r\n REMINDER",
+      "sender": "Logement - ALL LA CATHO <logement@all-lacatho.fr>",
+      "date": "Fri, 20 Mar 2026 14:29:14 +0000",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28483": {
+      "uid": "28483",
+      "subject": "Acceptation renouvellement / Renewal acceptance",
+      "sender": "Logement - ALL LA CATHO <logement@all-lacatho.fr>",
+      "date": "Thu, 2 Apr 2026 11:57:30 +0000",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28538": {
+      "uid": "28538",
+      "subject": "CROUS : Courrier de décision",
+      "sender": "DSE-nepasrepondre@lescrous.fr",
+      "date": "Fri, 10 Apr 2026 07:51:11 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28539": {
+      "uid": "28539",
+      "subject": "Cvec.etudiant.gouv.fr - Votre attestation",
+      "sender": "CVEC-ne-pas-repondre@lescrous.fr",
+      "date": "Fri, 10 Apr 2026 09:51:42 +0200",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28628": {
+      "uid": "28628",
+      "subject": "CROUS : AR de votre demande d'aide DSE_2627-2026-123564521 - A\r\n CONSERVER",
+      "sender": "DSE-nepasrepondre@lescrous.fr",
+      "date": "Sat, 28 Mar 2026 16:46:25 +0000 (GMT)",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28630": {
+      "uid": "28630",
+      "subject": "Réservation confirmée pour le mercredi 22 avril",
+      "sender": "Uber <no-reply@uber.com>",
+      "date": "Tue, 21 Apr 2026 20:32:25 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28632": {
+      "uid": "28632",
+      "subject": "Objet : Réservation pour Studioapartmán s balkónem v centru Prahy,18–22 avr.",
+      "sender": "Airbnb <express@airbnb.com>",
+      "date": "Wed, 22 Apr 2026 05:25:12 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28671": {
+      "uid": "28671",
+      "subject": "Votre voyage Phalempin - Lille Flandres, aller le lundi 27 avril 2026",
+      "sender": "SNCF Connect <noreply@connect.sncf>",
+      "date": "Mon, 27 Apr 2026 06:06:34 +0200 (CEST)",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28680": {
+      "uid": "28680",
+      "subject": "a garder dans tes papiers",
+      "sender": "\"petit.claire@orange.fr\" <petit.claire@orange.fr>",
+      "date": "Mon, 27 Apr 2026 17:45:21 +0000",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28691": {
+      "uid": "28691",
+      "subject": "Dernier rappel | Votre reçu fiscal ZEvent 2025 vous attend",
+      "sender": "L'équipe de la Fondation de France <erf@erf.fondationdefrance.org>",
+      "date": "Tue, 28 Apr 2026 15:02:01 +0000",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28700": {
+      "uid": "28700",
+      "subject": "Une commande #1060 a été livrée",
+      "sender": "Les Grands <store+104488173917@t.shopifyemail.com>",
+      "date": "Wed, 29 Apr 2026 14:24:10 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28709": {
+      "uid": "28709",
+      "subject": "Dossier Social Etudiant : Paiement de votre mensualité",
+      "sender": "DSE-nepasrepondre@lescrous.fr",
+      "date": "Thu, 30 Apr 2026 08:25:21 +0000 (GMT)",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28710": {
+      "uid": "28710",
+      "subject": "Dossier Social Etudiant : Paiement de votre mensualité",
+      "sender": "DSE-nepasrepondre@lescrous.fr",
+      "date": "Thu, 30 Apr 2026 08:34:05 +0000 (GMT)",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28747": {
+      "uid": "28747",
+      "subject": "M37MVW | Mise à jour importante pour tous les passagers",
+      "sender": "\"Ryanair\" <service@service.ryanairemail.com>",
+      "date": "Tue, 05 May 2026 13:57:11 +0100",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28784": {
+      "uid": "28784",
+      "subject": "Le solde de votre compte est bas",
+      "sender": "BoursoBank <noreply@boursobank.com>",
+      "date": "Tue, 12 May 2026 08:32:52 +0200",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28785": {
+      "uid": "28785",
+      "subject": "Order #224475 confirmed",
+      "sender": "Miniwax <store+440991797@t.shopifyemail.com>",
+      "date": "Tue, 12 May 2026 07:36:06 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:00:05"
+    },
+    "28447": {
+      "uid": "28447",
+      "subject": "(Sans sujet)",
+      "sender": "\"petit.claire@orange.fr\" <petit.claire@orange.fr>",
+      "date": "Sat, 28 Mar 2026 16:45:02 +0000",
+      "saved_at": "2026-08-29 00:01:24"
+    },
+    "28641": {
+      "uid": "28641",
+      "subject": "Incident de sécurité",
+      "sender": "France Titres <no-reply@comm.ants.gouv.fr>",
+      "date": "Thu, 23 Apr 2026 00:03:29 +0200",
+      "saved_at": "2026-08-29 00:01:24"
+    },
+    "28792": {
+      "uid": "28792",
+      "subject": "Votre relevé de compte du mois d’avril est disponible.",
+      "sender": "\"PayPal\" <noreply@service.paypal.com>",
+      "date": "Wed, 13 May 2026 11:52:16 +0000",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28796": {
+      "uid": "28796",
+      "subject": "Connexion à votre compte CANAL+ sur un nouvel appareil",
+      "sender": "CANALPLUS <noreply@myaccount.canalplus.com>",
+      "date": "Wed, 13 May 2026 22:46:30 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28806": {
+      "uid": "28806",
+      "subject": "A shipment from order #224475 is on the way",
+      "sender": "Miniwax <store+440991797@t.shopifyemail.com>",
+      "date": "Fri, 15 May 2026 08:22:59 +0000",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28812": {
+      "uid": "28812",
+      "subject": "﻿Votre colis arrive !",
+      "sender": "La Poste-Colissimo <noreply@notif-colissimo-laposte.info>",
+      "date": "Sat, 16 May 2026 02:16:12 +0200",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28815": {
+      "uid": "28815",
+      "subject": "Paiement programmé à venir pour Airbnb",
+      "sender": "\"Klarna\" <noreply-fr@klarna.fr>",
+      "date": "Sat, 16 May 2026 16:18:26 +0000",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28818": {
+      "uid": "28818",
+      "subject": "Vous avez ajouté une nouvelle façon de vous connecter",
+      "sender": "\"Klarna\" <noreply-fr@klarna.fr>",
+      "date": "Sun, 17 May 2026 11:43:47 +0000",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28819": {
+      "uid": "28819",
+      "subject": "Nous avons reçu votre dernier paiement pour Airbnb",
+      "sender": "\"Klarna\" <noreply-fr@klarna.fr>",
+      "date": "Sun, 17 May 2026 11:44:10 +0000",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28824": {
+      "uid": "28824",
+      "subject": "A shipment from order #224475 is out for delivery",
+      "sender": "Miniwax <store+440991797@t.shopifyemail.com>",
+      "date": "Mon, 18 May 2026 08:27:26 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28825": {
+      "uid": "28825",
+      "subject": "Ton tricount est prêt!",
+      "sender": "\"tricount\" <no-reply@hello.tricount.com>",
+      "date": "Mon, 18 May 2026 08:48:45 +0000",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28826": {
+      "uid": "28826",
+      "subject": " Clément MASQUELIER vous a ajouté sur la carte Etude cahier des charges sur Suivi ",
+      "sender": "Trello <do-not-reply@trello.com>",
+      "date": "Mon, 18 May 2026 09:13:42 +0000",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28828": {
+      "uid": "28828",
+      "subject": "E-mail de justificatif de paiement",
+      "sender": "FlixBus <noreply@fs.flixbus.com>",
+      "date": "Mon, 18 May 2026 12:58:08 +0000",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28829": {
+      "uid": "28829",
+      "subject": "Confirmation de réservation #3356010854",
+      "sender": "Flix <noreply@booking.flixbus.com>",
+      "date": "Mon, 18 May 2026 12:58:06 +0000",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28832": {
+      "uid": "28832",
+      "subject": " Etude cahier des charges sur Suivi Échéance dans un jour ",
+      "sender": "Trello <do-not-reply@trello.com>",
+      "date": "Mon, 18 May 2026 16:01:15 +0000",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28834": {
+      "uid": "28834",
+      "subject": "Connexion à votre compte CANAL+ sur un nouvel appareil",
+      "sender": "CANALPLUS <noreply@myaccount.canalplus.com>",
+      "date": "Mon, 18 May 2026 18:27:34 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28835": {
+      "uid": "28835",
+      "subject": "Votre facture est disponible sur redbysfr.fr",
+      "sender": "RED by SFR <facture@redbysfr.fr>",
+      "date": "Tue, 19 May 2026 11:00:23 +0200 (CEST)",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28836": {
+      "uid": "28836",
+      "subject": "Votre colis COLISSIMO est arrivé en relais Pickup",
+      "sender": "Colissimo <colissimo@network2.pickup.fr>",
+      "date": "Tue, 19 May 2026 09:10:44 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28840": {
+      "uid": "28840",
+      "subject": " Clément MASQUELIER a déplacé Etude cahier des charges vers Fait dans Suivi ",
+      "sender": "Trello <do-not-reply@trello.com>",
+      "date": "Tue, 19 May 2026 13:58:13 +0000",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28841": {
+      "uid": "28841",
+      "subject": " Figma sur Suivi Échéance dans un jour ",
+      "sender": "Trello <do-not-reply@trello.com>",
+      "date": "Tue, 19 May 2026 16:03:16 +0000",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28845": {
+      "uid": "28845",
+      "subject": "Votre abonnement Google AI Pro va changer",
+      "sender": "Google One <googleone-noreply@google.com>",
+      "date": "Tue, 19 May 2026 20:50:01 -0700",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28846": {
+      "uid": "28846",
+      "subject": "[GitHub] Cursor is requesting updated permissions",
+      "sender": "GitHub <noreply@github.com>",
+      "date": "Tue, 19 May 2026 23:17:46 -0700",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28850": {
+      "uid": "28850",
+      "subject": "Connexion à votre compte CANAL+ sur un nouvel appareil",
+      "sender": "CANALPLUS <noreply@myaccount.canalplus.com>",
+      "date": "Wed, 20 May 2026 18:03:42 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:05:14"
+    },
+    "28855": {
+      "uid": "28855",
+      "subject": "Une partie de votre trajet a changé (N° de réservation  3356010854)",
+      "sender": "Flix <noreply@booking.flixbus.com>",
+      "date": "Thu, 21 May 2026 10:15:25 +0000",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28856": {
+      "uid": "28856",
+      "subject": "E-mail de justificatif de paiement",
+      "sender": "FlixBus <noreply@fs.flixbus.com>",
+      "date": "Thu, 21 May 2026 10:15:26 +0000",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28857": {
+      "uid": "28857",
+      "subject": "E-mail de justificatif de paiement",
+      "sender": "FlixBus <noreply@fs.flixbus.com>",
+      "date": "Thu, 21 May 2026 10:15:26 +0000",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28858": {
+      "uid": "28858",
+      "subject": "Une partie de votre trajet a changé (N° de réservation  3356010854)",
+      "sender": "Flix <noreply@booking.flixbus.com>",
+      "date": "Thu, 21 May 2026 10:33:36 +0000",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28859": {
+      "uid": "28859",
+      "subject": "E-mail de justificatif de paiement",
+      "sender": "FlixBus <noreply@fs.flixbus.com>",
+      "date": "Thu, 21 May 2026 10:33:37 +0000",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28860": {
+      "uid": "28860",
+      "subject": "E-mail de justificatif de paiement",
+      "sender": "FlixBus <noreply@fs.flixbus.com>",
+      "date": "Thu, 21 May 2026 10:33:37 +0000",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28866": {
+      "uid": "28866",
+      "subject": "Confirmation de votre réservation chez Péniche Archimède",
+      "sender": "Péniche Archimède <noreply@ses.barestho.com>",
+      "date": "Fri, 22 May 2026 07:55:41 +0000",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28871": {
+      "uid": "28871",
+      "subject": "Ton ticket de caisse électronique",
+      "sender": "Bershka <noreply_at_bershka_com_8gxr9pb5r90605_1ff53aef@icloud.com>",
+      "date": "Fri, 22 May 2026 16:05:35 +0000",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28872": {
+      "uid": "28872",
+      "subject": "Votre reçu de Oasis Lille citadelle payé avec sunday",
+      "sender": "sunday <noreply-receipt@sundayapp.io>",
+      "date": "Fri, 22 May 2026 16:52:21 +0000",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28873": {
+      "uid": "28873",
+      "subject": "Oasis Lille citadelle - Merci pour votre commande ( SY2205-503 )",
+      "sender": "sunday <noreply@sundayapp.io>",
+      "date": "Fri, 22 May 2026 16:53:43 +0000",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28879": {
+      "uid": "28879",
+      "subject": "Bus sans marquage FlixBus pour votre trajet pour Paris (Pershing - Porte Maillot) 🚌",
+      "sender": "Flix <noreply@me.flixbus.com>",
+      "date": "Sat, 23 May 2026 10:14:14 +0000",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28880": {
+      "uid": "28880",
+      "subject": "Application Île-de-France Mobilités  Votre justificatif d’achat / Purchase Receipt",
+      "sender": "Achat Navigo <ne-pas-repondre@achat-titres.iledefrance-mobilites.fr>",
+      "date": "Sat, 23 May 2026 15:58:53 +0000 (GMT)",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28881": {
+      "uid": "28881",
+      "subject": "Application Île-de-France Mobilités  Votre justificatif d’achat / Purchase Receipt",
+      "sender": "Achat Navigo <ne-pas-repondre@achat-titres.iledefrance-mobilites.fr>",
+      "date": "Sat, 23 May 2026 21:40:41 +0000 (GMT)",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28882": {
+      "uid": "28882",
+      "subject": "Votre colis COLISSIMO vous attend toujours en relais Pickup !",
+      "sender": "Colissimo <colissimo@network1.pickup.fr>",
+      "date": "Sun, 24 May 2026 06:01:18 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28887": {
+      "uid": "28887",
+      "subject": "Application Île-de-France Mobilités  Votre justificatif d’achat / Purchase Receipt",
+      "sender": "Achat Navigo <ne-pas-repondre@achat-titres.iledefrance-mobilites.fr>",
+      "date": "Sun, 24 May 2026 10:09:46 +0000 (GMT)",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28892": {
+      "uid": "28892",
+      "subject": "Bus sans marquage FlixBus pour votre trajet pour Lille 🚌",
+      "sender": "Flix <noreply@me.flixbus.com>",
+      "date": "Mon, 25 May 2026 10:36:40 +0000",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28893": {
+      "uid": "28893",
+      "subject": "Mise à jour de notre Politique deconfidentialité",
+      "sender": "Spotify <no-reply@legal.spotify.com>",
+      "date": "Mon, 25 May 2026 20:11:27 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28902": {
+      "uid": "28902",
+      "subject": "Message de votre CAF",
+      "sender": "Ne pas repondre <no-reply@caf.fr>",
+      "date": "27 May 2026 11:30:03 +0200",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28904": {
+      "uid": "28904",
+      "subject": "Message de votre CAF",
+      "sender": "Votre CAF <nepasrepondre@emailing.caf.fr>",
+      "date": "Wed, 27 May 2026 09:30:37 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28905": {
+      "uid": "28905",
+      "subject": "Message de votre CAF",
+      "sender": "Votre CAF <nepasrepondre@emailing.caf.fr>",
+      "date": "Wed, 27 May 2026 09:46:32 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28906": {
+      "uid": "28906",
+      "subject": "Message de votre CAF",
+      "sender": "Votre CAF <nepasrepondre@emailing.caf.fr>",
+      "date": "Wed, 27 May 2026 09:47:17 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28907": {
+      "uid": "28907",
+      "subject": "Accusé réception de votre mail",
+      "sender": "\"Votre CAF\" <ne_pas_repondre@service-mail.caf.fr>",
+      "date": "Wed, 27 May 2026 11:50:14 +0200 (CEST)",
+      "saved_at": "2026-08-29 00:07:48"
+    },
+    "28981": {
+      "uid": "28981",
+      "subject": "All - Attestation CAF + attestation de logement",
+      "sender": "All Logement <logement@all-lacatho.fr>",
+      "date": "Thu, 04 Jun 2026 14:07:26 +0200",
+      "saved_at": "2026-08-29 00:39:57"
+    },
+    "29017": {
+      "uid": "29017",
+      "subject": "Transfert de votre mail vers un expert",
+      "sender": "\"Votre CAF\" <ne_pas_repondre@service-mail.caf.fr>",
+      "date": "Tue, 9 Jun 2026 12:26:42 +0200 (CEST)",
+      "saved_at": "2026-08-29 00:39:57"
+    },
+    "29113": {
+      "uid": "29113",
+      "subject": "Merci pour votre achat sur Steam !",
+      "sender": "\"Steam Support\" <noreply@steampowered.com>",
+      "date": "Mon, 22 Jun 2026 07:52:15 -0700",
+      "saved_at": "2026-08-29 00:39:57"
+    },
+    "29123": {
+      "uid": "29123",
+      "subject": "Votre achat a été remboursé",
+      "sender": "\"Steam Support\" <noreply@steampowered.com>",
+      "date": "Tue, 23 Jun 2026 03:22:58 -0700",
+      "saved_at": "2026-08-29 00:39:57"
+    },
+    "29167": {
+      "uid": "29167",
+      "subject": "M37MVW | Vous souhaitez modifier votre réservation ?",
+      "sender": "\"Ryanair\" <service@service.ryanairemail.com>",
+      "date": "Sun, 28 Jun 2026 15:43:03 +0100",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29259": {
+      "uid": "29259",
+      "subject": "Nous sommes désolés que votre vol ait été annulé M37MVW",
+      "sender": "Ryanair Customer Service <no-reply@ryanair.com>",
+      "date": "Mon, 6 Jul 2026 10:58:58 +0000",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29262": {
+      "uid": "29262",
+      "subject": "Itinéraire de Voyage",
+      "sender": "Itinerary@ryanair.com",
+      "date": "6 Jul 2026 12:54:59 +0000",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29263": {
+      "uid": "29263",
+      "subject": "Votre réservation Aerobus Paris-Beauvais: JG7LHH",
+      "sender": "Aerobus Paris-Beauvais <noreply@distribusion.com>",
+      "date": "Mon, 06 Jul 2026 13:16:08 +0000 (UTC)",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29264": {
+      "uid": "29264",
+      "subject": "Confirmation de votre commande du lundi 6 juillet 2026",
+      "sender": "SNCF Connect <noreply@connect.sncf>",
+      "date": "Mon, 6 Jul 2026 15:33:47 +0200 (CEST)",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29265": {
+      "uid": "29265",
+      "subject": "Votre Carte Avantage jeune 12-27 ans TGV INOUI n° 29090104831280128",
+      "sender": "no-reply@monbillet.sncf",
+      "date": "Mon, 6 Jul 2026 15:33:47 +0200 (CEST)",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29266": {
+      "uid": "29266",
+      "subject": "La réservation de vol (ID de commande : 33171869) est en cours de traitement !",
+      "sender": "Farera <noreply@farera.com>",
+      "date": "Mon, 6 Jul 2026 13:44:58 +0000",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29267": {
+      "uid": "29267",
+      "subject": "Réservation de vol confirmée ! (ID de commande : 33171869)",
+      "sender": "Farera <confirmation@farera.com>",
+      "date": "Mon, 6 Jul 2026 14:24:14 +0000",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29268": {
+      "uid": "29268",
+      "subject": "Application Île-de-France Mobilités  Votre justificatif d’achat / Purchase Receipt",
+      "sender": "Achat Navigo <ne-pas-repondre@achat-titres.iledefrance-mobilites.fr>",
+      "date": "Mon, 6 Jul 2026 15:19:42 +0000 (GMT)",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29276": {
+      "uid": "29276",
+      "subject": "Confirmation de renouvellement",
+      "sender": "Testbook <noreply@mailer.testbook.com>",
+      "date": "Tue, 07 Jul 2026 09:27:50 +0530",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29329": {
+      "uid": "29329",
+      "subject": "M37MVW | Important : Modifications du contrôle des passeports",
+      "sender": "\"Ryanair\" <service@service.ryanairemail.com>",
+      "date": "Fri, 10 Jul 2026 18:23:06 +0100",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29333": {
+      "uid": "29333",
+      "subject": "M37MVW | Enregistrez-vous en ligne sur votre vol à destination de Marseille T2",
+      "sender": "\"Ryanair\" <service@service.ryanairemail.com>",
+      "date": "Sat, 11 Jul 2026 07:51:38 +0100",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29344": {
+      "uid": "29344",
+      "subject": "M37MVW | Enregistrez-vous en ligne sur votre vol à destination de Marseille T2",
+      "sender": "\"Ryanair\" <service@service.ryanairemail.com>",
+      "date": "Sun, 12 Jul 2026 07:50:32 +0100",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29361": {
+      "uid": "29361",
+      "subject": "Confirmation de réservation #3374437291",
+      "sender": "Flix <noreply@booking.flixbus.com>",
+      "date": "Mon, 13 Jul 2026 19:16:50 +0000",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29362": {
+      "uid": "29362",
+      "subject": "E-mail de justificatif de paiement",
+      "sender": "FlixBus <noreply@fs.flixbus.com>",
+      "date": "Mon, 13 Jul 2026 19:16:52 +0000",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29363": {
+      "uid": "29363",
+      "subject": "Votre trajet Flix pour Lille est retardé",
+      "sender": "Flix <noreply@me.flixbus.com>",
+      "date": "Mon, 13 Jul 2026 19:57:48 +0000",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29373": {
+      "uid": "29373",
+      "subject": "Votre voyage Lille Flandres - Calais Ville, aller le mardi 14 juillet\r\n 2026",
+      "sender": "SNCF Connect <noreply@connect.sncf>",
+      "date": "Tue, 14 Jul 2026 16:05:08 +0200 (CEST)",
+      "saved_at": "2026-08-29 00:55:49"
+    },
+    "29432": {
+      "uid": "29432",
+      "subject": "Re: Votre voyage Paris Gare De Lyon - Marseille Saint-Charles, aller\r\n le lundi 6 juillet 2026",
+      "sender": "Anas Gaoua <anasgaoua@gmail.com>",
+      "date": "Sat, 18 Jul 2026 13:07:47 +0200",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29433": {
+      "uid": "29433",
+      "subject": "Fwd: Votre voyage Paris Gare De Lyon - Marseille Saint-Charles, aller\r\n le lundi 6 juillet 2026",
+      "sender": "Samuel Delevoye <samuel.delevoye5@gmail.com>",
+      "date": "Sat, 18 Jul 2026 13:30:41 +0200",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29435": {
+      "uid": "29435",
+      "subject": "Facture flixbus",
+      "sender": "theo lesag <thelesag@gmail.com>",
+      "date": "Sat, 18 Jul 2026 14:02:33 +0200",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29436": {
+      "uid": "29436",
+      "subject": "Train vers marseille",
+      "sender": "theo lesag <thelesag@gmail.com>",
+      "date": "Sat, 18 Jul 2026 14:04:46 +0200",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29437": {
+      "uid": "29437",
+      "subject": "train + gladalle",
+      "sender": "Léa Bruchet <leabruchet59@gmail.com>",
+      "date": "Sat, 18 Jul 2026 14:12:35 +0200",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29438": {
+      "uid": "29438",
+      "subject": "Marseille preuve d’achat ",
+      "sender": "Calliste Lefebvre <calliste.lefebvre@gmail.com>",
+      "date": "Sat, 18 Jul 2026 14:20:31 +0200",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29440": {
+      "uid": "29440",
+      "subject": "Re: E-mail de justificatif de paiement",
+      "sender": "Anas Gaoua <anasgaoua@gmail.com>",
+      "date": "Sat, 18 Jul 2026 14:53:20 +0200",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29441": {
+      "uid": "29441",
+      "subject": "Re: train + gladalle",
+      "sender": "Léa Bruchet <leabruchet59@gmail.com>",
+      "date": "Sat, 18 Jul 2026 15:14:59 +0200",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29442": {
+      "uid": "29442",
+      "subject": "Navette",
+      "sender": "theo lesag <thelesag@gmail.com>",
+      "date": "Sat, 18 Jul 2026 15:16:31 +0200",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29443": {
+      "uid": "29443",
+      "subject": "G la dalle",
+      "sender": "theo lesag <thelesag@gmail.com>",
+      "date": "Sat, 18 Jul 2026 15:18:03 +0200",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29444": {
+      "uid": "29444",
+      "subject": "Numéro de référence du service client Ryanair : 78668246 - VEUILLEZ NE PAS RÉPONDRE À CET E-MAIL",
+      "sender": "Ryanair <no-reply@ryanair.com>",
+      "date": "Sat, 18 Jul 2026 13:33:27 +0000",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29445": {
+      "uid": "29445",
+      "subject": "Numéro de référence du service client Ryanair : 78668246  - VEUILLEZ NE PAS RÉPONDRE À CET E-MAIL",
+      "sender": "Ryanair <no-reply@ryanair.com>",
+      "date": "Sat, 18 Jul 2026 15:05:06 +0000",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29446": {
+      "uid": "29446",
+      "subject": "Numéro de référence du service client Ryanair : 78668246  - VEUILLEZ NE PAS RÉPONDRE À CET E-MAIL",
+      "sender": "Ryanair <no-reply@ryanair.com>",
+      "date": "Sat, 18 Jul 2026 15:08:46 +0000",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29447": {
+      "uid": "29447",
+      "subject": "N'oubliez pas votre demande contre la compagnie aérienne !",
+      "sender": "Flightright <service@flightright.fr>",
+      "date": "Sat, 18 Jul 2026 15:37:36 +0000",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29448": {
+      "uid": "29448",
+      "subject": "Numéro de référence du service client Ryanair : 78668246  - VEUILLEZ NE PAS RÉPONDRE À CET E-MAIL",
+      "sender": "Ryanair <no-reply@ryanair.com>",
+      "date": "Sat, 18 Jul 2026 16:41:10 +0000",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29449": {
+      "uid": "29449",
+      "subject": "Numéro de référence du service client Ryanair : 78668246  - VEUILLEZ NE PAS RÉPONDRE À CET E-MAIL",
+      "sender": "Ryanair <no-reply@ryanair.com>",
+      "date": "Sat, 18 Jul 2026 17:10:26 +0000",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29451": {
+      "uid": "29451",
+      "subject": "Numéro de référence du service client Ryanair : 78668246  - VEUILLEZ NE PAS RÉPONDRE À CET E-MAIL",
+      "sender": "Ryanair <no-reply@ryanair.com>",
+      "date": "Sat, 18 Jul 2026 21:01:27 +0000",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29453": {
+      "uid": "29453",
+      "subject": "Une alerte a sonné sur l’appareil iPad Vico",
+      "sender": "Find My <noreply@email.apple.com>",
+      "date": "Sat, 18 Jul 2026 21:52:52 +0000 (GMT)",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29455": {
+      "uid": "29455",
+      "subject": "Re: Procuration",
+      "sender": "Anas Gaoua <anasgaoua@gmail.com>",
+      "date": "Sun, 19 Jul 2026 12:22:55 +0200",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29456": {
+      "uid": "29456",
+      "subject": "Procuration Sam",
+      "sender": "Samuel DELEVOYE <samuel.delevoye@student.junia.com>",
+      "date": "Sun, 19 Jul 2026 10:30:52 +0000",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29457": {
+      "uid": "29457",
+      "subject": "Procuration Léa bruchet",
+      "sender": "Samuel DELEVOYE <samuel.delevoye@student.junia.com>",
+      "date": "Sun, 19 Jul 2026 10:33:55 +0000",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29459": {
+      "uid": "29459",
+      "subject": "Procuration",
+      "sender": "Calliste Lefebvre <calliste.lefebvre@gmail.com>",
+      "date": "Sun, 19 Jul 2026 13:40:00 +0200",
+      "saved_at": "2026-08-29 00:58:31"
+    },
+    "29513": {
+      "uid": "29513",
+      "subject": "(Sans sujet)",
+      "sender": "\"claire.petit@club-internet.fr\" <claire.petit@club-internet.fr>",
+      "date": "Wed, 22 Jul 2026 10:33:10 +0000",
+      "saved_at": "2026-08-29 01:01:44"
+    },
+    "29516": {
+      "uid": "29516",
+      "subject": "Fwd: Attestation Victor",
+      "sender": "Petit Claire 2 <claire.petit@club-internet.fr>",
+      "date": "Wed, 22 Jul 2026 17:01:08 +0200",
+      "saved_at": "2026-08-29 01:01:44"
+    },
+    "29556": {
+      "uid": "29556",
+      "subject": "CROUS : Courrier de décision",
+      "sender": "DSE-nepasrepondre@lescrous.fr",
+      "date": "Fri, 24 Jul 2026 15:16:42 +0200 (CEST)",
+      "saved_at": "2026-08-29 01:01:44"
+    },
+    "29557": {
+      "uid": "29557",
+      "subject": "[MesServices.etudiant.gouv.fr] Validation de votre compte /\r\n Validation of your account",
+      "sender": "noreply@messervices.etudiant.gouv.fr",
+      "date": "Fri, 24 Jul 2026 15:17:11 +0200",
+      "saved_at": "2026-08-29 01:01:44"
+    },
+    "29558": {
+      "uid": "29558",
+      "subject": "Votre demande de droits Etudiant Boursier a bien été prise en compte",
+      "sender": "kisio.crcamiens@sphinxonline.com",
+      "date": "Fri, 24 Jul 2026 15:41:42 +0200 (GMT+02:00)",
+      "saved_at": "2026-08-29 01:01:44"
+    },
+    "29561": {
+      "uid": "29561",
+      "subject": "(Sans sujet)",
+      "sender": "\"claire.petit@club-internet.fr\" <claire.petit@club-internet.fr>",
+      "date": "Fri, 24 Jul 2026 13:56:12 +0000",
+      "saved_at": "2026-08-29 01:01:44"
+    },
+    "29562": {
+      "uid": "29562",
+      "subject": "Accusé de réception de votre demande",
+      "sender": "noreply@ca-norddefrance.fr",
+      "date": "Fri, 24 Jul 2026 15:59:30 +0200 (CEST)",
+      "saved_at": "2026-08-29 01:01:44"
+    },
+    "29659": {
+      "uid": "29659",
+      "subject": "Une information manque à votre dossier",
+      "sender": "Votre CAF <noreply@emailing.caf.fr>",
+      "date": "Wed, 29 Jul 2026 04:10:40 +0000 (UTC)",
+      "saved_at": "2026-08-29 01:22:21"
+    },
+    "29658": {
+      "uid": "29658",
+      "subject": "Votre demande de droits Etudiant Boursier a été acceptée",
+      "sender": "kisio.crcamiens@sphinxonline.com",
+      "date": "Tue, 28 Jul 2026 19:07:49 +0200 (CEST)",
+      "saved_at": "2026-08-29 01:22:21"
+    },
+    "30189": {
+      "uid": "30189",
+      "subject": "Tentative de livraison : « Litter Genie - LitterLocker... »",
+      "sender": "\"Amazon.fr\" <order-update@amazon.fr>",
+      "date": "Fri, 28 Aug 2026 13:14:53 +0000",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30188": {
+      "uid": "30188",
+      "subject": "Votre colis n'a pas pu être livré",
+      "sender": "Colis Prive <livraison@notification.colisprive.com>",
+      "date": "Fri, 28 Aug 2026 13:10:58 +0000 (UTC)",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30185": {
+      "uid": "30185",
+      "subject": "Livré : « FELIWAY Classic Spray 60 ml... »",
+      "sender": "\"Amazon.fr\" <order-update@amazon.fr>",
+      "date": "Fri, 28 Aug 2026 11:36:17 +0000",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30184": {
+      "uid": "30184",
+      "subject": "En cours de livraison : « FELIWAY Classic Spray 60 ml... »",
+      "sender": "\"Amazon.fr\" <shipment-tracking@amazon.fr>",
+      "date": "Fri, 28 Aug 2026 09:46:00 +0000",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30183": {
+      "uid": "30183",
+      "subject": "Votre colis est en cours de livraison",
+      "sender": "Colis Prive <livraison@notification.colisprive.com>",
+      "date": "Fri, 28 Aug 2026 09:16:31 +0000 (UTC)",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30179": {
+      "uid": "30179",
+      "subject": "Rappel : Colis en attente de retrait : retrait à Amazon Locker - Nica d’ici 30 août",
+      "sender": "Amazon <pickup-point@amazon.fr>",
+      "date": "Fri, 28 Aug 2026 06:22:44 +0000",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30176": {
+      "uid": "30176",
+      "subject": "[GitHub] Cursor is requesting updated permissions",
+      "sender": "GitHub <noreply@github.com>",
+      "date": "Thu, 27 Aug 2026 21:07:45 -0700",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30175": {
+      "uid": "30175",
+      "subject": "Nous avons un colis pour vous !",
+      "sender": "Colis Prive <livraison@notification.colisprive.com>",
+      "date": "Thu, 27 Aug 2026 16:16:25 +0000 (UTC)",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30173": {
+      "uid": "30173",
+      "subject": "Colis prêt pour le retrait : retrait à Amazon Locker - Nica Gare Sncf Calais 46 Avenue du Président Wilson  France , 62100 d’ici 30 août",
+      "sender": "Amazon <pickup-point@amazon.fr>",
+      "date": "Thu, 27 Aug 2026 15:03:38 +0000",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30171": {
+      "uid": "30171",
+      "subject": "Vous avez partagé certaines données de votre compte Google avec Aroma-Zone",
+      "sender": "Google <noreply-accounts@google.com>",
+      "date": "Thu, 27 Aug 2026 07:30:37 -0700",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30170": {
+      "uid": "30170",
+      "subject": "Votre commande #6624 est en route",
+      "sender": "Mosaïque Magazine <store+90029523323@t.shopifyemail.com>",
+      "date": "Thu, 27 Aug 2026 13:43:36 +0000 (UTC)",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30164": {
+      "uid": "30164",
+      "subject": "Expédié : \"Litter Genie - LitterLocker...\"",
+      "sender": "\"Amazon.fr\" <confirmation-commande@amazon.fr>",
+      "date": "Thu, 27 Aug 2026 10:44:32 +0000",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30160": {
+      "uid": "30160",
+      "subject": "Le solde de votre compte est bas",
+      "sender": "BoursoBank <noreply@boursobank.com>",
+      "date": "Thu, 27 Aug 2026 08:28:33 +0200",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30159": {
+      "uid": "30159",
+      "subject": "Dossier Social Etudiant : Paiement de votre mensualité",
+      "sender": "DSE-nepasrepondre@lescrous.fr",
+      "date": "Thu, 27 Aug 2026 05:10:44 +0000 (GMT)",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30158": {
+      "uid": "30158",
+      "subject": "N'oubliez pas votre demande contre la compagnie aérienne !",
+      "sender": "Flightright <service@flightright.fr>",
+      "date": "Thu, 27 Aug 2026 03:38:25 +0000",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30156": {
+      "uid": "30156",
+      "subject": "Expédié : \"PGYTECH CreateMate Lecteur...\"",
+      "sender": "\"Amazon.fr\" <confirmation-commande@amazon.fr>",
+      "date": "Wed, 26 Aug 2026 22:55:19 +0000",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30154": {
+      "uid": "30154",
+      "subject": "La ligne 21JET est remplacée dès le 31/08 : ce qu'il faut savoir",
+      "sender": "RTM - La Métropole Mobilité<lametropolemobilite@info.rtm.fr>",
+      "date": "Wed, 26 Aug 2026 10:33:23 -0600",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30149": {
+      "uid": "30149",
+      "subject": "Bus sans marquage FlixBus pour votre trajet pour Lille 🚌",
+      "sender": "Flix <noreply@me.flixbus.com>",
+      "date": "Wed, 26 Aug 2026 09:35:36 +0000",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30147": {
+      "uid": "30147",
+      "subject": "Commandés : « PGYTECH CreateMate Lecteur... » et 2 articles supplémentaires",
+      "sender": "\"Amazon.fr\" <confirmation-commande@amazon.fr>",
+      "date": "Wed, 26 Aug 2026 08:10:36 +0000",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30140": {
+      "uid": "30140",
+      "subject": "E-mail de justificatif de paiement",
+      "sender": "Flix <noreply@fs.flixbus.com>",
+      "date": "Tue, 25 Aug 2026 15:41:41 +0000",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30139": {
+      "uid": "30139",
+      "subject": "E-mail de justificatif de paiement",
+      "sender": "Flix <noreply@fs.flixbus.com>",
+      "date": "Tue, 25 Aug 2026 15:41:41 +0000",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30127": {
+      "uid": "30127",
+      "subject": "Rappel RDV: Mairie de Calais le lundi 31 août à 11:05 ",
+      "sender": "Mairie de Calais <info@synbird.com>",
+      "date": "Mon, 24 Aug 2026 15:35:09 +0000",
+      "saved_at": "2026-08-29 01:26:44"
+    },
+    "30109": {
+      "uid": "30109",
+      "subject": "Numéro de référence du service client Ryanair : 80008682  - VEUILLEZ NE PAS RÉPONDRE À CET E-MAIL",
+      "sender": "Ryanair <no-reply@ryanair.com>",
+      "date": "Sat, 22 Aug 2026 07:53:10 +0000",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30106": {
+      "uid": "30106",
+      "subject": "Numéro de référence du service client Ryanair : 80008682  - VEUILLEZ NE PAS RÉPONDRE À CET E-MAIL",
+      "sender": "Ryanair <no-reply@ryanair.com>",
+      "date": "Sat, 22 Aug 2026 06:21:21 +0000",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30100": {
+      "uid": "30100",
+      "subject": "E-mail de justificatif de paiement",
+      "sender": "Flix <noreply@fs.flixbus.com>",
+      "date": "Fri, 21 Aug 2026 15:33:16 +0000",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30099": {
+      "uid": "30099",
+      "subject": "Confirmation de réservation #3386877359",
+      "sender": "Flix <noreply@booking.flixbus.com>",
+      "date": "Fri, 21 Aug 2026 15:33:14 +0000",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30095": {
+      "uid": "30095",
+      "subject": "Alerte de sécurité pour kuchpet2.vic@gmail.com",
+      "sender": "Google <no-reply@accounts.google.com>",
+      "date": "Fri, 21 Aug 2026 15:04:42 GMT",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30094": {
+      "uid": "30094",
+      "subject": "Alerte de sécurité pour kuchpet2.vic@gmail.com",
+      "sender": "Google <no-reply@accounts.google.com>",
+      "date": "Fri, 21 Aug 2026 15:04:40 GMT",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30085": {
+      "uid": "30085",
+      "subject": "Monsieur KUCHEJDA PETIT, bienvenue au Crédit Agricole Nord de France !",
+      "sender": "Crédit Agricole Nord de France<contact@e-ca-norddefrance.fr>",
+      "date": "Fri, 21 Aug 2026 06:14:08 GMT",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30083": {
+      "uid": "30083",
+      "subject": "Vos documents « Banque, Assurance » à disposition",
+      "sender": "Crédit Agricole <contact@ca-norddefrance.fr>",
+      "date": "Fri, 21 Aug 2026 01:40:33 GMT",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30075": {
+      "uid": "30075",
+      "subject": "Votre facture est disponible sur redbysfr.fr",
+      "sender": "RED by SFR <facture@redbysfr.fr>",
+      "date": "Thu, 20 Aug 2026 08:33:19 +0200 (CEST)",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30073": {
+      "uid": "30073",
+      "subject": "Commande #6624 confirmée",
+      "sender": "Mosaïque Magazine<store+90029523323@t.shopifyemail.com>",
+      "date": "Wed, 19 Aug 2026 22:06:21 +0000",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30072": {
+      "uid": "30072",
+      "subject": "Votre commande est disponible",
+      "sender": "\"Intersport\" <serviceclient@fidelite.intersport.fr>",
+      "date": "Wed, 19 Aug 2026 17:38:25 +0000",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30071": {
+      "uid": "30071",
+      "subject": "Vos tickets",
+      "sender": "Arlestourisme <arlestourisme@tickeasy.com>",
+      "date": "Wed, 19 Aug 2026 17:26:57 +0000",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30070": {
+      "uid": "30070",
+      "subject": "Confirmation de commande",
+      "sender": "Arlestourisme <arlestourisme@tickeasy.com>",
+      "date": "Wed, 19 Aug 2026 17:26:57 +0000",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30069": {
+      "uid": "30069",
+      "subject": "BOUTIQUE OFFICE DE TOURISME D'ARLES - Votre paiement pour la commande Réf. 2623169778330400602",
+      "sender": "do_not_reply@payzen.eu",
+      "date": "Wed, 19 Aug 2026 19:26:07 +0200 (CEST)",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30067": {
+      "uid": "30067",
+      "subject": "Confirmation de votre réservation [105099005]",
+      "sender": "LUMA Arles <noreply@luma.org>",
+      "date": "Wed, 19 Aug 2026 17:18:41 +0000",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30066": {
+      "uid": "30066",
+      "subject": "Votre voyage Marseille Saint-Charles - Arles, aller le jeudi 20 août 2026, retour le jeudi 20 août 2026",
+      "sender": "SNCF Connect <noreply@connect.sncf>",
+      "date": "Wed, 19 Aug 2026 19:04:38 +0200 (CEST)",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30063": {
+      "uid": "30063",
+      "subject": "Numéro de référence du service client Ryanair : 80008682  - VEUILLEZ NE PAS RÉPONDRE À CET E-MAIL",
+      "sender": "Ryanair <no-reply@ryanair.com>",
+      "date": "Wed, 19 Aug 2026 12:06:23 +0000",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30061": {
+      "uid": "30061",
+      "subject": "Caf - Confirmation de votre rendez-vous en accueil",
+      "sender": "Votre CAF <nepasrepondre@emailing.caf.fr>",
+      "date": "Wed, 19 Aug 2026 11:33:25 +0000 (UTC)",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30058": {
+      "uid": "30058",
+      "subject": "Vous avez partagé certaines données de votre compte Google avec Decathlon",
+      "sender": "Google <noreply-accounts@google.com>",
+      "date": "Wed, 19 Aug 2026 03:59:16 -0700",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30057": {
+      "uid": "30057",
+      "subject": "Numéro de référence du service client Ryanair : 80008682 - VEUILLEZ NE PAS RÉPONDRE À CET E-MAIL",
+      "sender": "Ryanair <no-reply@ryanair.com>",
+      "date": "Wed, 19 Aug 2026 10:31:53 +0000",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30056": {
+      "uid": "30056",
+      "subject": "Alerte de sécurité",
+      "sender": "Google <no-reply@accounts.google.com>",
+      "date": "Wed, 19 Aug 2026 10:23:45 GMT",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30049": {
+      "uid": "30049",
+      "subject": "Vos documents « Banque, Assurance » à disposition",
+      "sender": "Crédit Agricole <contact@ca-norddefrance.fr>",
+      "date": "Wed, 19 Aug 2026 01:37:17 GMT",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30047": {
+      "uid": "30047",
+      "subject": "Bus sans marquage FlixBus pour votre trajet pour Marseille (Gare Routière Saint Charles) 🚌",
+      "sender": "Flix <noreply@me.flixbus.com>",
+      "date": "Tue, 18 Aug 2026 17:10:38 +0000",
+      "saved_at": "2026-08-29 11:53:34"
+    },
+    "30030": {
+      "uid": "30030",
+      "subject": "Fwd: ATTESTATION",
+      "sender": "Petit Claire 2 <claire.petit@club-internet.fr>",
+      "date": "Mon, 17 Aug 2026 19:33:01 +0200",
+      "saved_at": "2026-08-29 12:47:41"
+    },
+    "30019": {
+      "uid": "30019",
+      "subject": "Ryanair Customer Service reference number: 78710925 – PLEASE DO NOT REPLY",
+      "sender": "Ryanair <no-reply@ryanair.com>",
+      "date": "Mon, 17 Aug 2026 09:03:58 +0000",
+      "saved_at": "2026-08-29 12:47:41"
+    },
+    "30018": {
+      "uid": "30018",
+      "subject": "Ryanair Customer Service reference number: 78710925",
+      "sender": "Ryanair <no-reply@ryanair.com>",
+      "date": "Mon, 17 Aug 2026 09:03:42 +0000",
+      "saved_at": "2026-08-29 12:47:41"
+    },
+    "30017": {
+      "uid": "30017",
+      "subject": "Ryanair Customer Service reference number: 78710925 – PLEASE DO NOT REPLY",
+      "sender": "Ryanair <no-reply@ryanair.com>",
+      "date": "Mon, 17 Aug 2026 09:03:42 +0000",
+      "saved_at": "2026-08-29 12:47:41"
+    },
+    "29998": {
+      "uid": "29998",
+      "subject": "Suite à votre demande du 20/07/2026",
+      "sender": "RTM – Service Client <contact@info.rtm.fr>",
+      "date": "Sat, 15 Aug 2026 11:00:47 -0600",
+      "saved_at": "2026-08-29 12:47:41"
+    },
+    "29988": {
+      "uid": "29988",
+      "subject": "France Identité disponible sur votre smartphone",
+      "sender": "France Titres – Agence nationale des titres sécurisés <no-reply@ants.gouv.fr>",
+      "date": "Fri, 14 Aug 2026 19:00:11 +0000 (GMT)",
+      "saved_at": "2026-08-29 12:47:41"
+    },
+    "29987": {
+      "uid": "29987",
+      "subject": "Action requise : Finalisez le dépôt de votre demande de carte d'identité et passeport",
+      "sender": "France Titres – Agence nationale des titres sécurisés <no-reply@ants.gouv.fr>",
+      "date": "Fri, 14 Aug 2026 19:00:11 +0000 (GMT)",
+      "saved_at": "2026-08-29 12:47:41"
+    },
+    "29986": {
+      "uid": "29986",
+      "subject": "Rendez-vous confirmé sur place: Mairie de Calais le lundi 31 août à 11:05 ",
+      "sender": "Mairie de Calais <info@synbird.com>",
+      "date": "Fri, 14 Aug 2026 18:58:28 +0000",
+      "saved_at": "2026-08-29 12:47:41"
+    },
+    "29983": {
+      "uid": "29983",
+      "subject": "Timbre(s) électronique(s) : votre achat du 14/08/2026",
+      "sender": "ne-pas-repondre@timbres.ants.gouv.fr",
+      "date": "Fri, 14 Aug 2026 18:55:55 +0000 (GMT)",
+      "saved_at": "2026-08-29 12:47:41"
+    },
+    "29981": {
+      "uid": "29981",
+      "subject": "ANTS - Votre compte a bien été récupéré",
+      "sender": "Agence nationale des titres sécurisés<noreply@moncompte.ants.gouv.fr>",
+      "date": "Fri, 14 Aug 2026 18:34:29 +0000 (GMT)",
+      "saved_at": "2026-08-29 12:47:41"
+    },
+    "29979": {
+      "uid": "29979",
+      "subject": "Alerte de connexion au service \"les sites de l'Agence Nationale des Titres Sécurisés\" avec FranceConnect",
+      "sender": "\"FranceConnect\" <ne-pas-repondre@notification.franceconnect.gouv.fr>",
+      "date": "Fri, 14 Aug 2026 20:34:00 +0200",
+      "saved_at": "2026-08-29 12:47:41"
+    },
+    "29961": {
+      "uid": "29961",
+      "subject": "Réponse à votre demande du 20/07/2026    [ ref:!00D1t0xAn0.!500bF0YbrZe:ref ]",
+      "sender": "Relations Clientèle <relations.clientele@rtm.fr>",
+      "date": "Fri, 14 Aug 2026 09:13:19 +0000 (GMT)",
+      "saved_at": "2026-08-29 12:50:51"
+    },
+    "29921": {
+      "uid": "29921",
+      "subject": "(Sans sujet)",
+      "sender": "\"claire.petit@club-internet.fr\" <claire.petit@club-internet.fr>",
+      "date": "Wed, 12 Aug 2026 13:35:23 +0000",
+      "saved_at": "2026-08-29 12:50:51"
+    },
+    "29896": {
+      "uid": "29896",
+      "subject": " Ryanair Customer Service reference number: 78710925 – PLEASE DO NOT REPLY",
+      "sender": "Ryanair <no-reply@ryanair.com>",
+      "date": "Tue, 11 Aug 2026 11:01:23 +0000",
+      "saved_at": "2026-08-29 12:50:51"
+    },
+    "29891": {
+      "uid": "29891",
+      "subject": "(Sans sujet)",
+      "sender": "\"claire.petit@club-internet.fr\" <claire.petit@club-internet.fr>",
+      "date": "Mon, 10 Aug 2026 16:31:50 +0000",
+      "saved_at": "2026-08-29 12:50:51"
+    }
+  }
+}
