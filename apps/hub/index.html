@@ -1195,16 +1195,14 @@
     // Load Maman's allowed modules from localStorage (or defaults)
     function getMamanAllowedModules() {
       const saved = localStorage.getItem('maman_allowed_modules');
-      if (saved) {
+      if (saved !== null) {
         try {
-          const list = JSON.parse(saved);
-          AVAILABLE_MODULES.forEach(m => {
-            if (m.defaultMaman && !list.includes(m.id)) list.push(m.id);
-          });
-          return list;
+          return JSON.parse(saved);
         } catch(e) {}
       }
-      return AVAILABLE_MODULES.filter(m => m.defaultMaman).map(m => m.id);
+      const defaults = AVAILABLE_MODULES.filter(m => m.defaultMaman).map(m => m.id);
+      saveMamanAllowedModules(defaults);
+      return defaults;
     }
 
     function saveMamanAllowedModules(allowedList) {
@@ -1307,21 +1305,22 @@
         const isChecked = allowed.includes(mod.id);
         const item = document.createElement('div');
         item.className = 'perm-toggle-item';
-        item.onclick = (e) => {
-          if (e.target.tagName !== 'INPUT') {
-            const checkbox = item.querySelector('input');
-            checkbox.checked = !checkbox.checked;
-            togglePermission(mod.id, checkbox.checked);
-          }
-        };
-
         item.innerHTML = `
           <span class="perm-label">${mod.name}</span>
           <label class="switch">
-            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="togglePermission('${mod.id}', this.checked)">
+            <input type="checkbox" id="perm_${mod.id}" ${isChecked ? 'checked' : ''} onchange="togglePermission('${mod.id}', this.checked)">
             <span class="slider"></span>
           </label>
         `;
+        item.onclick = (e) => {
+          if (e.target.tagName !== 'INPUT' && !e.target.closest('.switch')) {
+            const input = document.getElementById('perm_' + mod.id);
+            if (input) {
+              input.checked = !input.checked;
+              togglePermission(mod.id, input.checked);
+            }
+          }
+        };
         container.appendChild(item);
       });
     }
@@ -1334,7 +1333,6 @@
         allowed = allowed.filter(id => id !== appId);
       }
       saveMamanAllowedModules(allowed);
-      applyProfile();
     }
 
     // Live Clock
