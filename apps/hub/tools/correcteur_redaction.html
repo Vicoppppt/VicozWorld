@@ -1,0 +1,2271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Correcteur de Rédactions IA - Français Collège</title>
+
+  <!-- PDF.js library for PDF parsing and rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- Marked.js for rendering markdown formatted text if needed -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-light: #eef2ff;
+      --primary-border: #c7d2fe;
+      
+      --secondary: #0891b2;
+      --secondary-light: #ecfeff;
+      
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --success-border: #bbf7d0;
+      
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --warning-border: #fde68a;
+      
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --danger-border: #fecaca;
+      
+      --purple: #7c3aed;
+      --purple-light: #f5f3ff;
+      
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --border-focus: #6366f1;
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px 16px 60px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1060px;
+    }
+
+    /* Top Navigation */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 0.95rem;
+      background: white;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .back-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary-border);
+      transform: translateX(-2px);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: white;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-outline:hover {
+      background: #f1f5f9;
+      color: var(--text);
+      border-color: #cbd5e1;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: var(--purple-light);
+      color: var(--purple);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 9999px;
+      border: 1px solid #ddd6fe;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+      transition: border-color 0.2s ease;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    /* Form Grids and Inputs */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 700px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .label-hint {
+      font-weight: 400;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin-left: 4px;
+    }
+
+    input[type="text"], select, textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 110px;
+      line-height: 1.6;
+    }
+
+    /* Criteria List */
+    .criteria-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-top: 10px;
+    }
+
+    .criteria-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .criteria-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #1e293b;
+    }
+
+    .criteria-presets {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .preset-chip {
+      background: white;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .preset-chip:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+      border-color: var(--primary-border);
+    }
+
+    .criteria-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .criterion-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+
+    .criterion-item:hover {
+      border-color: #cbd5e1;
+    }
+
+    .criterion-input {
+      flex: 1;
+      border: none !important;
+      padding: 4px 0 !important;
+      font-size: 0.92rem !important;
+      background: transparent !important;
+    }
+
+    .criterion-input:focus {
+      box-shadow: none !important;
+    }
+
+    .criterion-bareme {
+      width: 80px;
+      text-align: center;
+      font-size: 0.85rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+    }
+
+    .btn-remove-criterion {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 4px 6px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+
+    .btn-remove-criterion:hover {
+      color: var(--danger);
+      background: var(--danger-light);
+    }
+
+    .criteria-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      background: white;
+      color: #475569;
+      transition: all 0.2s;
+    }
+
+    .btn-sm:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .btn-magic {
+      background: var(--purple-light);
+      border-color: #ddd6fe;
+      color: var(--purple);
+    }
+
+    .btn-magic:hover {
+      background: #ede9fe;
+      border-color: #c4b5fd;
+    }
+
+    /* Accordion / Optional Section */
+    .accordion-toggle {
+      width: 100%;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-weight: 600;
+      color: #475569;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+
+    .accordion-toggle:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    .accordion-content {
+      display: none;
+      padding-top: 14px;
+    }
+
+    .accordion-content.open {
+      display: block;
+    }
+
+    /* Tabs for student copy input */
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .tab-btn {
+      padding: 10px 16px;
+      border: none;
+      background: transparent;
+      font-weight: 600;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn:hover {
+      color: var(--primary);
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    /* Drop Zone */
+    .drop-zone {
+      border: 2px dashed #c7d2fe;
+      background: #f5f7ff;
+      border-radius: var(--radius-md);
+      padding: 28px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--primary);
+      background: #eef2ff;
+      transform: scale(1.003);
+    }
+
+    .drop-zone-icon {
+      font-size: 2.2rem;
+      margin-bottom: 6px;
+    }
+
+    .drop-zone-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #312e81;
+      margin-bottom: 4px;
+    }
+
+    .drop-zone-subtitle {
+      font-size: 0.85rem;
+      color: #6366f1;
+    }
+
+    /* Multi-image preview grid */
+    .previews-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .preview-card {
+      position: relative;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .preview-card img {
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .preview-card .file-info {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .preview-card .btn-del-file {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: rgba(220, 38, 38, 0.9);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+
+    /* Main CTA Button */
+    .btn-submit-container {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-primary-large {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+      color: white;
+      font-size: 1.15rem;
+      font-weight: 700;
+      padding: 16px 36px;
+      border-radius: 9999px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.25s ease;
+    }
+
+    .btn-primary-large:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px 0 rgba(79, 70, 229, 0.5);
+    }
+
+    .btn-primary-large:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary-large:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* Results Section */
+    .results-section {
+      display: none;
+      margin-top: 30px;
+    }
+
+    .results-section.show {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-banner {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+      color: white;
+      border-radius: var(--radius-lg);
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .result-student-name {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .result-devoir-meta {
+      font-size: 0.9rem;
+      color: #c7d2fe;
+    }
+
+    .score-badge-large {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: var(--radius-md);
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 140px;
+    }
+
+    .score-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #fde047;
+    }
+
+    .score-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #e0e7ff;
+    }
+
+    /* Synthesis Card */
+    .synthesis-card {
+      background: white;
+      border-left: 6px solid var(--primary);
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+      border-top: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .synthesis-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .synthesis-text {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #334155;
+    }
+
+    /* Detailed Criteria Table */
+    .table-container {
+      overflow-x: auto;
+      margin-bottom: 24px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: white;
+      box-shadow: var(--shadow-sm);
+    }
+
+    table.eval-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.92rem;
+    }
+
+    table.eval-table th {
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 700;
+      padding: 12px 16px;
+      border-bottom: 2px solid var(--border);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    table.eval-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      color: #1e293b;
+    }
+
+    table.eval-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .status-ok {
+      background: var(--success-light);
+      color: var(--success);
+      border: 1px solid var(--success-border);
+    }
+
+    .status-partial {
+      background: var(--warning-light);
+      color: var(--warning);
+      border: 1px solid var(--warning-border);
+    }
+
+    .status-ko {
+      background: var(--danger-light);
+      color: var(--danger);
+      border: 1px solid var(--danger-border);
+    }
+
+    .quote-text {
+      background: #f1f5f9;
+      border-left: 3px solid #94a3b8;
+      padding: 4px 8px;
+      font-style: italic;
+      font-size: 0.85rem;
+      margin: 6px 0;
+      border-radius: 0 4px 4px 0;
+      color: #475569;
+    }
+
+    .advice-text {
+      font-size: 0.85rem;
+      color: #0369a1;
+      background: #f0f9ff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-top: 6px;
+      border: 1px solid #bae6fd;
+    }
+
+    /* Strengths & Progress Cards */
+    .strengths-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .strengths-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .strength-card {
+      background: white;
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+    }
+
+    .strength-card.positive {
+      border-top: 4px solid var(--success);
+    }
+
+    .strength-card.improve {
+      border-top: 4px solid var(--secondary);
+    }
+
+    .strength-card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .strength-list {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .strength-list li {
+      position: relative;
+      padding-left: 20px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #334155;
+    }
+
+    .strength-card.positive .strength-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--success);
+      font-weight: bold;
+    }
+
+    .strength-card.improve .strength-list li::before {
+      content: "➔";
+      position: absolute;
+      left: 0;
+      color: var(--secondary);
+      font-weight: bold;
+    }
+
+    /* Pronote Appreciation Card */
+    .pronote-card {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border: 1px solid #86efac;
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .pronote-content {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .pronote-title {
+      font-weight: 700;
+      color: #166534;
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pronote-text {
+      font-size: 0.95rem;
+      color: #14532d;
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    /* Export Actions Bar */
+    .export-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: white;
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 30px;
+    }
+
+    .export-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: white;
+      color: #334155;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      background: #f8fafc;
+      color: var(--primary);
+      border-color: var(--primary-border);
+    }
+
+    .btn-action-primary {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .btn-action-primary:hover {
+      background: var(--primary-hover);
+      color: white;
+    }
+
+    /* Session History */
+    .history-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .history-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .history-item:hover {
+      border-color: var(--primary-border);
+      background: var(--primary-light);
+    }
+
+    /* Modal for API Key / Settings */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 520px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalPop {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .btn-close-modal {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      color: #94a3b8;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      background: #f8fafc;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 56px;
+      height: 56px;
+      border: 5px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #818cf8;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-step {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .loading-subtext {
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      max-width: 450px;
+    }
+
+    /* Print Stylesheet for Grading Sheet */
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+        padding: 0 !important;
+      }
+
+      .top-nav, .top-actions, header, .card:not(#resultsSection), .btn-submit-container, .export-bar, .history-section, .btn-action, .modal-overlay, .loading-overlay {
+        display: none !important;
+      }
+
+      .results-section {
+        display: block !important;
+        margin: 0 !important;
+      }
+
+      .result-banner {
+        background: #f1f5f9 !important;
+        color: black !important;
+        border: 2px solid #000 !important;
+        box-shadow: none !important;
+      }
+
+      .score-value {
+        color: black !important;
+      }
+
+      .score-label {
+        color: #475569 !important;
+      }
+
+      .table-container {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+      }
+
+      table.eval-table th {
+        background: #e2e8f0 !important;
+        color: black !important;
+      }
+
+      table.eval-table td, table.eval-table th {
+        border: 1px solid #cbd5e1 !important;
+      }
+
+      .strength-card, .synthesis-card, .pronote-card {
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Top Navigation -->
+    <div class="top-nav">
+      <a href="../index.html" class="back-btn">
+        <span>←</span>
+        <span>Retour au Hub</span>
+      </a>
+
+      <div class="top-actions">
+        <button class="btn-outline" id="btnSettings" onclick="openSettingsModal()">
+          <span>⚙️</span>
+          <span id="apiKeyStatusLabel">Clé Gemini</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header>
+      <div class="badge-pill">
+        <span>✨ Propulsé par Gemini 2.5</span>
+        <span>•</span>
+        <span>Français Collège (6e - 3e)</span>
+      </div>
+      <h1>Évaluateur & Correcteur de Rédactions</h1>
+      <p class="subtitle">
+        Correction pédagogique et bienveillante de copies d'élèves selon vos consignes, critères précis et barème.
+      </p>
+    </header>
+
+    <!-- STEP 1 : Consignes & Critères du Devoir -->
+    <div class="card" id="step1Card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="step-number">1</span>
+          <span>Consignes & Critères d'Évaluation</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="classeLevel">Niveau de classe</label>
+          <select id="classeLevel">
+            <option value="6e">6ème (Cycle 3 - Consolidation)</option>
+            <option value="5e" selected>5ème (Cycle 4 - Approfondissements)</option>
+            <option value="4e">4ème (Cycle 4 - Approfondissements)</option>
+            <option value="3e">3ème (Cycle 4 - Préparation Brevet)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="textType">Type d'écrit / Genre littéraire</label>
+          <select id="textType" onchange="handleTextTypeChange()">
+            <option value="recit_narratif">Récit narratif / Suite de texte</option>
+            <option value="portrait_description">Portrait / Description / Tableau</option>
+            <option value="dialogue_theatre">Dialogue narratif / Scène de théâtre</option>
+            <option value="lettre_epistolaire">Lettre / Récit épistolaire</option>
+            <option value="texte_argumentatif">Texte argumentatif / Article / Débat d'idées</option>
+            <option value="poesie">Poésie / Écriture poétique</option>
+            <option value="invention_libre">Écriture d'invention libre</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="devoirTopic">
+          Sujet / Consignes données aux élèves
+          <span class="label-hint">(Texte ou importez un PDF/Image du sujet)</span>
+        </label>
+        <textarea id="devoirTopic" placeholder="Exemple : Vous écrirez la suite du texte. Votre personnage découvre un objet mystérieux dans un grenier abandonné. Vous alternerez narration au passé simple et descriptions à l'imparfait, en créant une atmosphère de suspense..."></textarea>
+      </div>
+
+      <!-- Import de consigne PDF / Photo -->
+      <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 14px;">
+        <input type="file" id="sujetFileInput" accept=".pdf,image/*" style="display: none;" onchange="handleSujetFileUpload(event)">
+        <button class="btn-sm" onclick="document.getElementById('sujetFileInput').click()">
+          <span>📎</span>
+          <span>Importer le sujet (PDF ou Photo)</span>
+        </button>
+        <span id="sujetFileName" style="font-size: 0.85rem; color: var(--text-muted);"></span>
+      </div>
+
+      <!-- Critères de notation dynamiques -->
+      <div class="criteria-box">
+        <div class="criteria-header">
+          <div class="criteria-title">📋 Critères précis de notation & Barème</div>
+          <div class="criteria-presets">
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Modèles rapides :</span>
+            <button class="preset-chip" onclick="applyCriteriaPreset('recit')">Récit & Temps</button>
+            <button class="preset-chip" onclick="applyCriteriaPreset('dialogue')">Dialogue</button>
+            <button class="preset-chip" onclick="applyCriteriaPreset('description')">Description</button>
+            <button class="preset-chip" onclick="applyCriteriaPreset('argumentation')">Argumentation</button>
+          </div>
+        </div>
+
+        <div class="criteria-list" id="criteriaList">
+          <!-- Dynamically populated criteria items -->
+        </div>
+
+        <div class="criteria-actions">
+          <button class="btn-sm" onclick="addCriterionRow()">
+            <span>➕</span>
+            <span>Ajouter un critère</span>
+          </button>
+          <button class="btn-sm btn-magic" onclick="extractCriteriaWithAI()">
+            <span>✨</span>
+            <span>Générer automatiquement les critères depuis le sujet</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 : Exemples & Copies Repères (Optionnel) -->
+    <div class="card">
+      <div class="card-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+        <div class="card-title">
+          <span class="step-number" style="background: #64748b;">2</span>
+          <span>Exemples & Copies Repères</span>
+          <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">(Optionnel)</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <button class="accordion-toggle" onclick="toggleAccordion('examplesAccordion')">
+          <span>💡 Ajouter un exemple de très bonne copie ou des consignes de correction particulières</span>
+          <span id="examplesAccordionIcon">▼</span>
+        </button>
+        <div class="accordion-content" id="examplesAccordion">
+          <div class="form-group" style="margin-top: 10px;">
+            <label for="exemplaryText">
+              Texte de référence, corrigé type ou remarques méthodologiques
+            </label>
+            <textarea id="exemplaryText" placeholder="Collez ici un extrait d'une excellente copie, un barème spécifique ou des erreurs fréquentes à pénaliser particulièrement..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 : Copie de l'Élève -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="step-number" style="background: var(--purple);">3</span>
+          <span>Copie de l'Élève à Évaluer</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="studentName">Nom / Prénom de l'élève <span class="label-hint">(ou laisser vide pour anonyme)</span></label>
+          <input type="text" id="studentName" placeholder="Ex: Lucas M. ou Élève 1">
+        </div>
+        <div class="form-group">
+          <label for="correctionRigour">Exigence de correction</label>
+          <select id="correctionRigour">
+            <option value="standard" selected>Équilibrée & Pédagogique (Recommandé)</option>
+            <option value="bienveillante">Très bienveillante (Élèves à besoins / 6e)</option>
+            <option value="exigeante">Exigeante (3e / Préparation Brevet)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Onglets d'entrée : Texte vs Photo/Manuscrit vs PDF -->
+      <div class="tabs-nav">
+        <button class="tab-btn active" onclick="switchStudentTab('text')">
+          <span>✍️ Texte tapé / collé</span>
+        </button>
+        <button class="tab-btn" onclick="switchStudentTab('photo')">
+          <span>📸 Photo de copie manuscrite</span>
+        </button>
+        <button class="tab-btn" onclick="switchStudentTab('pdf')">
+          <span>📄 Fichier PDF de la copie</span>
+        </button>
+      </div>
+
+      <!-- TAB 1 : TEXT -->
+      <div class="tab-pane active" id="tabPaneText">
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label for="studentText">Rédaction de l'élève</label>
+            <span id="studentWordCount" style="font-size: 0.8rem; color: var(--text-muted);">0 mot</span>
+          </div>
+          <textarea id="studentText" style="min-height: 180px;" placeholder="Collez ou tapez ici le texte de la rédaction de l'élève..." oninput="updateWordCount()"></textarea>
+        </div>
+      </div>
+
+      <!-- TAB 2 : PHOTO MANUSCRITE -->
+      <div class="tab-pane" id="tabPanePhoto">
+        <div class="drop-zone" id="photoDropZone" onclick="document.getElementById('photoFileInput').click()">
+          <input type="file" id="photoFileInput" accept="image/*" multiple style="display: none;" onchange="handleStudentPhotosUpload(event)">
+          <div class="drop-zone-icon">📸</div>
+          <div class="drop-zone-title">Glissez ou collez les photos de la copie manuscrite</div>
+          <div class="drop-zone-subtitle">Accepte les JPG, PNG, photos de smartphone (plusieurs pages acceptées ou faites Ctrl+V)</div>
+        </div>
+        <div class="previews-grid" id="photoPreviewsGrid"></div>
+      </div>
+
+      <!-- TAB 3 : PDF -->
+      <div class="tab-pane" id="tabPanePdf">
+        <div class="drop-zone" id="pdfDropZone" onclick="document.getElementById('pdfFileInput').click()">
+          <input type="file" id="pdfFileInput" accept=".pdf" style="display: none;" onchange="handleStudentPdfUpload(event)">
+          <div class="drop-zone-icon">📄</div>
+          <div class="drop-zone-title">Glissez ou sélectionnez le fichier PDF de la copie</div>
+          <div class="drop-zone-subtitle">Le fichier sera lu et analysé par l'IA Gemini</div>
+        </div>
+        <div id="pdfFileInfo" style="margin-top: 10px; font-size: 0.9rem; font-weight: 600; color: #334155; display: none;"></div>
+      </div>
+
+      <!-- Launch evaluation button -->
+      <div class="btn-submit-container">
+        <button class="btn-primary-large" id="btnEvaluate" onclick="startEvaluation()">
+          <span>✨</span>
+          <span>Évaluer la Copie avec Gemini</span>
+        </button>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">
+          Correction instantanée conforme aux programmes du collège
+        </span>
+      </div>
+    </div>
+
+    <!-- STEP 4 : RESULTATS DE L'EVALUATION -->
+    <div class="results-section" id="resultsSection">
+      
+      <!-- Export & Action Bar -->
+      <div class="export-bar">
+        <div style="font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+          <span>🎯 Résultat de l'Évaluation</span>
+        </div>
+        <div class="export-buttons">
+          <button class="btn-action" onclick="copyPronoteAppreciation()">
+            <span>📋</span>
+            <span>Copier pour Pronote</span>
+          </button>
+          <button class="btn-action" onclick="copyFullReport()">
+            <span>📄</span>
+            <span>Copier tout le compte-rendu</span>
+          </button>
+          <button class="btn-action" onclick="window.print()">
+            <span>🖨️</span>
+            <span>Imprimer la grille élève</span>
+          </button>
+          <button class="btn-action btn-action-primary" onclick="prepareNextCopy()">
+            <span>➕</span>
+            <span>Copie suivante (même devoir)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Student Banner -->
+      <div class="result-banner">
+        <div>
+          <div class="result-student-name" id="resStudentName">Copie d'élève</div>
+          <div class="result-devoir-meta" id="resDevoirMeta">Classe de 5ème • Récit narratif</div>
+        </div>
+        <div class="score-badge-large">
+          <div class="score-value" id="resScoreValue">-- / 20</div>
+          <div class="score-label" id="resScoreLabel">Note indicative</div>
+        </div>
+      </div>
+
+      <!-- Synthesis -->
+      <div class="synthesis-card">
+        <div class="synthesis-title">
+          <span>📝</span>
+          <span>Synthèse globale & Avis pédagogique</span>
+        </div>
+        <div class="synthesis-text" id="resSynthesisText">
+          Chargement de l'évaluation...
+        </div>
+      </div>
+
+      <!-- Criteria Table -->
+      <div class="card" style="padding: 16px;">
+        <div class="card-title" style="font-size: 1.1rem; margin-bottom: 14px;">
+          <span>📊</span>
+          <span>Tableau d'évaluation détaillée par critère</span>
+        </div>
+        <div class="table-container">
+          <table class="eval-table" id="resCriteriaTable">
+            <thead>
+              <tr>
+                <th style="width: 25%;">Critère / Compétence</th>
+                <th style="width: 15%;">Degré de maîtrise</th>
+                <th style="width: 10%;">Barème</th>
+                <th style="width: 28%;">Analyse & Citations de la copie</th>
+                <th style="width: 22%;">Conseil d'amélioration</th>
+              </tr>
+            </thead>
+            <tbody id="resCriteriaTableBody">
+              <!-- Dynamically populated table rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Strengths & Improvement axes -->
+      <div class="strengths-grid">
+        <div class="strength-card positive">
+          <div class="strength-card-title" style="color: #166534;">
+            <span>🌟</span>
+            <span>Points forts de la copie</span>
+          </div>
+          <ul class="strength-list" id="resStrengthsList">
+            <!-- Populated via JS -->
+          </ul>
+        </div>
+
+        <div class="strength-card improve">
+          <div class="strength-card-title" style="color: #0e7490;">
+            <span>🎯</span>
+            <span>Axes prioritaires de progrès</span>
+          </div>
+          <ul class="strength-list" id="resImprovementsList">
+            <!-- Populated via JS -->
+          </ul>
+        </div>
+      </div>
+
+      <!-- Language & Orthography feedback -->
+      <div class="card" id="languageCard">
+        <div class="card-title" style="font-size: 1.1rem; margin-bottom: 14px; color: #4338ca;">
+          <span>🖋️</span>
+          <span>Langue, Orthographe & Syntaxe relevées</span>
+        </div>
+        <div id="resLanguageFeedback" style="font-size: 0.95rem; line-height: 1.6; color: #334155;">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+
+      <!-- Pronote appreciation box -->
+      <div class="pronote-card">
+        <div class="pronote-content">
+          <div class="pronote-title">
+            <span>💬</span>
+            <span>Appréciation synthétique (Pronote / Bulletin) :</span>
+          </div>
+          <div class="pronote-text" id="resPronoteText">
+            Chargement...
+          </div>
+        </div>
+        <button class="btn-sm" style="background: white; border-color: #86efac; color: #166534; white-space: nowrap;" onclick="copyPronoteAppreciation()">
+          <span>📋</span>
+          <span>Copier</span>
+        </button>
+      </div>
+
+      <!-- Session History -->
+      <div class="history-section" id="historySection">
+        <div class="history-title">
+          <span>📚</span>
+          <span>Historique des copies corrigées lors de cette session</span>
+        </div>
+        <div class="history-list" id="sessionHistoryList">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- MODAL : Paramètres & Clé API -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">⚙️ Configuration Gemini IA</div>
+        <button class="btn-close-modal" onclick="closeSettingsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="modalApiKey">Clé API Google Gemini</label>
+          <input type="password" id="modalApiKey" placeholder="AIzaSy...">
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+            Votre clé est enregistrée de façon 100% sécurisée et privée dans votre navigateur (<a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--primary);">obtenir une clé gratuite sur Google AI Studio</a>).
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 14px;">
+          <label for="modalModelSelect">Modèle Gemini</label>
+          <select id="modalModelSelect">
+            <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Ultra rapide & Multimodal recommandé)</option>
+            <option value="gemini-2.5-pro">Gemini 2.5 Pro (Analyse littéraire et stylistique encore plus poussée)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline" onclick="closeSettingsModal()">Annuler</button>
+        <button class="btn-action btn-action-primary" onclick="saveSettingsModal()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING OVERLAY -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-step" id="loadingStepTitle">Analyse en cours...</div>
+    <div class="loading-subtext" id="loadingStepSubtext">Gemini lit la copie et confronte chaque paragraphe à vos critères de notation.</div>
+  </div>
+
+  <script>
+    // Initialize PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    // State Variables
+    let currentInputMode = 'text'; // 'text', 'photo', 'pdf'
+    let studentPhotos = []; // [{file, base64, mimeType, name}]
+    let studentPdfFile = null;
+    let sujetFile = null; // {file, base64, mimeType, name}
+    let sessionEvaluations = [];
+    let lastEvaluationData = null;
+
+    // Criteria Presets Library
+    const CRITERIA_PRESETS = {
+      recit: [
+        { name: "Respect de la consigne et du genre narratif", bareme: "4 pts", desc: "Respect du cadre spatio-temporel, des personnages et du sujet imposé." },
+        { name: "Cohérence du récit & Schéma narratif", bareme: "4 pts", desc: "Enchaînement logique des péripéties, utilisation de connecteurs temporels." },
+        { name: "Emploi des temps du récit (Imparfait / Passé Simple)", bareme: "4 pts", desc: "Imparfait pour arrière-plan/descriptions, Passé simple pour actions de premier plan." },
+        { name: "Correction de la langue & Orthographe", bareme: "4 pts", desc: "Accords sujet-verbe, accords dans le GN, homophones grammaticaux." },
+        { name: "Richesse du vocabulaire & Style", bareme: "4 pts", desc: "Précision lexicale, figures de style simples, variété des verbes." }
+      ],
+      dialogue: [
+        { name: "Respect de la situation d'énonciation", bareme: "4 pts", desc: "Statut des interlocuteurs, registre de langue approprié, respect du sujet." },
+        { name: "Mise en page & Ponctuation du dialogue", bareme: "4 pts", desc: "Tirets, guillemets, deux-points, retours à la ligne à chaque prise de parole." },
+        { name: "Verbes de parole variés & Propositions incises", bareme: "4 pts", desc: "Variété des verbes (murmura, s'exclama...), place correcte des incises." },
+        { name: "Correction de la langue & Orthographe", bareme: "4 pts", desc: "Accords, syntaxe, absence d'incohérences grammaticales." },
+        { name: "Dynamisme & Intérêt du dialogue", bareme: "4 pts", desc: "Propos constructifs, relances, progression de l'échange." }
+      ],
+      description: [
+        { name: "Organisation spatiale de la description", bareme: "4 pts", desc: "Progression du regard (gros plan/ensemble, haut/bas), repères spatiaux." },
+        { name: "Emploi de l'imparfait descriptif", bareme: "4 pts", desc: "Justesse des temps, valeur d'arrière-plan." },
+        { name: "Sensations & Champs lexicaux", bareme: "4 pts", desc: "Sollicitation des 5 sens, adjectifs qualificatifs précis, comparaisons." },
+        { name: "Correction de la langue & Orthographe", bareme: "4 pts", desc: "Accords dans le groupe nominal, accords de l'adjectif." },
+        { name: "Atmosphère & Richesse du vocabulaire", bareme: "4 pts", desc: "Création d'une ambiance particulière (mystère, beauté, angoisse...)." }
+      ],
+      argumentation: [
+        { name: "Prise de position claire (Thèse)", bareme: "4 pts", desc: "Expression nette de l'opinion défendue dès l'introduction." },
+        { name: "Arguments développés & Exemples précis", bareme: "5 pts", desc: "Au moins 2 ou 3 arguments distincts illustrés par des exemples concrets." },
+        { name: "Connecteurs logiques & Organisation", bareme: "4 pts", desc: "D'abord, en outre, cependant, par conséquent, pour conclure." },
+        { name: "Correction de la langue & Syntaxe", bareme: "4 pts", desc: "Phrases complexes bien construites, accords, orthographe." },
+        { name: "Conclusion convaincante & Richesse lexicale", bareme: "3 pts", desc: "Bilan efficace, vocabulaire précis et nuancé." }
+      ]
+    };
+
+    // Initialize Default Setup on Page Load
+    window.addEventListener('DOMContentLoaded', () => {
+      checkApiKey();
+      applyCriteriaPreset('recit');
+      setupPasteListener();
+    });
+
+    // API Key & Settings Management
+    function getStoredApiKey() {
+      return localStorage.getItem('gemini_api_key') || '';
+    }
+
+    function getStoredModel() {
+      return localStorage.getItem('gemini_model') || 'gemini-2.5-flash';
+    }
+
+    function checkApiKey() {
+      const key = getStoredApiKey();
+      const statusLabel = document.getElementById('apiKeyStatusLabel');
+      const btn = document.getElementById('btnSettings');
+      if (key && key.trim().length > 10) {
+        statusLabel.textContent = 'Clé configurée ✓';
+        btn.style.borderColor = '#86efac';
+        btn.style.color = '#166534';
+      } else {
+        statusLabel.textContent = 'Configurer Clé Gemini ⚠️';
+        btn.style.borderColor = '#fde68a';
+        btn.style.color = '#b45309';
+      }
+    }
+
+    function openSettingsModal() {
+      document.getElementById('modalApiKey').value = getStoredApiKey();
+      document.getElementById('modalModelSelect').value = getStoredModel();
+      document.getElementById('settingsModal').classList.add('active');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.remove('active');
+    }
+
+    function saveSettingsModal() {
+      const key = document.getElementById('modalApiKey').value.trim();
+      const model = document.getElementById('modalModelSelect').value;
+      localStorage.setItem('gemini_api_key', key);
+      localStorage.setItem('gemini_model', model);
+      checkApiKey();
+      closeSettingsModal();
+    }
+
+    // Criteria UI Manipulation
+    function applyCriteriaPreset(presetKey) {
+      const preset = CRITERIA_PRESETS[presetKey] || CRITERIA_PRESETS.recit;
+      const listContainer = document.getElementById('criteriaList');
+      listContainer.innerHTML = '';
+      preset.forEach(item => {
+        addCriterionRow(item.name, item.bareme, item.desc);
+      });
+    }
+
+    function addCriterionRow(name = '', bareme = '4 pts', desc = '') {
+      const listContainer = document.getElementById('criteriaList');
+      const row = document.createElement('div');
+      row.className = 'criterion-item';
+      row.innerHTML = `
+        <span style="color: #6366f1; font-weight: bold;">•</span>
+        <input type="text" class="criterion-input" placeholder="Intitulé du critère (ex: Respect des temps du passé...)" value="${escapeHtml(name)}">
+        <input type="text" class="criterion-bareme" placeholder="Points" value="${escapeHtml(bareme)}">
+        <button class="btn-remove-criterion" onclick="this.parentElement.remove()" title="Supprimer ce critère">&times;</button>
+      `;
+      listContainer.appendChild(row);
+    }
+
+    function getCriteriaData() {
+      const rows = document.querySelectorAll('#criteriaList .criterion-item');
+      const criteria = [];
+      rows.forEach(r => {
+        const name = r.querySelector('.criterion-input').value.trim();
+        const bareme = r.querySelector('.criterion-bareme').value.trim();
+        if (name) {
+          criteria.push({ name, bareme: bareme || 'Validé/Non validé' });
+        }
+      });
+      return criteria;
+    }
+
+    function handleTextTypeChange() {
+      const type = document.getElementById('textType').value;
+      if (type === 'dialogue_theatre') applyCriteriaPreset('dialogue');
+      else if (type === 'portrait_description') applyCriteriaPreset('description');
+      else if (type === 'texte_argumentatif') applyCriteriaPreset('argumentation');
+      else applyCriteriaPreset('recit');
+    }
+
+    // Sujet PDF/Image import
+    async function handleSujetFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      document.getElementById('sujetFileName').textContent = `Fichier chargé : ${file.name}`;
+
+      if (file.type === 'application/pdf') {
+        try {
+          showLoading(true, "Lecture du sujet PDF...", "Extraction du texte des consignes...");
+          const text = await extractTextFromPdf(file);
+          if (text && text.trim().length > 20) {
+            document.getElementById('devoirTopic').value = text.trim();
+          }
+          sujetFile = { file, name: file.name, mimeType: file.type };
+        } catch (err) {
+          console.error(err);
+          alert("Impossible d'extraire automatiquement le texte du PDF. Vous pouvez taper la consigne manuellement.");
+        } finally {
+          showLoading(false);
+        }
+      } else if (file.type.startsWith('image/')) {
+        const base64 = await fileToBase64(file);
+        sujetFile = { file, base64, mimeType: file.type, name: file.name };
+      }
+    }
+
+    // Extract Criteria with AI from Topic
+    async function extractCriteriaWithAI() {
+      const apiKey = getStoredApiKey();
+      if (!apiKey) {
+        alert("Veuillez d'abord renseigner votre clé API Gemini (bouton en haut à droite).");
+        openSettingsModal();
+        return;
+      }
+
+      const topic = document.getElementById('devoirTopic').value.trim();
+      const classe = document.getElementById('classeLevel').value;
+      const textType = document.getElementById('textType').value;
+
+      if (!topic && !sujetFile) {
+        alert("Veuillez d'abord saisir le sujet ou importer un document de consigne.");
+        return;
+      }
+
+      showLoading(true, "Génération des critères...", "Gemini analyse le sujet pour concevoir une grille d'évaluation sur-mesure.");
+
+      try {
+        const prompt = `Tu es un professeur principal de Français au collège en France.
+Analyse le sujet de devoir suivant pour une classe de ${classe} (Genre : ${textType}) :
+---
+SUJET / CONSIGNES :
+${topic || "(Sujet joint en pièce jointe)"}
+---
+Génère une grille de 4 à 6 critères d'évaluation pertinents, précis et adaptés au niveau collège (sur un total de 20 points ou équilibrés).
+Réponds STRICTEMENT au format JSON suivant (sans balises superflues) :
+{
+  "criteria": [
+    {"name": "Intitulé clair et précis du critère 1", "bareme": "4 pts"},
+    {"name": "Intitulé clair et précis du critère 2", "bareme": "4 pts"}
+  ]
+}`;
+
+        const parts = [{ text: prompt }];
+        if (sujetFile && sujetFile.base64) {
+          parts.push({
+            inline_data: {
+              mime_type: sujetFile.mimeType,
+              data: sujetFile.base64
+            }
+          });
+        }
+
+        const model = getStoredModel();
+        const res = await callGeminiAPI(parts, model, apiKey, 0.2);
+        
+        const jsonMatch = res.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed.criteria && parsed.criteria.length > 0) {
+            const listContainer = document.getElementById('criteriaList');
+            listContainer.innerHTML = '';
+            parsed.criteria.forEach(c => addCriterionRow(c.name, c.bareme));
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Erreur lors de la génération des critères : " + err.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // Accordion Toggle
+    function toggleAccordion(id) {
+      const content = document.getElementById(id);
+      const isOpen = content.classList.contains('open');
+      if (isOpen) {
+        content.classList.remove('open');
+        document.getElementById('examplesAccordionIcon').textContent = '▼';
+      } else {
+        content.classList.add('open');
+        document.getElementById('examplesAccordionIcon').textContent = '▲';
+      }
+    }
+
+    // Tab Switching for Student Copy
+    function switchStudentTab(mode) {
+      currentInputMode = mode;
+      document.querySelectorAll('.tabs-nav .tab-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', (mode === 'text' && idx === 0) || (mode === 'photo' && idx === 1) || (mode === 'pdf' && idx === 2));
+      });
+      document.getElementById('tabPaneText').classList.toggle('active', mode === 'text');
+      document.getElementById('tabPanePhoto').classList.toggle('active', mode === 'photo');
+      document.getElementById('tabPanePdf').classList.toggle('active', mode === 'pdf');
+    }
+
+    function updateWordCount() {
+      const text = document.getElementById('studentText').value.trim();
+      const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+      document.getElementById('studentWordCount').textContent = `${words} mot${words > 1 ? 's' : ''}`;
+    }
+
+    // Student Photos Upload & Drag/Drop
+    async function handleStudentPhotosUpload(event) {
+      const files = Array.from(event.target.files);
+      for (const file of files) {
+        if (file.type.startsWith('image/')) {
+          const base64 = await fileToBase64(file);
+          studentPhotos.push({ file, base64, mimeType: file.type, name: file.name });
+        }
+      }
+      renderPhotoPreviews();
+    }
+
+    function renderPhotoPreviews() {
+      const grid = document.getElementById('photoPreviewsGrid');
+      grid.innerHTML = '';
+      studentPhotos.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'preview-card';
+        card.innerHTML = `
+          <img src="data:${item.mimeType};base64,${item.base64}" alt="Page ${index + 1}">
+          <div class="file-info">Page ${index + 1} (${escapeHtml(item.name)})</div>
+          <button class="btn-del-file" onclick="removeStudentPhoto(${index})">&times;</button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function removeStudentPhoto(index) {
+      studentPhotos.splice(index, 1);
+      renderPhotoPreviews();
+    }
+
+    // Student PDF Upload
+    function handleStudentPdfUpload(event) {
+      const file = event.target.files[0];
+      if (file && file.type === 'application/pdf') {
+        studentPdfFile = file;
+        const info = document.getElementById('pdfFileInfo');
+        info.textContent = `PDF sélectionné : ${file.name} (${(file.size / 1024).toFixed(1)} Ko)`;
+        info.style.display = 'block';
+      }
+    }
+
+    // Paste listener (Ctrl+V) for photos of copies
+    function setupPasteListener() {
+      window.addEventListener('paste', async (e) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
+        let imageFound = false;
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.indexOf('image') !== -1) {
+            const blob = items[i].getAsFile();
+            const base64 = await fileToBase64(blob);
+            studentPhotos.push({
+              file: blob,
+              base64: base64,
+              mimeType: blob.type,
+              name: `Capture d'écran ${studentPhotos.length + 1}`
+            });
+            imageFound = true;
+          }
+        }
+
+        if (imageFound) {
+          switchStudentTab('photo');
+          renderPhotoPreviews();
+        }
+      });
+    }
+
+    // MAIN EVALUATION ENGINE
+    async function startEvaluation() {
+      const apiKey = getStoredApiKey();
+      if (!apiKey) {
+        alert("Veuillez d'abord configurer votre clé API Google Gemini.");
+        openSettingsModal();
+        return;
+      }
+
+      const classe = document.getElementById('classeLevel').value;
+      const textType = document.getElementById('textType').value;
+      const topic = document.getElementById('devoirTopic').value.trim();
+      const rigour = document.getElementById('correctionRigour').value;
+      const studentName = document.getElementById('studentName').value.trim() || "Élève";
+      const exampleText = document.getElementById('exemplaryText').value.trim();
+      const criteria = getCriteriaData();
+
+      if (!topic && !sujetFile) {
+        alert("Veuillez renseigner le sujet / les consignes du devoir à l'étape 1.");
+        return;
+      }
+
+      if (criteria.length === 0) {
+        alert("Veuillez ajouter au moins un critère de notation à l'étape 1.");
+        return;
+      }
+
+      let studentContentText = "";
+      const studentParts = [];
+
+      if (currentInputMode === 'text') {
+        studentContentText = document.getElementById('studentText').value.trim();
+        if (!studentContentText) {
+          alert("Veuillez taper ou coller la rédaction de l'élève.");
+          return;
+        }
+        studentParts.push({ text: `COPIE DE L'ÉLÈVE :\n"""\n${studentContentText}\n"""` });
+      } else if (currentInputMode === 'photo') {
+        if (studentPhotos.length === 0) {
+          alert("Veuillez ajouter au moins une photo ou capture de la copie de l'élève.");
+          return;
+        }
+        studentPhotos.forEach((p, idx) => {
+          studentParts.push({ text: `Page ${idx + 1} de la copie manuscrite :` });
+          studentParts.push({
+            inline_data: {
+              mime_type: p.mimeType,
+              data: p.base64
+            }
+          });
+        });
+      } else if (currentInputMode === 'pdf') {
+        if (!studentPdfFile) {
+          alert("Veuillez sélectionner le fichier PDF de la copie de l'élève.");
+          return;
+        }
+        const base64Pdf = await fileToBase64(studentPdfFile);
+        studentParts.push({
+          inline_data: {
+            mime_type: 'application/pdf',
+            data: base64Pdf
+          }
+        });
+      }
+
+      showLoading(true, "Correction de la copie en cours...", "Gemini examine attentivement la rédaction, la langue et les critères demandés.");
+
+      try {
+        const criteriaPromptList = criteria.map((c, i) => `${i + 1}. ${c.name} [Barème : ${c.bareme}]`).join("\n");
+
+        const systemPrompt = `Tu es une professeure de Français bienveillante, passionnée et rigoureuse au collège en France.
+Tu corriges une rédaction d'un élève de niveau : **${classe.toUpperCase()}** (${textType}).
+Exigence d'évaluation choisie : **${rigour}**.
+
+CONSIGNES & SUJET DU DEVOIR :
+"""
+${topic || "(Voir pièce jointe pour le sujet)"}
+"""
+
+${exampleText ? `EXEMPLES / CORRIGÉ REPÈRE / CONSIGNES PARTICULIÈRES :\n"""\n${exampleText}\n"""\n` : ""}
+
+CRITÈRES PRÉCIS DE NOTATION À RESPECTER OBLIGATOIREMENT :
+${criteriaPromptList}
+
+INSTRUCTIONS PÉDAGOGIQUES :
+1. Évalue la copie de l'élève par rapport aux consignes et à CHAQUE critère de la liste.
+2. Pour chaque critère, détermine le statut exact : "respecte" (🟢 Validé), "partiel" (🟡 Partiellement validé), ou "non_respecte" (🔴 Non validé), et attribue une note/point cohérent si un barème est fourni.
+3. Justifie chaque critère par des observations précises et CITE entre guillemets des extraits de la copie de l'élève pour appuyer ton propos.
+4. Donne pour chaque critère un conseil d'amélioration concret et facile à appliquer par un élève de collège.
+5. Fais un relevé attentif de la LANGUE : orthographe (lexicale & grammaticale), accords (sujet-verbe, adjectifs), temps des verbes (ex: imparfait/passé simple), ponctuation, syntaxe et richesse du vocabulaire, en citant les erreurs et en expliquant la règle.
+6. Rédige une appréciation générale bienveillante et stimulante valorisant les réussites de l'élève.
+7. Rédige une appréciation synthétique courte (1 à 2 phrases percutantes) prête à coller dans Pronote / sur le bulletin.
+8. Calcule une note globale indicative sur 20.
+
+Réponds STRICTEMENT au format JSON structuré suivant (SANS texte avant ni après) :
+{
+  "student_name": "${studentName}",
+  "global_score": "15 / 20",
+  "mastery_level": "Très bonne maîtrise",
+  "general_synthesis": "Synthèse bienveillante détaillée...",
+  "criteria_evaluations": [
+    {
+      "criterion_name": "Nom exact du critère",
+      "status": "respecte",
+      "score": "3.5 / 4",
+      "analysis_and_quotes": "Explication détaillée citant des passages...",
+      "improvement_advice": "Conseil méthodologique concret..."
+    }
+  ],
+  "strengths": [
+    "Point fort 1 valorisant",
+    "Point fort 2"
+  ],
+  "improvement_axes": [
+    "Axe de progrès 1 prioritaire",
+    "Axe de progrès 2"
+  ],
+  "language_feedback_html": "<p>Analyse de la langue, erreurs types relevées avec leurs règles...</p>",
+  "pronote_short_comment": "Appréciation courte et percutante prête pour Pronote."
+}`;
+
+        const fullParts = [{ text: systemPrompt }, ...studentParts];
+
+        const model = getStoredModel();
+        const rawResponse = await callGeminiAPI(fullParts, model, apiKey, 0.2);
+
+        const jsonMatch = rawResponse.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          throw new Error("Format de réponse IA invalide. Veuillez réessayer.");
+        }
+
+        const data = JSON.parse(jsonMatch[0]);
+        lastEvaluationData = data;
+        renderEvaluationResults(data, { classe, textType, studentName });
+
+        // Add to session history
+        sessionEvaluations.unshift({
+          data,
+          meta: { classe, textType, studentName, timestamp: new Date().toLocaleTimeString() }
+        });
+        renderSessionHistory();
+
+      } catch (err) {
+        console.error(err);
+        alert("Erreur lors de l'évaluation : " + err.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // Render Results on UI
+    function renderEvaluationResults(data, meta) {
+      document.getElementById('resStudentName').textContent = data.student_name || meta.studentName || "Copie d'élève";
+      document.getElementById('resDevoirMeta').textContent = `Classe de ${meta.classe.toUpperCase()} • ${formatGenreLabel(meta.textType)}`;
+      
+      document.getElementById('resScoreValue').textContent = data.global_score || "-- / 20";
+      document.getElementById('resScoreLabel').textContent = data.mastery_level || "Évaluation globale";
+
+      document.getElementById('resSynthesisText').textContent = data.general_synthesis || "";
+
+      // Render criteria table
+      const tbody = document.getElementById('resCriteriaTableBody');
+      tbody.innerHTML = '';
+      (data.criteria_evaluations || []).forEach(c => {
+        const tr = document.createElement('tr');
+        
+        let statusBadge = '';
+        if (c.status === 'respecte' || c.status === 'ok') {
+          statusBadge = '<span class="status-pill status-ok">🟢 Respecté</span>';
+        } else if (c.status === 'partiel' || c.status === 'partial') {
+          statusBadge = '<span class="status-pill status-partial">🟡 Partiel</span>';
+        } else {
+          statusBadge = '<span class="status-pill status-ko">🔴 Non respecté</span>';
+        }
+
+        tr.innerHTML = `
+          <td><strong>${escapeHtml(c.criterion_name)}</strong></td>
+          <td>${statusBadge}</td>
+          <td><strong style="color: #4338ca;">${escapeHtml(c.score || '-')}</strong></td>
+          <td>
+            <div>${escapeHtml(c.analysis_and_quotes)}</div>
+          </td>
+          <td>
+            <div class="advice-text">💡 ${escapeHtml(c.improvement_advice)}</div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Strengths & Improvements
+      const strengthsUl = document.getElementById('resStrengthsList');
+      strengthsUl.innerHTML = '';
+      (data.strengths || []).forEach(s => {
+        const li = document.createElement('li');
+        li.textContent = s;
+        strengthsUl.appendChild(li);
+      });
+
+      const improveUl = document.getElementById('resImprovementsList');
+      improveUl.innerHTML = '';
+      (data.improvement_axes || []).forEach(imp => {
+        const li = document.createElement('li');
+        li.textContent = imp;
+        improveUl.appendChild(li);
+      });
+
+      // Language feedback
+      document.getElementById('resLanguageFeedback').innerHTML = data.language_feedback_html || "<p>Langue globalement correcte.</p>";
+
+      // Pronote comment
+      document.getElementById('resPronoteText').textContent = data.pronote_short_comment || "";
+
+      // Reveal results card
+      const resultsSection = document.getElementById('resultsSection');
+      resultsSection.classList.add('show');
+      resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderSessionHistory() {
+      const list = document.getElementById('sessionHistoryList');
+      list.innerHTML = '';
+      if (sessionEvaluations.length === 0) {
+        list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem;">Aucune copie corrigée pour l\'instant.</div>';
+        return;
+      }
+
+      sessionEvaluations.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.onclick = () => {
+          lastEvaluationData = item.data;
+          renderEvaluationResults(item.data, item.meta);
+        };
+        div.innerHTML = `
+          <div>
+            <strong>${escapeHtml(item.meta.studentName)}</strong>
+            <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">(${item.meta.classe.toUpperCase()} • ${item.meta.timestamp})</span>
+          </div>
+          <div>
+            <span class="status-pill status-ok">${escapeHtml(item.data.global_score || '')}</span>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function prepareNextCopy() {
+      document.getElementById('studentName').value = '';
+      document.getElementById('studentText').value = '';
+      studentPhotos = [];
+      studentPdfFile = null;
+      renderPhotoPreviews();
+      document.getElementById('pdfFileInfo').style.display = 'none';
+      updateWordCount();
+      
+      // Scroll to student copy section
+      document.getElementById('studentName').focus();
+      document.getElementById('studentName').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Clipboard Copy Helpers
+    function copyPronoteAppreciation() {
+      const text = document.getElementById('resPronoteText').textContent.trim();
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Appréciation Pronote copiée dans le presse-papier !");
+      });
+    }
+
+    function copyFullReport() {
+      if (!lastEvaluationData) return;
+      const d = lastEvaluationData;
+      let report = `FICHE D'ÉVALUATION DE FRANÇAIS\n`;
+      report += `Élève : ${d.student_name}\n`;
+      report += `Note globale : ${d.global_score} (${d.mastery_level})\n\n`;
+      report += `SYNTHÈSE :\n${d.general_synthesis}\n\n`;
+      report += `CRITÈRES D'ÉVALUATION :\n`;
+      (d.criteria_evaluations || []).forEach(c => {
+        report += `- ${c.criterion_name} [${c.score}] : ${c.analysis_and_quotes}\n  Conseil : ${c.improvement_advice}\n`;
+      });
+      report += `\nPOINTS FORTS :\n` + (d.strengths || []).map(s => `• ${s}`).join("\n");
+      report += `\n\nAXES DE PROGRÈS :\n` + (d.improvement_axes || []).map(a => `• ${a}`).join("\n");
+      report += `\n\nAPPRÉCIATION PRONOTE :\n${d.pronote_short_comment}\n`;
+
+      navigator.clipboard.writeText(report).then(() => {
+        alert("Compte-rendu complet copié dans le presse-papier !");
+      });
+    }
+
+    // Call Gemini API Function
+    async function callGeminiAPI(parts, model, apiKey, temperature = 0.2) {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts }],
+          generationConfig: {
+            temperature: temperature
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Erreur API Gemini (${response.status}) : ${errorText}`);
+      }
+
+      const resJson = await response.json();
+      return resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+    }
+
+    // Helper Utilities
+    function showLoading(show, title = "Traitement en cours...", subtext = "") {
+      const overlay = document.getElementById('loadingOverlay');
+      if (show) {
+        document.getElementById('loadingStepTitle').textContent = title;
+        document.getElementById('loadingStepSubtext').textContent = subtext;
+        overlay.classList.add('active');
+      } else {
+        overlay.classList.remove('active');
+      }
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function extractTextFromPdf(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(' ');
+        fullText += pageText + '\n\n';
+      }
+      return fullText;
+    }
+
+    function formatGenreLabel(type) {
+      const map = {
+        recit_narratif: "Récit narratif",
+        portrait_description: "Portrait / Description",
+        dialogue_theatre: "Dialogue narratif / Théâtre",
+        lettre_epistolaire: "Lettre / Récit épistolaire",
+        texte_argumentatif: "Texte argumentatif",
+        poesie: "Poésie",
+        invention_libre: "Écriture d'invention"
+      };
+      return map[type] || "Rédaction";
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>

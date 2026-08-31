@@ -38,7 +38,7 @@ Cette suite regroupe l'ensemble des applications personnelles et outils auto-hé
 
 | Service | Port | Technologie | Description |
 | :--- | :--- | :--- | :--- |
-| **`hub`** | **`8085`** | Nginx | Portail central d'accueil & Outils (Éditeur PDF, OCR Texte) |
+| **`hub`** | **`8085`** | Nginx | Portail central d'accueil & Outils (Correcteur de Rédactions IA, Éditeur PDF, OCR Texte, Tableur Excel) |
 | **`letterboxd-frontend`** | **`3000`** | React / Nginx | Interface Mon Letterboxd |
 | **`letterboxd-backend`** | **`8000`** | FastAPI | API backend Letterboxd & Banque |
 | **`gmail-assistant`** | **`8501`** | Streamlit | Assistant IA de tri et classification Gmail |
