@@ -14,7 +14,7 @@ import threading
 import xml.etree.ElementTree as ET
 from email.utils import parsedate_to_datetime
 from datetime import datetime, timedelta, date
-from typing import Any, Optional
+from typing import Any, Optional, List
 
 try:
     from woob.core import Woob
@@ -1508,6 +1508,36 @@ Réponds STRICTEMENT au format JSON :
     HUB_CACHE["timestamp"] = current_time
     HUB_CACHE["data"] = result
     return result
+
+
+class HubPermissionsRequest(BaseModel):
+    allowed_modules: List[str]
+
+PERMISSIONS_FILE = os.path.join(DB_DIR, "hub_permissions.json")
+
+@app.get("/api/hub/permissions")
+def get_hub_permissions():
+    """Retourne la liste des modules autorisés pour Maman (Claire) synchronisée sur le serveur."""
+    if os.path.exists(PERMISSIONS_FILE):
+        try:
+            with open(PERMISSIONS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.warning(f"Erreur lecture {PERMISSIONS_FILE}: {e}")
+    # Valeurs par défaut si le fichier n'existe pas encore
+    return {"allowed_modules": ["cinematheque", "quiz", "extracteur_texte", "editeur_pdf", "convertisseur_excel", "notes", "genealogie"]}
+
+@app.post("/api/hub/permissions")
+def set_hub_permissions(req: HubPermissionsRequest):
+    """Enregistre la liste des modules autorisés pour Maman (Claire) sur le serveur."""
+    data = {"allowed_modules": req.allowed_modules}
+    try:
+        with open(PERMISSIONS_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        return {"status": "ok", "allowed_modules": req.allowed_modules}
+    except Exception as e:
+        logger.error(f"Erreur écriture {PERMISSIONS_FILE}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":

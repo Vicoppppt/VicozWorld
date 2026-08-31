@@ -1201,12 +1201,40 @@
         } catch(e) {}
       }
       const defaults = AVAILABLE_MODULES.filter(m => m.defaultMaman).map(m => m.id);
-      saveMamanAllowedModules(defaults);
       return defaults;
     }
 
-    function saveMamanAllowedModules(allowedList) {
+    // Save and synchronize permissions to the server backend (persisted across all PCs)
+    async function saveMamanAllowedModules(allowedList) {
       localStorage.setItem('maman_allowed_modules', JSON.stringify(allowedList));
+      try {
+        await fetch('/api/hub/permissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ allowed_modules: allowedList })
+        });
+      } catch (e) {
+        console.warn("Synchronisation serveur non disponible :", e);
+      }
+    }
+
+    // Fetch latest permissions configured by Victor on the server
+    async function syncPermissionsFromServer() {
+      try {
+        const res = await fetch('/api/hub/permissions');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data.allowed_modules)) {
+            localStorage.setItem('maman_allowed_modules', JSON.stringify(data.allowed_modules));
+            applyProfile();
+            if (activeProfile === 'victor') {
+              renderAdminPermissionsToggles();
+            }
+          }
+        }
+      } catch (e) {
+        console.log("Lecture permissions serveur fallback local :", e);
+      }
     }
 
     // Profile Selection Functions
@@ -1214,6 +1242,7 @@
       activeProfile = profile;
       localStorage.setItem('active_hub_profile', profile);
       applyProfile();
+      syncPermissionsFromServer();
     }
 
     function openProfileScreen() {
@@ -1513,6 +1542,7 @@
     window.onload = () => {
       loadCustomApps();
       applyProfile();
+      syncPermissionsFromServer();
       loadWeather();
       loadNews();
     };
