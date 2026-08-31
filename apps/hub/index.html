@@ -251,6 +251,94 @@
       color: var(--text-muted);
     }
 
+    /* Live Widgets Banner */
+    .widgets-banner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .widgets-banner {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .widget-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .widget-card:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(51, 65, 85, 0.8);
+    }
+
+    .widget-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .widget-icon {
+      font-size: 2rem;
+    }
+
+    .widget-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .widget-val {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .widget-sub {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    .news-ticker {
+      font-size: 0.82rem;
+      color: #e2e8f0;
+      line-height: 1.35;
+      max-height: 38px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .category-section {
+      margin-bottom: 28px;
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 14px;
+      color: #cbd5e1;
+      border-left: 3px solid #3b82f6;
+      padding-left: 10px;
+    }
+
     /* Search Bar */
     .search-container {
       margin-bottom: 24px;
@@ -740,6 +828,41 @@
         </div>
       </header>
 
+      <!-- Live Widgets Banner (Météo & Flash Infos) -->
+      <div class="widgets-banner">
+        
+        <!-- Météo Live Widget -->
+        <div class="widget-card" id="weatherWidget">
+          <div class="widget-left">
+            <div class="widget-icon" id="weatherIcon">🌤️</div>
+            <div>
+              <div class="widget-title">Météo en direct</div>
+              <div class="widget-val" id="weatherTemp">-- °C</div>
+              <div class="widget-sub" id="weatherDesc">Chargement des données...</div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: #60a5fa;" id="weatherCity">Paris</div>
+            <div style="font-size: 0.72rem; color: #94a3b8;" id="weatherMinMax">Min --° / Max --°</div>
+          </div>
+        </div>
+
+        <!-- Flash Actus Widget -->
+        <div class="widget-card" id="newsWidget">
+          <div class="widget-left">
+            <div class="widget-icon">📰</div>
+            <div>
+              <div class="widget-title">Flash Infos</div>
+              <div class="news-ticker" id="newsTicker">Actualités en direct chargées depuis vos flux favoris...</div>
+            </div>
+          </div>
+          <a href="#" onclick="this.href='http://' + window.location.hostname + ':3000/#/actualites'" style="text-decoration: none; font-size: 0.75rem; color: #60a5fa; font-weight: 600; white-space: nowrap;">
+            Voir tout ➔
+          </a>
+        </div>
+
+      </div>
+
       <!-- Search Bar -->
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -763,138 +886,238 @@
         </div>
       </div>
 
-      <!-- Section Title -->
-      <div class="section-header">
-        <div class="section-title">
-          <span>⚡</span>
-          <span>Vos Applications & Outils</span>
+      <!-- 🎬 SECTION 1 : CINÉMA & MÉDIAS -->
+      <div class="category-section">
+        <div class="category-header">🎬 Cinéma & Médias</div>
+        <div class="grid">
+          
+          <a href="#" onclick="this.href='http://' + window.location.hostname + ':3000/#/cinematheque'" class="app-card" data-app-id="cinematheque" data-title="Cinémathèque Films Séries Watchlist TMDB Kitsu">
+            <div class="card-top">
+              <div class="app-icon" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(139, 92, 246, 0.2));">
+                🎬
+              </div>
+              <div class="app-info">
+                <div class="app-name">
+                  Cinémathèque
+                  <span class="app-badge badge-purple">Films & Séries</span>
+                </div>
+                <span style="font-size: 0.75rem; color: #c084fc;">Watchlists, notes & TMDB</span>
+              </div>
+            </div>
+            <div class="app-desc">Votre collection personnelle de films et séries avec recherche, notes et affiches haute qualité.</div>
+            <div class="card-footer">
+              <span style="color: #10b981;">● En ligne (:3000)</span>
+              <span class="action">Ouvrir ➔</span>
+            </div>
+          </a>
+
+          <a href="#" onclick="this.href='http://' + window.location.hostname + ':3000/#/quiz'" class="app-card" data-app-id="quiz" data-title="Quiz Cinéma Jeux Culture">
+            <div class="card-top">
+              <div class="app-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.2));">
+                🎮
+              </div>
+              <div class="app-info">
+                <div class="app-name">Quiz Cinéma</div>
+                <span style="font-size: 0.75rem; color: #fbbf24;">Défis & Culture</span>
+              </div>
+            </div>
+            <div class="app-desc">Testez vos connaissances cinéma sur vos acteurs, réalisateurs et films préférés.</div>
+            <div class="card-footer">
+              <span style="color: #10b981;">● En ligne</span>
+              <span class="action">Jouer ➔</span>
+            </div>
+          </a>
+
         </div>
       </div>
 
-      <!-- Apps Grid -->
-      <div class="grid" id="appsGrid">
-        
-        <!-- Mon Letterboxd & Dashboard -->
-        <a href="http://192.168.1.33:3000" onclick="this.href='http://' + window.location.hostname + ':3000'" class="app-card" data-app-id="letterboxd" data-title="Letterboxd Cinema Films Séries Notes Banque Energie Meteo Dashboard">
-          <div class="card-top">
-            <div class="app-icon" style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(139, 92, 246, 0.2));">
-              🎬
-            </div>
-            <div class="app-info">
-              <div class="app-name">
-                Mon Letterboxd
-                <span class="app-badge">Dashboard</span>
+      <!-- 💼 SECTION 2 : ESPACE PERSONNEL & FINANCES -->
+      <div class="category-section">
+        <div class="category-header">💼 Espace Personnel & Finances</div>
+        <div class="grid">
+          
+          <a href="#" onclick="this.href='http://' + window.location.hostname + ':3000/#/banque'" class="app-card" data-app-id="banque" data-title="Banque Woob Comptes Soldes Finances">
+            <div class="card-top">
+              <div class="app-icon" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(59, 130, 246, 0.2));">
+                💳
               </div>
-              <span style="font-size: 0.78rem; color: #60a5fa; font-weight: 500;">Ciné, Notes, Banque & Énergie</span>
-            </div>
-          </div>
-          <div class="app-desc">
-            Gestionnaire cinémathèque complet (films, séries), carnet de notes markdown, suivi des soldes bancaires, météo et généalogie.
-          </div>
-          <div class="card-footer">
-            <span style="color: #10b981;">Port 3000</span>
-            <span class="action">Ouvrir l'application ➔</span>
-          </div>
-        </a>
-
-        <!-- Extracteur & Nettoyeur de Texte PDF & Images -->
-        <a href="/tools/extracteur_texte.html" class="app-card" data-app-id="extracteur_texte" data-title="Extracteur Nettoyeur Texte PDF Image Photo Capture Word Accents Copier Coller">
-          <div class="card-top">
-            <div class="app-icon" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));">
-              📝
-            </div>
-            <div class="app-info">
-              <div class="app-name">
-                PDF & Images ➔ Texte Propre
-                <span class="app-badge">✨ IA Vision</span>
+              <div class="app-info">
+                <div class="app-name">
+                  Banque & Finances
+                  <span class="app-badge badge-green">Woob Sync</span>
+                </div>
+                <span style="font-size: 0.75rem; color: #34d399;">Soldes & Mouvements</span>
               </div>
-              <span style="font-size: 0.78rem; color: #c084fc; font-weight: 500;">PDF, Photos & Captures d'écran</span>
             </div>
-          </div>
-          <div class="app-desc">
-            Extrait le texte des PDF et images (ou collez directement avec <strong>Ctrl+V</strong>). Répare les accents, retire les coupures de lignes et prépare le texte pour Word.
-          </div>
-          <div class="card-footer">
-            <span style="color: #10b981;">● En ligne</span>
-            <span class="action">Ouvrir l'outil ➔</span>
-          </div>
-        </a>
+            <div class="app-desc">Suivi automatique de vos comptes bancaires et transactions via connecteur sécurisé Woob.</div>
+            <div class="card-footer">
+              <span style="color: #10b981;">● Sécurisé</span>
+              <span class="action">Consulter ➔</span>
+            </div>
+          </a>
 
-        <!-- Éditeur & Compresseur PDF (Nouveau Module Statique) -->
-        <a href="/tools/editeur_pdf.html" class="app-card" data-app-id="editeur_pdf" data-title="Éditeur Compresseur PDF Fusionner Tourner Supprimer Pages Taille Optimiser">
-          <div class="card-top">
-            <div class="app-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.2));">
-              🛠️
-            </div>
-            <div class="app-info">
-              <div class="app-name">
-                Éditeur & Compresseur PDF
-                <span class="app-badge badge-green">Nouveau</span>
+          <a href="#" onclick="this.href='http://' + window.location.hostname + ':3000/#/energie'" class="app-card" data-app-id="energie" data-title="Énergie EDF Tempo RTE Électricité Consommation">
+            <div class="card-top">
+              <div class="app-icon" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(249, 115, 22, 0.2));">
+                ⚡
               </div>
-              <span style="font-size: 0.78rem; color: #fbbf24; font-weight: 500;">Modifier, Tourner & Réduire</span>
-            </div>
-          </div>
-          <div class="app-desc">
-            Réorganisez, pivotez ou supprimez des pages, fusionnez plusieurs documents et compressez vos PDF en un clin d'œil sans rien envoyer sur internet.
-          </div>
-          <div class="card-footer">
-            <span style="color: #10b981;">● 100% Local</span>
-            <span class="action">Ouvrir l'outil ➔</span>
-          </div>
-        </a>
-
-        <!-- Gmail Assistant & Libellés IA -->
-        <a href="http://192.168.1.33:8501" onclick="this.href='http://' + window.location.hostname + ':8501'" class="app-card" data-app-id="gmail_cleaner" data-title="Gmail Assistant Nettoyage Tri Libellés Boîte Mail Corbeille IA Gemini">
-          <div class="card-top">
-            <div class="app-icon" style="background: linear-gradient(135deg, rgba(234, 67, 53, 0.2), rgba(251, 188, 4, 0.2));">
-              📧
-            </div>
-            <div class="app-info">
-              <div class="app-name">
-                Gmail Assistant & IA
-                <span class="app-badge">✨ IA Gemini</span>
+              <div class="app-info">
+                <div class="app-name">Énergie & EDF</div>
+                <span style="font-size: 0.75rem; color: #facc15;">Tempo & Heures Creuses</span>
               </div>
-              <span style="font-size: 0.78rem; color: #f87171; font-weight: 500;">Tri, Corbeille & Libellés</span>
             </div>
-          </div>
-          <div class="app-desc">
-            Nettoyage intelligent de boîte mail (HelloWork, newsletters, spams) et classement automatique dans vos libellés Gmail avec Gemini.
-          </div>
-          <div class="card-footer">
-            <span style="color: #10b981;">Port 8501</span>
-            <span class="action">Ouvrir l'outil ➔</span>
-          </div>
-        </a>
+            <div class="app-desc">Couleur du jour Tempo EDF (Bleu, Blanc, Rouge), prévisions et optimisation de consommation.</div>
+            <div class="card-footer">
+              <span style="color: #10b981;">● En direct</span>
+              <span class="action">Voir les tarifs ➔</span>
+            </div>
+          </a>
 
-        <!-- CASA OS Dashboard -->
-        <a href="http://192.168.1.33:80" onclick="this.href='http://' + window.location.hostname + ':80'" class="app-card" data-app-id="casaos" data-title="CasaOS Dashboard Serveur">
-          <div class="card-top">
-            <div class="app-icon" style="background: rgba(59, 130, 246, 0.15);">
-              🏠
-            </div>
-            <div class="app-info">
-              <div class="app-name">
-                CasaOS Dashboard
-                <span class="app-badge badge-blue">Système</span>
+          <a href="#" onclick="this.href='http://' + window.location.hostname + ':3000/#/notes'" class="app-card" data-app-id="notes" data-title="Carnet Notes Pense-bêtes Markdown Idées">
+            <div class="card-top">
+              <div class="app-icon" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(99, 102, 241, 0.2));">
+                📝
               </div>
-              <span style="font-size: 0.78rem; color: #94a3b8; font-weight: 500;">Gestion du Serveur</span>
+              <div class="app-info">
+                <div class="app-name">Carnet de Notes</div>
+                <span style="font-size: 0.75rem; color: #93c5fd;">Markdown & To-Do</span>
+              </div>
             </div>
-          </div>
-          <div class="app-desc">
-            Accédez au tableau de bord principal de votre serveur CasaOS, stockage, fichiers et conteneurs Docker.
-          </div>
-          <div class="card-footer">
-            <span style="color: #94a3b8;">Port 80</span>
-            <span class="action">Accéder ➔</span>
-          </div>
-        </a>
+            <div class="app-desc">Éditeur de notes personnelles Markdown, check-lists et pense-bêtes synchronisés.</div>
+            <div class="card-footer">
+              <span style="color: #10b981;">● Local</span>
+              <span class="action">Écrire ➔</span>
+            </div>
+          </a>
 
-        <!-- Quick Add Card (Victor Uniquement) -->
-        <div class="app-card add-card" data-app-id="custom_add" onclick="openAddModal()">
-          <div class="add-icon">➕</div>
-          <div class="add-text">Ajouter un raccourci ou outil</div>
+          <a href="#" onclick="this.href='http://' + window.location.hostname + ':3000/#/genealogie'" class="app-card" data-app-id="genealogie" data-title="Généalogie Arbre GEDCOM Famille">
+            <div class="card-top">
+              <div class="app-icon" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.2));">
+                🌳
+              </div>
+              <div class="app-info">
+                <div class="app-name">Généalogie</div>
+                <span style="font-size: 0.75rem; color: #d8b4fe;">Arbre Interactif</span>
+              </div>
+            </div>
+            <div class="app-desc">Visualiseur et explorateur d'arbre généalogique avec import GEDCOM et fiches individuelles.</div>
+            <div class="card-footer">
+              <span style="color: #10b981;">● Local</span>
+              <span class="action">Explorer ➔</span>
+            </div>
+          </a>
+
         </div>
+      </div>
 
+      <!-- 🤖 SECTION 3 : PRODUCTIVITÉ & OUTILS IA -->
+      <div class="category-section">
+        <div class="category-header">🤖 Productivité & Outils IA</div>
+        <div class="grid">
+          
+          <a href="#" onclick="this.href='http://' + window.location.hostname + ':8501'" class="app-card" data-app-id="gmail_cleaner" data-title="Gmail Assistant Nettoyage Tri Libellés Boîte Mail Corbeille IA Gemini">
+            <div class="card-top">
+              <div class="app-icon" style="background: linear-gradient(135deg, rgba(234, 67, 53, 0.2), rgba(251, 188, 4, 0.2));">
+                📧
+              </div>
+              <div class="app-info">
+                <div class="app-name">
+                  Gmail Assistant
+                  <span class="app-badge">✨ Gemini IA</span>
+                </div>
+                <span style="font-size: 0.75rem; color: #f87171;">Nettoyage & Libellés auto</span>
+              </div>
+            </div>
+            <div class="app-desc">Tri intelligent de vos mails, suppression 1-clic des newsletters et classification automatique par IA.</div>
+            <div class="card-footer">
+              <span style="color: #10b981;">Port 8501</span>
+              <span class="action">Lancer l'assistant ➔</span>
+            </div>
+          </a>
+
+          <a href="/tools/extracteur_texte.html" class="app-card" data-app-id="extracteur_texte" data-title="Extracteur Nettoyeur Texte PDF Image Photo OCR Capture Word">
+            <div class="card-top">
+              <div class="app-icon" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));">
+                📑
+              </div>
+              <div class="app-info">
+                <div class="app-name">OCR & Extraction Texte</div>
+                <span style="font-size: 0.75rem; color: #c084fc;">PDF, Photos & Captures</span>
+              </div>
+            </div>
+            <div class="app-desc">Extrait le texte des PDF et images (ou collez avec Ctrl+V) et répare les accents et coupures de lignes.</div>
+            <div class="card-footer">
+              <span style="color: #10b981;">● Navigateur</span>
+              <span class="action">Ouvrir l'outil ➔</span>
+            </div>
+          </a>
+
+          <a href="/tools/editeur_pdf.html" class="app-card" data-app-id="editeur_pdf" data-title="Éditeur Compresseur PDF Fusionner Tourner Supprimer Pages">
+            <div class="card-top">
+              <div class="app-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.2));">
+                🛠️
+              </div>
+              <div class="app-info">
+                <div class="app-name">Éditeur & Compresseur PDF</div>
+                <span style="font-size: 0.75rem; color: #fbbf24;">Fusionner & Réduire</span>
+              </div>
+            </div>
+            <div class="app-desc">Pivotez, réorganisez ou supprimez des pages, fusionnez et compressez vos PDF 100% en local.</div>
+            <div class="card-footer">
+              <span style="color: #10b981;">● 100% Local</span>
+              <span class="action">Ouvrir l'outil ➔</span>
+            </div>
+          </a>
+
+        </div>
+      </div>
+
+      <!-- 🏠 SECTION 4 : SYSTÈME & SERVEUR -->
+      <div class="category-section">
+        <div class="category-header">🏠 Système & Serveur</div>
+        <div class="grid">
+          
+          <a href="#" onclick="this.href='http://' + window.location.hostname + ':80'" class="app-card" data-app-id="casaos" data-title="CasaOS Dashboard Serveur Docker">
+            <div class="card-top">
+              <div class="app-icon" style="background: rgba(59, 130, 246, 0.15);">
+                🏠
+              </div>
+              <div class="app-info">
+                <div class="app-name">CasaOS Dashboard</div>
+                <span style="font-size: 0.75rem; color: #94a3b8;">Gestion Serveur</span>
+              </div>
+            </div>
+            <div class="app-desc">Panneau de contrôle principal de votre serveur, stockage, fichiers et conteneurs Docker.</div>
+            <div class="card-footer">
+              <span style="color: #94a3b8;">Port 80</span>
+              <span class="action">Accéder ➔</span>
+            </div>
+          </a>
+
+          <a href="#" onclick="this.href='http://' + window.location.hostname + ':3000/'" class="app-card" data-app-id="vicoz_app" data-title="VicozWorld Application Web Complète">
+            <div class="card-top">
+              <div class="app-icon" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">
+                🌐
+              </div>
+              <div class="app-info">
+                <div class="app-name">VicozWorld Web App</div>
+                <span style="font-size: 0.75rem; color: #a5b4fc;">Dashboard Complet</span>
+              </div>
+            </div>
+            <div class="app-desc">Accédez à l'application web complète avec tous les graphiques et récapitulatifs.</div>
+            <div class="card-footer">
+              <span style="color: #10b981;">Port 3000</span>
+              <span class="action">Lancer ➔</span>
+            </div>
+          </a>
+
+          <!-- Quick Add Card (Victor Uniquement) -->
+          <div class="app-card add-card" data-app-id="custom_add" onclick="openAddModal()">
+            <div class="add-icon">➕</div>
+            <div class="add-text">Ajouter un raccourci ou outil</div>
+          </div>
+
+        </div>
       </div>
 
       <footer>
@@ -933,11 +1156,17 @@
   <script>
     // Modules configuration metadata
     const AVAILABLE_MODULES = [
-      { id: "letterboxd", name: "🎬 Mon Letterboxd & Dashboard", defaultMaman: true },
-      { id: "extracteur_texte", name: "📝 PDF & Images ➔ Texte", defaultMaman: true },
-      { id: "editeur_pdf", name: "🛠️ Éditeur & Compresseur PDF", defaultMaman: true },
-      { id: "gmail_cleaner", name: "📧 Gmail Assistant & IA", defaultMaman: false },
-      { id: "casaos", name: "🏠 CasaOS Dashboard", defaultMaman: false }
+      { id: "cinematheque", name: "🎬 Cinémathèque & Médias", defaultMaman: true },
+      { id: "quiz", name: "🎮 Quiz Cinéma", defaultMaman: true },
+      { id: "extracteur_texte", name: "📑 OCR & Extraction Texte", defaultMaman: true },
+      { id: "editeur_pdf", name: "🛠️ Éditeur PDF", defaultMaman: true },
+      { id: "notes", name: "📝 Carnet de Notes", defaultMaman: true },
+      { id: "genealogie", name: "🌳 Généalogie", defaultMaman: true },
+      { id: "banque", name: "💳 Banque & Finances", defaultMaman: false },
+      { id: "energie", name: "⚡ Énergie & EDF", defaultMaman: false },
+      { id: "gmail_cleaner", name: "📧 Gmail Assistant IA", defaultMaman: false },
+      { id: "casaos", name: "🏠 CasaOS Dashboard", defaultMaman: false },
+      { id: "vicoz_app", name: "🌐 VicozWorld Web App", defaultMaman: false }
     ];
 
     let activeProfile = localStorage.getItem('active_hub_profile') || null;
@@ -1189,9 +1418,63 @@
         .replace(/'/g, "&#039;");
     }
 
+    // Météo Directe (Open-Meteo)
+    async function loadWeather() {
+      try {
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=48.8566&longitude=2.3522&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=auto');
+        if (!res.ok) return;
+        const data = await res.json();
+        const temp = Math.round(data.current.temperature_2m);
+        const code = data.current.weather_code;
+        const max = Math.round(data.daily.temperature_2m_max[0]);
+        const min = Math.round(data.daily.temperature_2m_min[0]);
+
+        let icon = '☀️';
+        let desc = 'Ensoleillé';
+        if (code >= 1 && code <= 3) { icon = '⛅'; desc = 'Partiellement nuageux'; }
+        else if (code >= 45 && code <= 48) { icon = '🌫️'; desc = 'Brouillard'; }
+        else if (code >= 51 && code <= 67) { icon = '🌧️'; desc = 'Pluvieux'; }
+        else if (code >= 71 && code <= 77) { icon = '❄️'; desc = 'Neige'; }
+        else if (code >= 80 && code <= 82) { icon = '🌦️'; desc = 'Averses'; }
+        else if (code >= 95) { icon = '⛈️'; desc = 'Orage'; }
+
+        const iconEl = document.getElementById('weatherIcon');
+        const tempEl = document.getElementById('weatherTemp');
+        const descEl = document.getElementById('weatherDesc');
+        const minMaxEl = document.getElementById('weatherMinMax');
+
+        if (iconEl) iconEl.textContent = icon;
+        if (tempEl) tempEl.textContent = `${temp} °C`;
+        if (descEl) descEl.textContent = desc;
+        if (minMaxEl) minMaxEl.textContent = `Min ${min}° / Max ${max}°`;
+      } catch (e) {
+        console.log('Meteo non dispo:', e);
+      }
+    }
+
+    // Flash Actu Direct
+    async function loadNews() {
+      try {
+        const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.lemonde.fr%2Frss%2Fune.xml');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.items && data.items.length > 0) {
+            const headlines = data.items.slice(0, 4).map(i => i.title).join('  •  ');
+            const tickerEl = document.getElementById('newsTicker');
+            if (tickerEl) tickerEl.textContent = headlines;
+          }
+        }
+      } catch (e) {
+        const tickerEl = document.getElementById('newsTicker');
+        if (tickerEl) tickerEl.textContent = 'Consultez toutes les actualités et analyses sur la page dédiée.';
+      }
+    }
+
     window.onload = () => {
       loadCustomApps();
       applyProfile();
+      loadWeather();
+      loadNews();
     };
   </script>
 </body>
