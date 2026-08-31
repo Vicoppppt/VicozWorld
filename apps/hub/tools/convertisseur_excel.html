@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Générateur de Grille Élèves Excel</title>
+  
+  <!-- CDNs for PDF.js and ExcelJS with high reliability -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --success: #16a34a;
+      --success-hover: #15803d;
+      --ai-purple: #7c3aed;
+      --ai-purple-light: #f5f3ff;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --border-focus: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px 16px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 920px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      display: inline-block;
+      background-color: #dbeafe;
+      color: #1e40af;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    /* AI Toggle Card */
+    .ai-banner {
+      background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+      border: 1px solid #c4b5fd;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .ai-banner-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ai-banner-title {
+      font-weight: 700;
+      color: #5b21b6;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ai-banner-desc {
+      font-size: 0.82rem;
+      color: #6b21a8;
+      margin-top: 2px;
+    }
+
+    /* Toggle Switch */
+    .switch-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #cbd5e1;
+      transition: .25s ease;
+      border-radius: 26px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .25s ease;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    input:checked + .slider {
+      background-color: var(--ai-purple);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(22px);
+    }
+
+    .switch-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #5b21b6;
+    }
+
+    /* Drop Zone */
+    .drop-zone {
+      border: 2px dashed #93c5fd;
+      background: var(--primary-light);
+      border-radius: 12px;
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--primary);
+      background: #dbeafe;
+      transform: scale(1.005);
+    }
+
+    .drop-zone-icon {
+      font-size: 2.8rem;
+      margin-bottom: 8px;
+    }
+
+    .drop-zone-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 4px;
+    }
+
+    .drop-zone-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .file-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    /* Settings Bar */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .setting-item label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .setting-item input[type="number"],
+    .setting-item select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: #fff;
+    }
+
+    .setting-item input[type="checkbox"] {
+      margin-right: 8px;
+      transform: scale(1.1);
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-top: 26px;
+    }
+
+    /* Results section */
+    .results-container {
+      display: none;
+    }
+
+    .class-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .class-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .count-tag {
+      background: #dcfce7;
+      color: #166534;
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 999px;
+      border: 1px solid #86efac;
+    }
+
+    .ai-verified-tag {
+      background: #f3e8ff;
+      color: #6b21a8;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid #d8b4fe;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-success {
+      background-color: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background-color: var(--success-hover);
+      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+    }
+
+    /* Table Preview */
+    .table-wrapper {
+      max-height: 480px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 6px 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #f8fafc;
+      font-weight: 600;
+      color: #475569;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .col-name {
+      font-weight: 500;
+      min-width: 240px;
+    }
+
+    .col-empty {
+      width: 36px;
+      min-width: 36px;
+      background-color: #ffffff;
+      text-align: center;
+    }
+
+    .name-input {
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: inherit;
+      outline: none;
+      padding: 2px 4px;
+    }
+
+    .name-input:focus {
+      background: #eff6ff;
+      border-radius: 4px;
+    }
+
+    .remove-btn {
+      color: #ef4444;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 1rem;
+      padding: 2px 6px;
+    }
+
+    .add-row-btn {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: var(--primary);
+      background: none;
+      border: 1px dashed var(--primary);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .add-row-btn:hover {
+      background: var(--primary-light);
+    }
+
+    /* Loading Spinner */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .instructions {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-size: 0.9rem;
+      color: #475569;
+    }
+
+    .instructions h3 {
+      font-size: 0.95rem;
+      color: #0f172a;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .instructions ol {
+      padding-left: 20px;
+    }
+
+    .instructions li {
+      margin-bottom: 4px;
+    }
+
+    .footer {
+      margin-top: auto;
+      padding: 20px 0;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="badge">Spécial Profs & Pronote</div>
+      <h1>Générateur de Grille Élèves Excel</h1>
+      <p class="subtitle">Glissez votre PDF Pronote et obtenez le tableau Excel avec les 10 cases vides !</p>
+    </header>
+
+    <!-- AI Toggle Switch (Relecteur / Vérificateur Gemini 2.5) -->
+    <div class="ai-banner">
+      <div class="ai-banner-left">
+        <span style="font-size: 1.5rem;">✨</span>
+        <div>
+          <div class="ai-banner-title">
+            <span>Relecture & Vérification IA Gemini</span>
+          </div>
+          <div class="ai-banner-desc">L'extracteur local lit le PDF et l'IA Gemini 2.5 vérifie qu'aucun élève n'a été sauté.</div>
+        </div>
+      </div>
+      <label class="switch-container">
+        <span class="switch-label" id="aiSwitchText">Activée</span>
+        <div class="switch">
+          <input type="checkbox" id="aiToggle" checked onchange="updateAiToggleText()">
+          <span class="slider"></span>
+        </div>
+      </label>
+    </div>
+
+    <!-- Drag & Drop Zone -->
+    <div class="card">
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-zone-icon">📄 ➔ 📊</div>
+        <div class="drop-zone-title">Glissez-déposez le PDF de la classe ici</div>
+        <div class="drop-zone-desc">ou cliquez pour choisir le fichier PDF</div>
+        <input type="file" id="fileInput" class="file-input" accept="application/pdf" multiple>
+      </div>
+
+      <!-- Settings -->
+      <div class="settings-grid">
+        <div class="setting-item">
+          <label for="numCols">Nombre de colonnes vides :</label>
+          <input type="number" id="numCols" value="10" min="1" max="30">
+        </div>
+        <div class="setting-item">
+          <label for="nameFormat">Format des noms :</label>
+          <select id="nameFormat">
+            <option value="original">Tel quel (ex: BAILLEUL Kelly)</option>
+            <option value="uppercase">TOUT EN MAJUSCULES (ex: BAILLEUL KELLY)</option>
+            <option value="capitalized">Nom Majuscule, Prénom Minuscule</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label class="checkbox-label">
+            <input type="checkbox" id="includeCount" checked>
+            Afficher l'effectif en haut (case A1)
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results / Class Tabs -->
+    <div id="resultsContainer" class="results-container">
+      <div id="classesList"></div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="instructions">
+      <h3>💡 Comment ça fonctionne ?</h3>
+      <ol>
+        <li>Téléchargez votre liste de classe au format PDF depuis Pronote (Index Education).</li>
+        <li>Glissez le fichier ci-dessus : le moteur local lit les colonnes et l'IA Gemini valide chaque élève.</li>
+        <li>Cliquez sur <strong>« Télécharger Excel (.xlsx) »</strong>
+
+  <a href="/" style="position: fixed; top: 16px; left: 16px; z-index: 999; display: inline-flex; align-items: center; gap: 6px; background: #ffffff; border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 10px; text-decoration: none; color: #334155; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.08); transition: all 0.2s;">
+    ← Retour au Hub
+  </a>
+ : vous obtenez le fichier prêt à imprimer avec vos 10 cases vides !</li>
+      </ol>
+    </div>
+
+    <footer class="footer">
+      Outil sur mesure pour simplifier la vie des enseignants ✨
+    </footer>
+  </div>
+
+  <!-- Loading Modal -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div id="loadingText" style="font-size: 1.1rem; font-weight: 600;">Extraction des élèves en cours...</div>
+  </div>
+
+  <script>
+    // Clé API Google Gemini (récupérée du stockage local sécurisé)
+    const EMBEDDED_API_KEY = localStorage.getItem('gemini_api_key') || "";
+
+    // Initialize PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    let currentClassesData = [];
+
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const classesList = document.getElementById('classesList');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingText = document.getElementById('loadingText');
+    const aiToggle = document.getElementById('aiToggle');
+
+    function updateAiToggleText() {
+      const isChecked = aiToggle.checked;
+      document.getElementById('aiSwitchText').textContent = isChecked ? 'Activée' : 'Désactivée';
+    }
+
+    // Drag & Drop events
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+      }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files.length > 0) handleFiles(files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) handleFiles(e.target.files);
+    });
+
+    document.getElementById('numCols').addEventListener('input', updateTablePreviews);
+    document.getElementById('nameFormat').addEventListener('change', updateTablePreviews);
+
+    async function handleFiles(files) {
+      currentClassesData = [];
+
+      try {
+        for (const file of files) {
+          if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) continue;
+
+          // 1. Étape 1 : Le moteur local extrait les données du PDF
+          showLoading(true, "1/2 Extraction des colonnes du PDF...");
+          const arrayBuffer = await file.arrayBuffer();
+          const localParsedClasses = await parsePronotePDFEngine(arrayBuffer, file.name);
+
+          let finalClass = localParsedClasses[0] || { className: file.name.replace(/\.pdf$/i, ''), students: [] };
+          let isAiVerified = false;
+
+          // 2. Étape 2 : Si l'option IA est cochée, l'IA relit et vérifie
+          const useAI = aiToggle.checked && EMBEDDED_API_KEY;
+          if (useAI) {
+            showLoading(true, "2/2 Relecture & vérification avec Google Gemini 2.5...");
+            try {
+              const verifiedResult = await verifyAndCorrectWithGemini(file, finalClass, EMBEDDED_API_KEY);
+              if (verifiedResult && verifiedResult.students && verifiedResult.students.length > 0) {
+                finalClass = verifiedResult;
+                isAiVerified = true;
+              }
+            } catch (aiErr) {
+              console.warn("Relecture IA non disponible :", aiErr);
+            }
+          }
+
+          finalClass.isAiVerified = isAiVerified;
+          currentClassesData.push(finalClass);
+        }
+
+        if (currentClassesData.length === 0 || currentClassesData.every(c => c.students.length === 0)) {
+          alert("Aucun élève trouvé dans le document.");
+        } else {
+          renderClassesUI();
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Erreur lors de l'extraction : " + err.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function showLoading(show, text = "") {
+      loadingText.textContent = text;
+      loadingOverlay.style.display = show ? 'flex' : 'none';
+    }
+
+    /**
+     * Moteur Local : Nettoyage et extraction géométrique
+     */
+    async function parsePronotePDFEngine(arrayBuffer, fileName) {
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let defaultClassName = fileName.replace(/\.pdf$/i, '');
+      let detectedOverallClass = "";
+      let allStudents = [];
+
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        const items = textContent.items;
+
+        if (items.length === 0) continue;
+
+        // Détection de la classe
+        for (const item of items) {
+          const str = item.str.trim();
+          const match = str.match(/^([0-9]+(?:EME|eme|Ème|ème|°|e)?[A-Za-z0-9\s]+?)(?:\s*\([^\)]+\))?$/i);
+          if (match && !/liste|collège|college|index|trimestre|page/i.test(str) && str.length <= 15) {
+            if (!detectedOverallClass) detectedOverallClass = match[1].trim();
+          }
+        }
+
+        // Repérage des dates de naissance (JJ/MM/AAAA)
+        const birthDateItems = items.filter(it => {
+          const s = it.str.trim();
+          const x = it.transform[4];
+          return /^\d{2}\/\d{2}\/\d{4}$/.test(s) && x > 100 && x < 280;
+        });
+
+        birthDateItems.sort((a, b) => b.transform[5] - a.transform[5]);
+
+        // Filtrer les éléments de la colonne nom (X < 145 et sans dates)
+        const nameColumnItems = items.filter(it => {
+          const str = it.str.trim();
+          if (!str) return false;
+          const x = it.transform[4];
+          const y = it.transform[5];
+
+          const inNameCol = x >= 15 && x < 145;
+          const isDate = /^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(str);
+          const isNoise = /él[eè]ve|né\(e\)|coll[eè]ge|index\s+education|liste\s+des/i.test(str);
+          
+          return inNameCol && !isDate && !isNoise && y < 780 && y > 40;
+        });
+
+        if (birthDateItems.length > 0) {
+          for (let i = 0; i < birthDateItems.length; i++) {
+            const currentY = birthDateItems[i].transform[5];
+            const prevY = i === 0 ? currentY + 28 : birthDateItems[i - 1].transform[5];
+            const nextY = i === birthDateItems.length - 1 ? currentY - 28 : birthDateItems[i + 1].transform[5];
+
+            const upperLimit = (prevY + currentY) / 2;
+            const lowerLimit = (currentY + nextY) / 2;
+
+            const rowItems = nameColumnItems.filter(it => {
+              const y = it.transform[5];
+              return y <= upperLimit && y > lowerLimit;
+            });
+
+            rowItems.sort((a, b) => {
+              const dy = b.transform[5] - a.transform[5];
+              if (Math.abs(dy) > 3) return dy;
+              return a.transform[4] - b.transform[4];
+            });
+
+            let fullName = rowItems.map(it => it.str.trim()).join(' ');
+            fullName = cleanStudentName(fullName);
+
+            if (fullName && fullName.length >= 2) {
+              allStudents.push(fullName);
+            }
+          }
+        }
+      }
+
+      return [{
+        className: detectedOverallClass || defaultClassName,
+        students: allStudents
+      }];
+    }
+
+    /**
+     * RELECTURE & CONTRÔLE QUALITÉ PAR GEMINI 2.5 FLASH
+     */
+    async function verifyAndCorrectWithGemini(file, localClassData, apiKey) {
+      const base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const prompt = `Tu es un expert dans l'analyse de listes d'élèves Pronote / Index Education.
+Voici le fichier PDF officiel contenant la liste de classe.
+Voici également ce que notre premier algorithme a détecté :
+${JSON.stringify(localClassData.students, null, 2)}
+
+TON OBJECTIF :
+1. Lis attentivement TOUTES les pages du PDF (page 1, page 2, etc.).
+2. Récupère la liste intégrale, exacte et ordonnée de TOUS les élèves (Nom de famille en majuscule, Prénom).
+3. Ne mets JAMAIS de dates de naissance, régimes (ex: Demi-pensionnaire, Externe) ou options scolaires (ex: LLC Anglais).
+4. Renvoie le nom de la classe et la liste complète des élèves.
+
+Réponds STRICTEMENT sous ce format JSON (sans bloc Markdown \`\`\`json, uniquement le JSON valide) :
+{
+  "className": "${localClassData.className}",
+  "students": [
+    "NOM Prénom"
+  ]
+}`;
+
+      // Utilisation du modèle supporté gemini-2.5-flash
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: prompt },
+              {
+                inline_data: {
+                  mime_type: 'application/pdf',
+                  data: base64Data
+                }
+              }
+            ]
+          }],
+          generationConfig: {
+            temperature: 0.0,
+            response_mime_type: "application/json"
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error?.message || `Erreur API Gemini (${response.status})`);
+      }
+
+      const resJson = await response.json();
+      const rawText = resJson.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) throw new Error("Réponse vide de l'IA.");
+
+      const parsed = JSON.parse(rawText);
+      return {
+        className: parsed.className || localClassData.className,
+        students: parsed.students || localClassData.students
+      };
+    }
+
+    function cleanStudentName(rawName) {
+      return rawName
+        .replace(/[\uF200-\uF2FF\u2640\u2642]/g, '')
+        .replace(/\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/g, '') // suppression des dates
+        .replace(/\b(DEMI-PENSIONNAIRE|EXTERNE|INTERNE|PAP|PPS|GEVAS|CHORALE|LV1|LV2|LLC ANGLAIS|ANGLAIS LV1|ESPAGNOL LV2)\b.*/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function formatName(name, formatType) {
+      if (!name) return "";
+      if (formatType === 'uppercase') {
+        return name.toUpperCase();
+      } else if (formatType === 'capitalized') {
+        return name.split(' ')
+          .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+          .join(' ');
+      }
+      return name;
+    }
+
+    function renderClassesUI() {
+      classesList.innerHTML = '';
+      resultsContainer.style.display = 'block';
+
+      const numCols = parseInt(document.getElementById('numCols').value, 10) || 10;
+      const formatType = document.getElementById('nameFormat').value;
+
+      currentClassesData.forEach((classData, classIndex) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.id = `classCard_${classIndex}`;
+
+        const header = document.createElement('div');
+        header.className = 'class-header';
+
+        header.innerHTML = `
+          <div class="class-title">
+            <span>📚 Classe : <strong>${escapeHtml(classData.className)}</strong></span>
+            <span class="count-tag" id="countTag_${classIndex}">Total : ${classData.students.length} élèves</span>
+            ${classData.isAiVerified ? '<span class="ai-verified-tag">✨ Vérifié par l\'IA Gemini 2.5</span>' : ''}
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-success" onclick="exportToExcel(${classIndex})">
+              📥 Télécharger Excel (.xlsx)
+            </button>
+          </div>
+        `;
+
+        const tableWrapper = document.createElement('div');
+        tableWrapper.className = 'table-wrapper';
+
+        const table = document.createElement('table');
+        table.id = `table_${classIndex}`;
+
+        let theadHtml = `
+          <thead>
+            <tr>
+              <th style="width: 38px; text-align: center;">#</th>
+              <th class="col-name">Nom et Prénom de l'élève</th>
+        `;
+        for (let i = 1; i <= numCols; i++) {
+          theadHtml += `<th class="col-empty">${i}</th>`;
+        }
+        theadHtml += `<th style="width: 36px; text-align: center;"></th></tr></thead>`;
+
+        let tbodyHtml = '<tbody>';
+        classData.students.forEach((student, sIdx) => {
+          tbodyHtml += `
+            <tr id="row_${classIndex}_${sIdx}">
+              <td style="text-align: center; color: #64748b; font-size: 0.85rem; font-weight: 600;">${sIdx + 1}</td>
+              <td class="col-name">
+                <input type="text" class="name-input" value="${escapeHtml(formatName(student, formatType))}" 
+                       onchange="updateStudentName(${classIndex}, ${sIdx}, this.value)">
+              </td>
+          `;
+          for (let i = 1; i <= numCols; i++) {
+            tbodyHtml += `<td class="col-empty"></td>`;
+          }
+          tbodyHtml += `
+              <td style="text-align: center;">
+                <button class="remove-btn" title="Supprimer cet élève" onclick="removeStudent(${classIndex}, ${sIdx})">✕</button>
+              </td>
+            </tr>
+          `;
+        });
+        tbodyHtml += '</tbody>';
+
+        table.innerHTML = theadHtml + tbodyHtml;
+        tableWrapper.appendChild(table);
+
+        const addRowBtn = document.createElement('button');
+        addRowBtn.className = 'add-row-btn';
+        addRowBtn.innerHTML = '+ Ajouter un élève';
+        addRowBtn.onclick = () => addStudent(classIndex);
+
+        card.appendChild(header);
+        card.appendChild(tableWrapper);
+        card.appendChild(addRowBtn);
+        classesList.appendChild(card);
+      });
+
+      resultsContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function updateTablePreviews() {
+      if (currentClassesData.length > 0) {
+        renderClassesUI();
+      }
+    }
+
+    function updateStudentName(classIndex, sIdx, newName) {
+      currentClassesData[classIndex].students[sIdx] = newName.trim();
+    }
+
+    function removeStudent(classIndex, sIdx) {
+      currentClassesData[classIndex].students.splice(sIdx, 1);
+      renderClassesUI();
+    }
+
+    function addStudent(classIndex) {
+      currentClassesData[classIndex].students.push("NOUVEL ÉLÈVE");
+      renderClassesUI();
+    }
+
+    /**
+     * Export to Excel with identical formatting from screenshot
+     */
+    async function exportToExcel(classIndex) {
+      const classData = currentClassesData[classIndex];
+      const numCols = parseInt(document.getElementById('numCols').value, 10) || 10;
+      const includeCount = document.getElementById('includeCount').checked;
+      const formatType = document.getElementById('nameFormat').value;
+
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'Générateur Pronote';
+      workbook.created = new Date();
+
+      const sheetName = (classData.className || 'Classe').substring(0, 31).replace(/[:\\\/\?\*\[\]]/g, '_');
+      const worksheet = workbook.addWorksheet(sheetName, {
+        views: [{ showGridLines: true }]
+      });
+
+      const thinBorder = {
+        top: { style: 'thin', color: { argb: 'FF000000' } },
+        left: { style: 'thin', color: { argb: 'FF000000' } },
+        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+        right: { style: 'thin', color: { argb: 'FF000000' } }
+      };
+
+      let maxNameLength = 15;
+      classData.students.forEach(s => {
+        if (s.length > maxNameLength) maxNameLength = s.length;
+      });
+
+      worksheet.getColumn(1).width = Math.min(Math.max(maxNameLength + 4, 22), 38);
+      for (let c = 2; c <= numCols + 1; c++) {
+        worksheet.getColumn(c).width = 4.8;
+      }
+
+      let startRow = 1;
+      if (includeCount) {
+        const cellA1 = worksheet.getCell('A1');
+        cellA1.value = classData.students.length;
+        cellA1.font = { name: 'Arial', size: 10, bold: false };
+        cellA1.alignment = { horizontal: 'right', vertical: 'middle' };
+        worksheet.getRow(1).height = 18;
+        startRow = 2;
+      }
+
+      classData.students.forEach((student, index) => {
+        const rowNum = startRow + index;
+        const row = worksheet.getRow(rowNum);
+        row.height = 19;
+
+        const nameCell = row.getCell(1);
+        nameCell.value = formatName(student, formatType);
+        nameCell.font = { name: 'Arial', size: 10, bold: true };
+        nameCell.alignment = { horizontal: 'left', vertical: 'middle' };
+        nameCell.border = thinBorder;
+
+        for (let colIdx = 2; colIdx <= numCols + 1; colIdx++) {
+          const emptyCell = row.getCell(colIdx);
+          emptyCell.value = '';
+          emptyCell.border = thinBorder;
+        }
+      });
+
+      worksheet.pageSetup = {
+        orientation: 'portrait',
+        paperSize: 9,
+        fitToPage: true,
+        fitToWidth: 1,
+        fitToHeight: 0,
+        margins: {
+          left: 0.4, right: 0.4,
+          top: 0.4, bottom: 0.4,
+          header: 0.2, footer: 0.2
+        }
+      };
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const cleanClassName = (classData.className || 'Classe').replace(/[^a-zA-Z0-9_\-]/g, '_');
+      const fileName = `${cleanClassName}.xlsx`;
+
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      saveAs(blob, fileName);
+    }
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>

@@ -1069,6 +1069,26 @@
             </div>
           </a>
 
+          <a href="/tools/convertisseur_excel.html" class="app-card" data-app-id="convertisseur_excel" data-title="Convertisseur PDF Excel Tableur Grille Elèves Tableau Pronote XLSX CSV">
+            <div class="card-top">
+              <div class="app-icon" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(13, 148, 136, 0.2));">
+                📊
+              </div>
+              <div class="app-info">
+                <div class="app-name">
+                  PDF ➔ Tableur Excel
+                  <span class="app-badge badge-green">ExcelJS</span>
+                </div>
+                <span style="font-size: 0.75rem; color: #34d399;">Grilles, Tableaux & XLSX</span>
+              </div>
+            </div>
+            <div class="app-desc">Convertit instantanément vos tableaux et listes PDF en feuilles de calcul Excel (.xlsx) prêtes à l'emploi.</div>
+            <div class="card-footer">
+              <span style="color: #10b981;">● 100% Local</span>
+              <span class="action">Ouvrir l'outil ➔</span>
+            </div>
+          </a>
+
         </div>
       </div>
 
@@ -1160,6 +1180,7 @@
       { id: "quiz", name: "🎮 Quiz Cinéma", defaultMaman: true },
       { id: "extracteur_texte", name: "📑 OCR & Extraction Texte", defaultMaman: true },
       { id: "editeur_pdf", name: "🛠️ Éditeur PDF", defaultMaman: true },
+      { id: "convertisseur_excel", name: "📊 Convertisseur PDF ➔ Excel", defaultMaman: true },
       { id: "notes", name: "📝 Carnet de Notes", defaultMaman: true },
       { id: "genealogie", name: "🌳 Généalogie", defaultMaman: true },
       { id: "banque", name: "💳 Banque & Finances", defaultMaman: false },
@@ -1175,7 +1196,13 @@
     function getMamanAllowedModules() {
       const saved = localStorage.getItem('maman_allowed_modules');
       if (saved) {
-        try { return JSON.parse(saved); } catch(e) {}
+        try {
+          const list = JSON.parse(saved);
+          AVAILABLE_MODULES.forEach(m => {
+            if (m.defaultMaman && !list.includes(m.id)) list.push(m.id);
+          });
+          return list;
+        } catch(e) {}
       }
       return AVAILABLE_MODULES.filter(m => m.defaultMaman).map(m => m.id);
     }
