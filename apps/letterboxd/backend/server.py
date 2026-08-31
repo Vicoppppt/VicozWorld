@@ -1540,6 +1540,65 @@ def set_hub_permissions(req: HubPermissionsRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def get_server_battery():
+    """Récupère l'état et le pourcentage de batterie du PC portable serveur hôte."""
+    # 1. Lecture directe de l'interface sysfs Linux (/sys/class/power_supply)
+    power_supply_path = "/sys/class/power_supply"
+    if os.path.exists(power_supply_path):
+        try:
+            for item in sorted(os.listdir(power_supply_path)):
+                if item.startswith("BAT"):
+                    bat_dir = os.path.join(power_supply_path, item)
+                    cap_file = os.path.join(bat_dir, "capacity")
+                    status_file = os.path.join(bat_dir, "status")
+                    if os.path.exists(cap_file):
+                        with open(cap_file, "r") as f:
+                            percentage = int(f.read().strip())
+                        status = "Inconnu"
+                        if os.path.exists(status_file):
+                            with open(status_file, "r") as f:
+                                status = f.read().strip()
+                        is_charging = status in ["Charging", "Full"] or "charg" in status.lower()
+                        return {
+                            "available": True,
+                            "percentage": percentage,
+                            "status": status,
+                            "is_charging": is_charging,
+                            "device": item
+                        }
+        except Exception as e:
+            logger.warning(f"Erreur lecture sysfs batterie: {e}")
+
+    # 2. Fallback avec psutil
+    try:
+        import psutil
+        bat = psutil.sensors_battery()
+        if bat is not None:
+            return {
+                "available": True,
+                "percentage": round(bat.percent),
+                "status": "En charge" if bat.power_plugged else "Sur batterie",
+                "is_charging": bool(bat.power_plugged),
+                "device": "psutil"
+            }
+    except Exception as e:
+        logger.debug(f"psutil batterie non disponible: {e}")
+
+    return {
+        "available": False,
+        "percentage": None,
+        "status": "Secteur / Pas de batterie",
+        "is_charging": True,
+        "device": None
+    }
+
+
+@app.get("/api/hub/battery")
+def get_hub_battery():
+    """Endpoint API pour récupérer le niveau de batterie du PC serveur."""
+    return get_server_battery()
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)

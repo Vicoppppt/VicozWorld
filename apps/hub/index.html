@@ -251,6 +251,42 @@
       color: var(--text-muted);
     }
 
+    /* Server Battery Badge */
+    .battery-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 12px;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .battery-icon {
+      font-size: 1.2rem;
+    }
+
+    .battery-text {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #10b981;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .battery-status {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    .battery-low .battery-text {
+      color: #ef4444;
+    }
+
+    .battery-warn .battery-text {
+      color: #f59e0b;
+    }
+
     /* Live Widgets Banner */
     .widgets-banner {
       display: grid;
@@ -813,6 +849,15 @@
         </div>
 
         <div class="header-right">
+          <!-- Server Battery Badge -->
+          <div class="battery-badge" id="batteryBadge" title="Niveau de batterie du serveur portable" style="display: none;">
+            <span class="battery-icon" id="batteryIcon">🔋</span>
+            <div>
+              <div class="battery-text" id="batteryText">--%</div>
+              <div class="battery-status" id="batteryStatus">Serveur</div>
+            </div>
+          </div>
+
           <!-- Profile Switcher Button -->
           <div class="profile-pill" onclick="openProfileScreen()" title="Changer d'utilisateur">
             <div class="profile-pill-avatar" id="pillAvatar">🚀</div>
@@ -1539,12 +1584,55 @@
       }
     }
 
+    // Moniteur Batterie Serveur (Toutes les 60 secondes)
+    async function loadServerBattery() {
+      try {
+        const res = await fetch('/api/hub/battery');
+        if (!res.ok) return;
+        const data = await res.json();
+        const badge = document.getElementById('batteryBadge');
+        if (!badge) return;
+
+        if (data.available && data.percentage !== null) {
+          badge.style.display = 'flex';
+          const pct = data.percentage;
+          const isCharging = data.is_charging;
+
+          let icon = '🔋';
+          if (isCharging) {
+            icon = '⚡';
+          } else if (pct <= 15) {
+            icon = '🪫';
+          }
+
+          document.getElementById('batteryIcon').textContent = icon;
+          document.getElementById('batteryText').textContent = `${pct}%`;
+          
+          let statusText = isCharging ? 'En charge' : 'Sur batterie';
+          document.getElementById('batteryStatus').textContent = statusText;
+
+          badge.classList.remove('battery-low', 'battery-warn');
+          if (!isCharging) {
+            if (pct <= 15) badge.classList.add('battery-low');
+            else if (pct <= 30) badge.classList.add('battery-warn');
+          }
+        } else {
+          badge.style.display = 'none';
+        }
+      } catch (e) {
+        console.log("Batterie non disponible:", e);
+      }
+    }
+
     window.onload = () => {
       loadCustomApps();
       applyProfile();
       syncPermissionsFromServer();
       loadWeather();
       loadNews();
+      loadServerBattery();
+      // Rafraîchissement de la batterie toutes les minutes (60 000 ms)
+      setInterval(loadServerBattery, 60000);
     };
   </script>
 </body>

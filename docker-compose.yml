@@ -55,6 +55,7 @@ services:
       - ./data/letterboxd:/app/data
       - letterboxd-woob-config:/root/.config/woob
       - letterboxd-woob-data:/root/.local/share/woob
+      - /sys/class/power_supply:/sys/class/power_supply:ro
     networks:
       app-network:
         aliases:
