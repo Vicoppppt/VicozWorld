@@ -163,7 +163,7 @@
     p.subtitle {
       color: var(--text-muted);
       font-size: 1.05rem;
-      max-width: 680px;
+      max-width: 720px;
       margin: 0 auto;
     }
 
@@ -284,6 +284,8 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .criteria-title {
@@ -351,16 +353,6 @@
       box-shadow: none !important;
     }
 
-    .criterion-bareme {
-      width: 80px;
-      text-align: center;
-      font-size: 0.85rem;
-      padding: 4px 8px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: #f8fafc;
-    }
-
     .btn-remove-criterion {
       background: none;
       border: none;
@@ -412,6 +404,80 @@
     .btn-magic:hover {
       background: #ede9fe;
       border-color: #c4b5fd;
+    }
+
+    /* Rigour Slider Component */
+    .slider-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin-bottom: 18px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .slider-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .slider-current-badge {
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 999px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary-border);
+    }
+
+    .range-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 5px;
+      background: #cbd5e1;
+      outline: none;
+      margin: 12px 0;
+      cursor: pointer;
+    }
+
+    .range-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(79, 70, 229, 0.4);
+      transition: transform 0.15s ease;
+    }
+
+    .range-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .slider-desc {
+      font-size: 0.82rem;
+      color: #475569;
+      margin-top: 8px;
+      font-style: italic;
     }
 
     /* Accordion / Optional Section */
@@ -637,7 +703,7 @@
       background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
       color: white;
       border-radius: var(--radius-lg);
-      padding: 24px 28px;
+      padding: 22px 28px;
       margin-bottom: 24px;
       display: flex;
       justify-content: space-between;
@@ -658,23 +724,22 @@
       color: #c7d2fe;
     }
 
-    .score-badge-large {
+    .mastery-badge-large {
       background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(8px);
       border: 1px solid rgba(255, 255, 255, 0.25);
       border-radius: var(--radius-md);
-      padding: 12px 20px;
+      padding: 10px 18px;
       text-align: center;
-      min-width: 140px;
     }
 
-    .score-value {
-      font-size: 1.8rem;
+    .mastery-value {
+      font-size: 1.3rem;
       font-weight: 800;
       color: #fde047;
     }
 
-    .score-label {
+    .mastery-label {
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -776,17 +841,6 @@
       background: var(--danger-light);
       color: var(--danger);
       border: 1px solid var(--danger-border);
-    }
-
-    .quote-text {
-      background: #f1f5f9;
-      border-left: 3px solid #94a3b8;
-      padding: 4px 8px;
-      font-style: italic;
-      font-size: 0.85rem;
-      margin: 6px 0;
-      border-radius: 0 4px 4px 0;
-      color: #475569;
     }
 
     .advice-text {
@@ -1019,7 +1073,7 @@
       background: white;
       border-radius: var(--radius-lg);
       width: 100%;
-      max-width: 520px;
+      max-width: 540px;
       box-shadow: var(--shadow-lg);
       overflow: hidden;
       animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1135,11 +1189,11 @@
         box-shadow: none !important;
       }
 
-      .score-value {
+      .mastery-value {
         color: black !important;
       }
 
-      .score-label {
+      .mastery-label {
         color: #475569 !important;
       }
 
@@ -1186,13 +1240,13 @@
     <!-- Header -->
     <header>
       <div class="badge-pill">
-        <span>✨ Propulsé par Gemini 2.5</span>
+        <span>✨ IA Avancée • Gemini 2.5 Pro</span>
         <span>•</span>
         <span>Français Collège (6e - 3e)</span>
       </div>
       <h1>Évaluateur & Correcteur de Rédactions</h1>
       <p class="subtitle">
-        Correction pédagogique et bienveillante de copies d'élèves selon vos consignes, critères précis et barème.
+        Analyse pédagogique, constructive et sans note imposée : synthèse globale, respect des consignes et grille de critères qualitatifs.
       </p>
     </header>
 
@@ -1248,10 +1302,10 @@
         <span id="sujetFileName" style="font-size: 0.85rem; color: var(--text-muted);"></span>
       </div>
 
-      <!-- Critères de notation dynamiques -->
+      <!-- Critères d'évaluation précis -->
       <div class="criteria-box">
         <div class="criteria-header">
-          <div class="criteria-title">📋 Critères précis de notation & Barème</div>
+          <div class="criteria-title">📋 Critères précis d'évaluation</div>
           <div class="criteria-presets">
             <span style="font-size: 0.8rem; color: var(--text-muted);">Modèles rapides :</span>
             <button class="preset-chip" onclick="applyCriteriaPreset('recit')">Récit & Temps</button>
@@ -1290,21 +1344,33 @@
 
       <div style="margin-top: 14px;">
         <button class="accordion-toggle" onclick="toggleAccordion('examplesAccordion')">
-          <span>💡 Ajouter un exemple de très bonne copie ou des consignes de correction particulières</span>
+          <span>💡 Fournir un exemple de bonne copie, corrigé repère ou document d'accompagnement</span>
           <span id="examplesAccordionIcon">▼</span>
         </button>
         <div class="accordion-content" id="examplesAccordion">
-          <div class="form-group" style="margin-top: 10px;">
+          
+          <!-- Import de fichier d'exemple (PDF ou Image) -->
+          <div style="display: flex; gap: 10px; align-items: center; margin: 10px 0 14px;">
+            <input type="file" id="exampleFileInput" accept=".pdf,image/*" style="display: none;" onchange="handleExampleFileUpload(event)">
+            <button class="btn-sm" onclick="document.getElementById('exampleFileInput').click()">
+              <span>📎</span>
+              <span>Importer un fichier d'exemple (PDF ou Photo de bonne copie)</span>
+            </button>
+            <span id="exampleFileName" style="font-size: 0.85rem; color: var(--text-muted);"></span>
+            <button id="btnRemoveExampleFile" class="btn-remove-criterion" style="display: none;" onclick="removeExampleFile()" title="Retirer ce fichier">&times;</button>
+          </div>
+
+          <div class="form-group">
             <label for="exemplaryText">
               Texte de référence, corrigé type ou remarques méthodologiques
             </label>
-            <textarea id="exemplaryText" placeholder="Collez ici un extrait d'une excellente copie, un barème spécifique ou des erreurs fréquentes à pénaliser particulièrement..."></textarea>
+            <textarea id="exemplaryText" placeholder="Collez ici un extrait d'une excellente copie, un exemple de tournure attendue ou des consignes spécifiques pour l'IA..."></textarea>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- STEP 3 : Copie de l'Élève -->
+    <!-- STEP 3 : Copie de l'Élève & Exigence -->
     <div class="card">
       <div class="card-header">
         <div class="card-title">
@@ -1313,18 +1379,26 @@
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label for="studentName">Nom / Prénom de l'élève <span class="label-hint">(ou laisser vide pour anonyme)</span></label>
-          <input type="text" id="studentName" placeholder="Ex: Lucas M. ou Élève 1">
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label for="studentName">Nom / Prénom de l'élève <span class="label-hint">(ou laisser vide pour anonyme)</span></label>
+        <input type="text" id="studentName" placeholder="Ex: Lucas M. ou Élève 1">
+      </div>
+
+      <!-- Curseur d'exigence de correction -->
+      <div class="slider-box">
+        <div class="slider-header">
+          <div class="slider-title">🎯 Posture & Exigence de correction de l'IA</div>
+          <div class="slider-current-badge" id="rigourBadge">Assertive & Pédagogique</div>
         </div>
-        <div class="form-group">
-          <label for="correctionRigour">Exigence de correction</label>
-          <select id="correctionRigour">
-            <option value="standard" selected>Équilibrée & Pédagogique (Recommandé)</option>
-            <option value="bienveillante">Très bienveillante (Élèves à besoins / 6e)</option>
-            <option value="exigeante">Exigeante (3e / Préparation Brevet)</option>
-          </select>
+        <input type="range" min="1" max="4" value="3" class="range-slider" id="rigourSlider" oninput="updateRigourSlider()">
+        <div class="slider-labels">
+          <span>1. Bienveillante</span>
+          <span>2. Neutre</span>
+          <span>3. Assertive</span>
+          <span>4. Exigeante</span>
+        </div>
+        <div class="slider-desc" id="rigourDesc">
+          Conseils directs, précis et formateurs : valorise les réussites tout en pointant clairement les axes d'amélioration.
         </div>
       </div>
 
@@ -1378,10 +1452,10 @@
       <div class="btn-submit-container">
         <button class="btn-primary-large" id="btnEvaluate" onclick="startEvaluation()">
           <span>✨</span>
-          <span>Évaluer la Copie avec Gemini</span>
+          <span>Évaluer la Copie avec Gemini 2.5 Pro</span>
         </button>
         <span style="font-size: 0.85rem; color: var(--text-muted);">
-          Correction instantanée conforme aux programmes du collège
+          Correction qualitative et analyse personnalisée sans note imposée
         </span>
       </div>
     </div>
@@ -1420,9 +1494,9 @@
           <div class="result-student-name" id="resStudentName">Copie d'élève</div>
           <div class="result-devoir-meta" id="resDevoirMeta">Classe de 5ème • Récit narratif</div>
         </div>
-        <div class="score-badge-large">
-          <div class="score-value" id="resScoreValue">-- / 20</div>
-          <div class="score-label" id="resScoreLabel">Note indicative</div>
+        <div class="mastery-badge-large">
+          <div class="mastery-value" id="resMasteryValue">Très bonne maîtrise</div>
+          <div class="mastery-label" id="resMasteryLabel">Bilan qualitatif</div>
         </div>
       </div>
 
@@ -1430,7 +1504,7 @@
       <div class="synthesis-card">
         <div class="synthesis-title">
           <span>📝</span>
-          <span>Synthèse globale & Avis pédagogique</span>
+          <span>Synthèse générale & Avis pédagogique</span>
         </div>
         <div class="synthesis-text" id="resSynthesisText">
           Chargement de l'évaluation...
@@ -1441,17 +1515,16 @@
       <div class="card" style="padding: 16px;">
         <div class="card-title" style="font-size: 1.1rem; margin-bottom: 14px;">
           <span>📊</span>
-          <span>Tableau d'évaluation détaillée par critère</span>
+          <span>Tableau d'évaluation par critère</span>
         </div>
         <div class="table-container">
           <table class="eval-table" id="resCriteriaTable">
             <thead>
               <tr>
-                <th style="width: 25%;">Critère / Compétence</th>
-                <th style="width: 15%;">Degré de maîtrise</th>
-                <th style="width: 10%;">Barème</th>
-                <th style="width: 28%;">Analyse & Citations de la copie</th>
-                <th style="width: 22%;">Conseil d'amélioration</th>
+                <th style="width: 28%;">Critère / Compétence</th>
+                <th style="width: 18%;">Degré de maîtrise</th>
+                <th style="width: 30%;">Analyse & Citations de la copie</th>
+                <th style="width: 24%;">Conseil d'amélioration</th>
               </tr>
             </thead>
             <tbody id="resCriteriaTableBody">
@@ -1546,8 +1619,8 @@
         <div class="form-group" style="margin-top: 14px;">
           <label for="modalModelSelect">Modèle Gemini</label>
           <select id="modalModelSelect">
-            <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Ultra rapide & Multimodal recommandé)</option>
-            <option value="gemini-2.5-pro">Gemini 2.5 Pro (Analyse littéraire et stylistique encore plus poussée)</option>
+            <option value="gemini-2.5-pro" selected>Gemini 2.5 Pro (Modèle de pointe recommandé pour les rédactions littéraires)</option>
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Rapide & Multimodal)</option>
           </select>
         </div>
       </div>
@@ -1574,38 +1647,59 @@
     let studentPhotos = []; // [{file, base64, mimeType, name}]
     let studentPdfFile = null;
     let sujetFile = null; // {file, base64, mimeType, name}
+    let exampleFile = null; // {file, base64, mimeType, name}
     let sessionEvaluations = [];
     let lastEvaluationData = null;
 
-    // Criteria Presets Library
+    // Rigour settings data
+    const RIGOUR_LEVELS = {
+      "1": {
+        name: "Bienveillante & Encourageante",
+        desc: "Très encourageante, valorise chaque effort et progression, idéale pour les 6e ou les élèves ayant des difficultés."
+      },
+      "2": {
+        name: "Neutre & Factuelle",
+        desc: "Observation objective et équilibrée, décrivant avec neutralité le respect des consignes sans sévérité excessive."
+      },
+      "3": {
+        name: "Assertive & Pédagogique",
+        desc: "Conseils directs, précis et formateurs : valorise les réussites tout en pointant clairement les axes d'amélioration."
+      },
+      "4": {
+        name: "Exigeante & Rigueur Brevet",
+        desc: "Critères stricts, attention accrue aux détails de style, de syntaxe et de cohérence narrative (idéal 3e / préparation lycée)."
+      }
+    };
+
+    // Criteria Presets Library (Sans barème chiffré)
     const CRITERIA_PRESETS = {
       recit: [
-        { name: "Respect de la consigne et du genre narratif", bareme: "4 pts", desc: "Respect du cadre spatio-temporel, des personnages et du sujet imposé." },
-        { name: "Cohérence du récit & Schéma narratif", bareme: "4 pts", desc: "Enchaînement logique des péripéties, utilisation de connecteurs temporels." },
-        { name: "Emploi des temps du récit (Imparfait / Passé Simple)", bareme: "4 pts", desc: "Imparfait pour arrière-plan/descriptions, Passé simple pour actions de premier plan." },
-        { name: "Correction de la langue & Orthographe", bareme: "4 pts", desc: "Accords sujet-verbe, accords dans le GN, homophones grammaticaux." },
-        { name: "Richesse du vocabulaire & Style", bareme: "4 pts", desc: "Précision lexicale, figures de style simples, variété des verbes." }
+        { name: "Respect du système narratif (schéma narratif, cohérence de l'histoire, cadre)", desc: "Personnages, lieu, époque et enchaînement logique des actions." },
+        { name: "Respect des temps du récit (alternance passé simple / imparfait)", desc: "Imparfait pour les descriptions/arrière-plan, Passé simple pour les actions de premier plan." },
+        { name: "Cohérence et progression chronologique (connecteurs temporels)", desc: "Enchaînement fluide des étapes à l'aide de connecteurs temporels variés." },
+        { name: "Qualité et richesse du vocabulaire", desc: "Précision lexicale, adjectifs choisis, absence de répétitions abusives." },
+        { name: "Correction de la langue, orthographe et syntaxe", desc: "Accords sujet-verbe, accords dans le groupe nominal, ponctuation." }
       ],
       dialogue: [
-        { name: "Respect de la situation d'énonciation", bareme: "4 pts", desc: "Statut des interlocuteurs, registre de langue approprié, respect du sujet." },
-        { name: "Mise en page & Ponctuation du dialogue", bareme: "4 pts", desc: "Tirets, guillemets, deux-points, retours à la ligne à chaque prise de parole." },
-        { name: "Verbes de parole variés & Propositions incises", bareme: "4 pts", desc: "Variété des verbes (murmura, s'exclama...), place correcte des incises." },
-        { name: "Correction de la langue & Orthographe", bareme: "4 pts", desc: "Accords, syntaxe, absence d'incohérences grammaticales." },
-        { name: "Dynamisme & Intérêt du dialogue", bareme: "4 pts", desc: "Propos constructifs, relances, progression de l'échange." }
+        { name: "Respect de la situation d'énonciation et des personnages", desc: "Statut des interlocuteurs, registre de langue cohérent avec les personnages." },
+        { name: "Mise en page & Ponctuation du dialogue", desc: "Tirets, guillemets, deux-points, retours à la ligne à chaque prise de parole." },
+        { name: "Variété des verbes de parole et propositions incises", desc: "Variété des verbes (murmura, s'exclama...), place correcte des incises." },
+        { name: "Dynamisme et progression de l'échange", desc: "Propos constructifs, répliques rythmées, avancée de l'action." },
+        { name: "Correction de la langue, orthographe et syntaxe", desc: "Accords, orthographe, ponctuation expressive." }
       ],
       description: [
-        { name: "Organisation spatiale de la description", bareme: "4 pts", desc: "Progression du regard (gros plan/ensemble, haut/bas), repères spatiaux." },
-        { name: "Emploi de l'imparfait descriptif", bareme: "4 pts", desc: "Justesse des temps, valeur d'arrière-plan." },
-        { name: "Sensations & Champs lexicaux", bareme: "4 pts", desc: "Sollicitation des 5 sens, adjectifs qualificatifs précis, comparaisons." },
-        { name: "Correction de la langue & Orthographe", bareme: "4 pts", desc: "Accords dans le groupe nominal, accords de l'adjectif." },
-        { name: "Atmosphère & Richesse du vocabulaire", bareme: "4 pts", desc: "Création d'une ambiance particulière (mystère, beauté, angoisse...)." }
+        { name: "Organisation spatiale de la description (progression du regard)", desc: "Progression ordonnée (du plan d'ensemble aux détails, haut/bas, droite/gauche)." },
+        { name: "Emploi de l'imparfait descriptif", desc: "Justesse et régularité des temps de description." },
+        { name: "Sensations (5 sens) et enrichissement du groupe nominal", desc: "Images, comparaisons, adjectifs qualificatifs évocateurs." },
+        { name: "Création d'une atmosphère et vocabulaire précis", desc: "Cohérence du ton et de l'ambiance recherchée." },
+        { name: "Correction de la langue et accords", desc: "Accords dans le groupe nominal, accords de l'adjectif." }
       ],
       argumentation: [
-        { name: "Prise de position claire (Thèse)", bareme: "4 pts", desc: "Expression nette de l'opinion défendue dès l'introduction." },
-        { name: "Arguments développés & Exemples précis", bareme: "5 pts", desc: "Au moins 2 ou 3 arguments distincts illustrés par des exemples concrets." },
-        { name: "Connecteurs logiques & Organisation", bareme: "4 pts", desc: "D'abord, en outre, cependant, par conséquent, pour conclure." },
-        { name: "Correction de la langue & Syntaxe", bareme: "4 pts", desc: "Phrases complexes bien construites, accords, orthographe." },
-        { name: "Conclusion convaincante & Richesse lexicale", bareme: "3 pts", desc: "Bilan efficace, vocabulaire précis et nuancé." }
+        { name: "Prise de position claire (Thèse)", desc: "Expression nette et identifiable de l'opinion défendue dès l'introduction." },
+        { name: "Pertinence des arguments et exemples illustratifs", desc: "Au moins 2 ou 3 arguments distincts illustrés par des exemples précis." },
+        { name: "Connecteurs logiques et organisation", desc: "D'abord, en outre, cependant, par conséquent, pour conclure." },
+        { name: "Richesse du vocabulaire et force de persuasion", desc: "Vocabulaire nuancé, tournures adaptées à l'argumentation." },
+        { name: "Correction de la langue et syntaxe", desc: "Phrases complexes bien construites, accords, orthographe." }
       ]
     };
 
@@ -1613,6 +1707,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       checkApiKey();
       applyCriteriaPreset('recit');
+      updateRigourSlider();
       setupPasteListener();
     });
 
@@ -1622,7 +1717,7 @@
     }
 
     function getStoredModel() {
-      return localStorage.getItem('gemini_model') || 'gemini-2.5-flash';
+      return localStorage.getItem('gemini_model') || 'gemini-2.5-pro';
     }
 
     function checkApiKey() {
@@ -1659,24 +1754,31 @@
       closeSettingsModal();
     }
 
-    // Criteria UI Manipulation
+    // Rigour Slider Logic
+    function updateRigourSlider() {
+      const val = document.getElementById('rigourSlider').value;
+      const conf = RIGOUR_LEVELS[val] || RIGOUR_LEVELS["3"];
+      document.getElementById('rigourBadge').textContent = conf.name;
+      document.getElementById('rigourDesc').textContent = conf.desc;
+    }
+
+    // Criteria UI Manipulation (Sans champ barème)
     function applyCriteriaPreset(presetKey) {
       const preset = CRITERIA_PRESETS[presetKey] || CRITERIA_PRESETS.recit;
       const listContainer = document.getElementById('criteriaList');
       listContainer.innerHTML = '';
       preset.forEach(item => {
-        addCriterionRow(item.name, item.bareme, item.desc);
+        addCriterionRow(item.name, item.desc);
       });
     }
 
-    function addCriterionRow(name = '', bareme = '4 pts', desc = '') {
+    function addCriterionRow(name = '', desc = '') {
       const listContainer = document.getElementById('criteriaList');
       const row = document.createElement('div');
       row.className = 'criterion-item';
       row.innerHTML = `
         <span style="color: #6366f1; font-weight: bold;">•</span>
         <input type="text" class="criterion-input" placeholder="Intitulé du critère (ex: Respect des temps du passé...)" value="${escapeHtml(name)}">
-        <input type="text" class="criterion-bareme" placeholder="Points" value="${escapeHtml(bareme)}">
         <button class="btn-remove-criterion" onclick="this.parentElement.remove()" title="Supprimer ce critère">&times;</button>
       `;
       listContainer.appendChild(row);
@@ -1687,9 +1789,8 @@
       const criteria = [];
       rows.forEach(r => {
         const name = r.querySelector('.criterion-input').value.trim();
-        const bareme = r.querySelector('.criterion-bareme').value.trim();
         if (name) {
-          criteria.push({ name, bareme: bareme || 'Validé/Non validé' });
+          criteria.push({ name });
         }
       });
       return criteria;
@@ -1708,7 +1809,7 @@
       const file = event.target.files[0];
       if (!file) return;
 
-      document.getElementById('sujetFileName').textContent = `Fichier chargé : ${file.name}`;
+      document.getElementById('sujetFileName').textContent = `Fichier : ${file.name}`;
 
       if (file.type === 'application/pdf') {
         try {
@@ -1730,6 +1831,30 @@
       }
     }
 
+    // Step 2 Example file import
+    async function handleExampleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      document.getElementById('exampleFileName').textContent = `Exemple joint : ${file.name}`;
+      document.getElementById('btnRemoveExampleFile').style.display = 'inline-flex';
+
+      if (file.type === 'application/pdf') {
+        const base64 = await fileToBase64(file);
+        exampleFile = { file, base64, mimeType: file.type, name: file.name };
+      } else if (file.type.startsWith('image/')) {
+        const base64 = await fileToBase64(file);
+        exampleFile = { file, base64, mimeType: file.type, name: file.name };
+      }
+    }
+
+    function removeExampleFile() {
+      exampleFile = null;
+      document.getElementById('exampleFileInput').value = '';
+      document.getElementById('exampleFileName').textContent = '';
+      document.getElementById('btnRemoveExampleFile').style.display = 'none';
+    }
+
     // Extract Criteria with AI from Topic
     async function extractCriteriaWithAI() {
       const apiKey = getStoredApiKey();
@@ -1748,7 +1873,7 @@
         return;
       }
 
-      showLoading(true, "Génération des critères...", "Gemini analyse le sujet pour concevoir une grille d'évaluation sur-mesure.");
+      showLoading(true, "Génération des critères...", "Gemini analyse le sujet pour concevoir une liste de critères adaptée.");
 
       try {
         const prompt = `Tu es un professeur principal de Français au collège en France.
@@ -1757,12 +1882,14 @@ Analyse le sujet de devoir suivant pour une classe de ${classe} (Genre : ${textT
 SUJET / CONSIGNES :
 ${topic || "(Sujet joint en pièce jointe)"}
 ---
-Génère une grille de 4 à 6 critères d'évaluation pertinents, précis et adaptés au niveau collège (sur un total de 20 points ou équilibrés).
+Génère une liste de 4 à 6 critères d'évaluation qualitatifs pertinents et précis (sans barème chiffré, axés sur les compétences du collège).
+Exemples de critères : "Respect du système narratif", "Respect des temps du récit", "Qualité et richesse du vocabulaire", "Cohérence et enchaînement des péripéties", "Correction de la langue et orthographe".
+
 Réponds STRICTEMENT au format JSON suivant (sans balises superflues) :
 {
   "criteria": [
-    {"name": "Intitulé clair et précis du critère 1", "bareme": "4 pts"},
-    {"name": "Intitulé clair et précis du critère 2", "bareme": "4 pts"}
+    {"name": "Intitulé clair et précis du critère 1"},
+    {"name": "Intitulé clair et précis du critère 2"}
   ]
 }`;
 
@@ -1785,7 +1912,7 @@ Réponds STRICTEMENT au format JSON suivant (sans balises superflues) :
           if (parsed.criteria && parsed.criteria.length > 0) {
             const listContainer = document.getElementById('criteriaList');
             listContainer.innerHTML = '';
-            parsed.criteria.forEach(c => addCriterionRow(c.name, c.bareme));
+            parsed.criteria.forEach(c => addCriterionRow(c.name));
           }
         }
       } catch (err) {
@@ -1909,7 +2036,8 @@ Réponds STRICTEMENT au format JSON suivant (sans balises superflues) :
       const classe = document.getElementById('classeLevel').value;
       const textType = document.getElementById('textType').value;
       const topic = document.getElementById('devoirTopic').value.trim();
-      const rigour = document.getElementById('correctionRigour').value;
+      const rigourVal = document.getElementById('rigourSlider').value;
+      const rigourConf = RIGOUR_LEVELS[rigourVal] || RIGOUR_LEVELS["3"];
       const studentName = document.getElementById('studentName').value.trim() || "Élève";
       const exampleText = document.getElementById('exemplaryText').value.trim();
       const criteria = getCriteriaData();
@@ -1920,12 +2048,12 @@ Réponds STRICTEMENT au format JSON suivant (sans balises superflues) :
       }
 
       if (criteria.length === 0) {
-        alert("Veuillez ajouter au moins un critère de notation à l'étape 1.");
+        alert("Veuillez ajouter au moins un critère d'évaluation à l'étape 1.");
         return;
       }
 
       let studentContentText = "";
-      const studentParts = [];
+      const promptParts = [];
 
       if (currentInputMode === 'text') {
         studentContentText = document.getElementById('studentText').value.trim();
@@ -1933,76 +2061,62 @@ Réponds STRICTEMENT au format JSON suivant (sans balises superflues) :
           alert("Veuillez taper ou coller la rédaction de l'élève.");
           return;
         }
-        studentParts.push({ text: `COPIE DE L'ÉLÈVE :\n"""\n${studentContentText}\n"""` });
       } else if (currentInputMode === 'photo') {
         if (studentPhotos.length === 0) {
           alert("Veuillez ajouter au moins une photo ou capture de la copie de l'élève.");
           return;
         }
-        studentPhotos.forEach((p, idx) => {
-          studentParts.push({ text: `Page ${idx + 1} de la copie manuscrite :` });
-          studentParts.push({
-            inline_data: {
-              mime_type: p.mimeType,
-              data: p.base64
-            }
-          });
-        });
       } else if (currentInputMode === 'pdf') {
         if (!studentPdfFile) {
           alert("Veuillez sélectionner le fichier PDF de la copie de l'élève.");
           return;
         }
-        const base64Pdf = await fileToBase64(studentPdfFile);
-        studentParts.push({
-          inline_data: {
-            mime_type: 'application/pdf',
-            data: base64Pdf
-          }
-        });
       }
 
-      showLoading(true, "Correction de la copie en cours...", "Gemini examine attentivement la rédaction, la langue et les critères demandés.");
+      showLoading(true, "Correction de la copie en cours...", "Gemini 2.5 Pro examine la rédaction, la langue et chaque critère pédagogique.");
 
       try {
-        const criteriaPromptList = criteria.map((c, i) => `${i + 1}. ${c.name} [Barème : ${c.bareme}]`).join("\n");
+        const criteriaPromptList = criteria.map((c, i) => `${i + 1}. ${c.name}`).join("\n");
 
-        const systemPrompt = `Tu es une professeure de Français bienveillante, passionnée et rigoureuse au collège en France.
-Tu corriges une rédaction d'un élève de niveau : **${classe.toUpperCase()}** (${textType}).
-Exigence d'évaluation choisie : **${rigour}**.
+        const systemPrompt = `Tu es une professeure de Français experte, passionnée et attentive au collège en France.
+Tu corriges et évalues la rédaction d'un élève de niveau : **${classe.toUpperCase()}** (${formatGenreLabel(textType)}).
+Posture d'évaluation choisie : **${rigourConf.name}** (${rigourConf.desc}).
+
+IMPORTANT : AUCUNE NOTE CHIFFRÉE NE DOIT ÊTRE DONNÉE. L'enseignante évalue uniquement par compétences et critères qualitatifs.
 
 CONSIGNES & SUJET DU DEVOIR :
 """
-${topic || "(Voir pièce jointe pour le sujet)"}
+${topic || "(Voir document de sujet ci-joint)"}
 """
 
-${exampleText ? `EXEMPLES / CORRIGÉ REPÈRE / CONSIGNES PARTICULIÈRES :\n"""\n${exampleText}\n"""\n` : ""}
+${exampleText ? `EXEMPLES / CORRIGÉ REPÈRE / REMARQUES ENSEIGNANTE :\n"""\n${exampleText}\n"""\n` : ""}
 
-CRITÈRES PRÉCIS DE NOTATION À RESPECTER OBLIGATOIREMENT :
+CRITÈRES PRÉCIS D'ÉVALUATION À RESPECTER OBLIGATOIREMENT :
 ${criteriaPromptList}
 
 INSTRUCTIONS PÉDAGOGIQUES :
-1. Évalue la copie de l'élève par rapport aux consignes et à CHAQUE critère de la liste.
-2. Pour chaque critère, détermine le statut exact : "respecte" (🟢 Validé), "partiel" (🟡 Partiellement validé), ou "non_respecte" (🔴 Non validé), et attribue une note/point cohérent si un barème est fourni.
-3. Justifie chaque critère par des observations précises et CITE entre guillemets des extraits de la copie de l'élève pour appuyer ton propos.
-4. Donne pour chaque critère un conseil d'amélioration concret et facile à appliquer par un élève de collège.
-5. Fais un relevé attentif de la LANGUE : orthographe (lexicale & grammaticale), accords (sujet-verbe, adjectifs), temps des verbes (ex: imparfait/passé simple), ponctuation, syntaxe et richesse du vocabulaire, en citant les erreurs et en expliquant la règle.
-6. Rédige une appréciation générale bienveillante et stimulante valorisant les réussites de l'élève.
-7. Rédige une appréciation synthétique courte (1 à 2 phrases percutantes) prête à coller dans Pronote / sur le bulletin.
-8. Calcule une note globale indicative sur 20.
+1. Évalue la copie par rapport aux consignes et à CHAQUE critère de la liste.
+2. Pour chaque critère, détermine le statut qualitatif exact :
+   - "respecte" (🟢 Respecté / Validé)
+   - "partiel" (🟡 Partiellement respecté)
+   - "non_respecte" (🔴 Non respecté)
+3. Justifie chaque critère par une analyse bienveillante et CITE entre guillemets des extraits précis de la copie de l'élève.
+4. Donne pour chaque critère un conseil d'amélioration concret, accessible et stimulant pour un élève de collège.
+5. Fais un relevé rigoureux de la LANGUE : orthographe lexicale et grammaticale, accords (sujet-verbe, groupe nominal), temps des verbes (ex: alternance passé simple/imparfait), ponctuation, syntaxe et répétitions de vocabulaire, en citant les erreurs et en rappelant la règle simplement.
+6. Rédige une appréciation générale pédagogique valorisant les efforts et les réussites.
+7. Rédige une appréciation synthétique courte (1 à 2 phrases directes) prête à copier dans Pronote / sur le bulletin.
+8. Détermine une appréciation globale de maîtrise ("Très bonne maîtrise", "Maîtrise satisfaisante", "Maîtrise fragile", "Maîtrise insuffisante").
 
 Réponds STRICTEMENT au format JSON structuré suivant (SANS texte avant ni après) :
 {
   "student_name": "${studentName}",
-  "global_score": "15 / 20",
   "mastery_level": "Très bonne maîtrise",
-  "general_synthesis": "Synthèse bienveillante détaillée...",
+  "general_synthesis": "Synthèse pédagogique constructive...",
   "criteria_evaluations": [
     {
       "criterion_name": "Nom exact du critère",
       "status": "respecte",
-      "score": "3.5 / 4",
-      "analysis_and_quotes": "Explication détaillée citant des passages...",
+      "analysis_and_quotes": "Explication détaillée citant des passages de la copie...",
       "improvement_advice": "Conseil méthodologique concret..."
     }
   ],
@@ -2018,10 +2132,44 @@ Réponds STRICTEMENT au format JSON structuré suivant (SANS texte avant ni apr�
   "pronote_short_comment": "Appréciation courte et percutante prête pour Pronote."
 }`;
 
-        const fullParts = [{ text: systemPrompt }, ...studentParts];
+        promptParts.push({ text: systemPrompt });
+
+        // Add reference example file if attached
+        if (exampleFile && exampleFile.base64) {
+          promptParts.push({ text: `Document exemple / corrigé repère joint :` });
+          promptParts.push({
+            inline_data: {
+              mime_type: exampleFile.mimeType,
+              data: exampleFile.base64
+            }
+          });
+        }
+
+        // Add student copy
+        if (currentInputMode === 'text') {
+          promptParts.push({ text: `COPIE DE L'ÉLÈVE :\n"""\n${studentContentText}\n"""` });
+        } else if (currentInputMode === 'photo') {
+          studentPhotos.forEach((p, idx) => {
+            promptParts.push({ text: `Page ${idx + 1} de la copie manuscrite :` });
+            promptParts.push({
+              inline_data: {
+                mime_type: p.mimeType,
+                data: p.base64
+              }
+            });
+          });
+        } else if (currentInputMode === 'pdf') {
+          const base64Pdf = await fileToBase64(studentPdfFile);
+          promptParts.push({
+            inline_data: {
+              mime_type: 'application/pdf',
+              data: base64Pdf
+            }
+          });
+        }
 
         const model = getStoredModel();
-        const rawResponse = await callGeminiAPI(fullParts, model, apiKey, 0.2);
+        const rawResponse = await callGeminiAPI(promptParts, model, apiKey, 0.2);
 
         const jsonMatch = rawResponse.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
@@ -2052,12 +2200,11 @@ Réponds STRICTEMENT au format JSON structuré suivant (SANS texte avant ni apr�
       document.getElementById('resStudentName').textContent = data.student_name || meta.studentName || "Copie d'élève";
       document.getElementById('resDevoirMeta').textContent = `Classe de ${meta.classe.toUpperCase()} • ${formatGenreLabel(meta.textType)}`;
       
-      document.getElementById('resScoreValue').textContent = data.global_score || "-- / 20";
-      document.getElementById('resScoreLabel').textContent = data.mastery_level || "Évaluation globale";
+      document.getElementById('resMasteryValue').textContent = data.mastery_level || "Évaluation qualitative";
 
       document.getElementById('resSynthesisText').textContent = data.general_synthesis || "";
 
-      // Render criteria table
+      // Render criteria table (sans colonne barème)
       const tbody = document.getElementById('resCriteriaTableBody');
       tbody.innerHTML = '';
       (data.criteria_evaluations || []).forEach(c => {
@@ -2075,7 +2222,6 @@ Réponds STRICTEMENT au format JSON structuré suivant (SANS texte avant ni apr�
         tr.innerHTML = `
           <td><strong>${escapeHtml(c.criterion_name)}</strong></td>
           <td>${statusBadge}</td>
-          <td><strong style="color: #4338ca;">${escapeHtml(c.score || '-')}</strong></td>
           <td>
             <div>${escapeHtml(c.analysis_and_quotes)}</div>
           </td>
@@ -2136,7 +2282,7 @@ Réponds STRICTEMENT au format JSON structuré suivant (SANS texte avant ni apr�
             <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">(${item.meta.classe.toUpperCase()} • ${item.meta.timestamp})</span>
           </div>
           <div>
-            <span class="status-pill status-ok">${escapeHtml(item.data.global_score || '')}</span>
+            <span class="status-pill status-ok">${escapeHtml(item.data.mastery_level || 'Évalué')}</span>
           </div>
         `;
         list.appendChild(div);
@@ -2171,11 +2317,12 @@ Réponds STRICTEMENT au format JSON structuré suivant (SANS texte avant ni apr�
       const d = lastEvaluationData;
       let report = `FICHE D'ÉVALUATION DE FRANÇAIS\n`;
       report += `Élève : ${d.student_name}\n`;
-      report += `Note globale : ${d.global_score} (${d.mastery_level})\n\n`;
+      report += `Niveau de maîtrise : ${d.mastery_level}\n\n`;
       report += `SYNTHÈSE :\n${d.general_synthesis}\n\n`;
       report += `CRITÈRES D'ÉVALUATION :\n`;
       (d.criteria_evaluations || []).forEach(c => {
-        report += `- ${c.criterion_name} [${c.score}] : ${c.analysis_and_quotes}\n  Conseil : ${c.improvement_advice}\n`;
+        const st = c.status === 'respecte' ? 'Respecté' : (c.status === 'partiel' ? 'Partiel' : 'Non respecté');
+        report += `- ${c.criterion_name} [${st}] : ${c.analysis_and_quotes}\n  Conseil : ${c.improvement_advice}\n`;
       });
       report += `\nPOINTS FORTS :\n` + (d.strengths || []).map(s => `• ${s}`).join("\n");
       report += `\n\nAXES DE PROGRÈS :\n` + (d.improvement_axes || []).map(a => `• ${a}`).join("\n");
