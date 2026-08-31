@@ -1240,7 +1240,7 @@
     <!-- Header -->
     <header>
       <div class="badge-pill">
-        <span>✨ IA Avancée • Gemini 2.5 Pro</span>
+        <span>✨ IA de pointe • Gemini 3.7 Flash & 3.1 Pro</span>
         <span>•</span>
         <span>Français Collège (6e - 3e)</span>
       </div>
@@ -1452,7 +1452,7 @@
       <div class="btn-submit-container">
         <button class="btn-primary-large" id="btnEvaluate" onclick="startEvaluation()">
           <span>✨</span>
-          <span>Évaluer la Copie avec Gemini 2.5 Pro</span>
+          <span>Évaluer la Copie avec Gemini 3.7</span>
         </button>
         <span style="font-size: 0.85rem; color: var(--text-muted);">
           Correction qualitative et analyse personnalisée sans note imposée
@@ -1619,8 +1619,10 @@
         <div class="form-group" style="margin-top: 14px;">
           <label for="modalModelSelect">Modèle Gemini</label>
           <select id="modalModelSelect">
-            <option value="gemini-2.5-pro" selected>Gemini 2.5 Pro (Modèle de pointe recommandé pour les rédactions littéraires)</option>
-            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Rapide & Multimodal)</option>
+            <option value="gemini-3.7-flash" selected>Gemini 3.7 Flash (Dernière génération avec Raisonnement / Thinking - Recommandé)</option>
+            <option value="gemini-3.1-pro">Gemini 3.1 Pro (Modèle de pointe pour l'analyse littéraire avancée)</option>
+            <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
           </select>
         </div>
       </div>
@@ -1717,7 +1719,7 @@
     }
 
     function getStoredModel() {
-      return localStorage.getItem('gemini_model') || 'gemini-2.5-pro';
+      return localStorage.getItem('gemini_model') || 'gemini-3.7-flash';
     }
 
     function checkApiKey() {
@@ -2073,7 +2075,7 @@ Réponds STRICTEMENT au format JSON suivant (sans balises superflues) :
         }
       }
 
-      showLoading(true, "Correction de la copie en cours...", "Gemini 2.5 Pro examine la rédaction, la langue et chaque critère pédagogique.");
+      showLoading(true, "Correction de la copie en cours...", "Gemini 3.7 examine la rédaction, la langue et chaque critère pédagogique.");
 
       try {
         const criteriaPromptList = criteria.map((c, i) => `${i + 1}. ${c.name}`).join("\n");
