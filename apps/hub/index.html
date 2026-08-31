@@ -1593,31 +1593,25 @@
         const badge = document.getElementById('batteryBadge');
         if (!badge) return;
 
-        if (data.available && data.percentage !== null) {
-          badge.style.display = 'flex';
-          const pct = data.percentage;
-          const isCharging = data.is_charging;
+        badge.style.display = 'flex';
+        const pct = (data.percentage !== null && data.percentage !== undefined) ? data.percentage : 100;
+        const isCharging = data.is_charging;
 
-          let icon = '🔋';
-          if (isCharging) {
-            icon = '⚡';
-          } else if (pct <= 15) {
-            icon = '🪫';
-          }
+        let icon = isCharging ? '⚡' : (pct <= 15 ? '🪫' : '🔋');
 
-          document.getElementById('batteryIcon').textContent = icon;
-          document.getElementById('batteryText').textContent = `${pct}%`;
-          
-          let statusText = isCharging ? 'En charge' : 'Sur batterie';
-          document.getElementById('batteryStatus').textContent = statusText;
+        document.getElementById('batteryIcon').textContent = icon;
+        document.getElementById('batteryText').textContent = `${pct}%`;
+        
+        let statusText = isCharging ? 'En charge' : 'Sur batterie';
+        if (data.status && (data.status.toLowerCase().includes('secteur') || data.status.toLowerCase().includes('full'))) {
+          statusText = isCharging ? 'Secteur (100%)' : 'Sur batterie';
+        }
+        document.getElementById('batteryStatus').textContent = statusText;
 
-          badge.classList.remove('battery-low', 'battery-warn');
-          if (!isCharging) {
-            if (pct <= 15) badge.classList.add('battery-low');
-            else if (pct <= 30) badge.classList.add('battery-warn');
-          }
-        } else {
-          badge.style.display = 'none';
+        badge.classList.remove('battery-low', 'battery-warn');
+        if (!isCharging) {
+          if (pct <= 15) badge.classList.add('battery-low');
+          else if (pct <= 30) badge.classList.add('battery-warn');
         }
       } catch (e) {
         console.log("Batterie non disponible:", e);
