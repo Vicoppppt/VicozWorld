@@ -1713,9 +1713,16 @@
       setupPasteListener();
     });
 
+    const DEFAULT_GEMINI_KEY = atob("QVEuQWI4Uk42TEViaHdlMTI0aEViZk81Wkg0LVQ2Z3F2QkE1dUxPUUZzNmM1djVneW1OOFE=");
+
     // API Key & Settings Management
     function getStoredApiKey() {
-      return localStorage.getItem('gemini_api_key') || '';
+      let key = localStorage.getItem('gemini_api_key');
+      if (!key || key.trim() === '') {
+        key = DEFAULT_GEMINI_KEY;
+        localStorage.setItem('gemini_api_key', key);
+      }
+      return key.trim();
     }
 
     function getStoredModel() {

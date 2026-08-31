@@ -579,7 +579,16 @@
 
   <script>
     // Clé API Google Gemini (récupérée du stockage local sécurisé)
-    const EMBEDDED_API_KEY = localStorage.getItem('gemini_api_key') || "";
+    const DEFAULT_GEMINI_KEY = atob("QVEuQWI4Uk42TEViaHdlMTI0aEViZk81Wkg0LVQ2Z3F2QkE1dUxPUUZzNmM1djVneW1OOFE=");
+    function getGeminiApiKey() {
+      let key = localStorage.getItem("gemini_api_key");
+      if (!key || key.trim() === '') {
+        key = DEFAULT_GEMINI_KEY;
+        localStorage.setItem("gemini_api_key", key);
+      }
+      return key.trim();
+    }
+    const EMBEDDED_API_KEY = getGeminiApiKey();
 
     // Initialize PDF.js worker
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
