@@ -1,0 +1,21 @@
+name: Deploy to CasaOS
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Auto-deploy on CasaOS
+    runs-on: self-hosted
+
+    steps:
+      - name: Update repository and rebuild containers
+        run: |
+          cd /DATA/AppData/Letterbox/VicozWorld
+          git fetch origin main
+          git reset --hard origin/main
+          docker stop letterboxd-frontend letterboxd-backend mon-hub-outils gmail-assistant || true
+          docker rm letterboxd-frontend letterboxd-backend mon-hub-outils gmail-assistant || true
+          docker compose up -d --build --remove-orphans
