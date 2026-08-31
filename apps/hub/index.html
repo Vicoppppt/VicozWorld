@@ -1216,12 +1216,12 @@
 
       if (activeProfile === 'claire') {
         userGreeting.textContent = "Espace Claire 👩‍🏫";
-        userSubGreeting.textContent = "Vos outils d'enseignante, Pronote et gestion de documents";
+        userSubGreeting.textContent = "Vos outils pratiques, documents et médias";
         userAvatarHeader.textContent = "👩‍🏫";
         userAvatarHeader.style.background = "linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)";
         pillAvatar.textContent = "👩‍🏫";
         pillAvatar.style.background = "linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)";
-        pillName.textContent = "Maman";
+        pillName.textContent = "Claire";
         adminPermsCard.style.display = 'none';
       } else {
         userGreeting.textContent = "Hub de Victor 🚀";
@@ -1255,6 +1255,18 @@
             card.style.display = 'none';
           }
         }
+      });
+
+      updateCategoryVisibility();
+    }
+
+    // Hide empty category sections when no cards are visible
+    function updateCategoryVisibility() {
+      const sections = document.querySelectorAll('.category-section');
+      sections.forEach(sec => {
+        const cards = sec.querySelectorAll('.app-card');
+        const hasVisible = Array.from(cards).some(c => c.style.display !== 'none');
+        sec.style.display = hasVisible ? 'block' : 'none';
       });
     }
 
@@ -1295,6 +1307,7 @@
         allowed = allowed.filter(id => id !== appId);
       }
       saveMamanAllowedModules(allowed);
+      applyProfile();
     }
 
     // Live Clock
@@ -1332,6 +1345,8 @@
           card.style.display = 'none';
         }
       });
+
+      updateCategoryVisibility();
     }
 
     // Custom Apps Storage in LocalStorage
