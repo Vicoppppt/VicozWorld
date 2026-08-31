@@ -14,6 +14,14 @@ services:
       - TZ=Europe/Paris
     networks:
       - app-network
+    x-casaos:
+      envs: []
+      ports:
+        - container: "80"
+          description:
+            en_us: "Web UI Port"
+            fr_fr: "Port Web UI"
+      volumes: []
 
   # 🎬 Mon Letterboxd - Frontend (React 19 + Vite)
   letterboxd-frontend:
@@ -82,3 +90,27 @@ volumes:
     driver: local
   letterboxd-woob-data:
     driver: local
+
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+    - arm
+  main: hub
+  author: Victor
+  category: Personal
+  description:
+    en_us: "VicozWorld Hub & Applications"
+    fr_fr: "VicozWorld Portail & Applications"
+  developer: Victor
+  icon: "https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/homarr.png"
+  screenshot_link: []
+  tagline:
+    en_us: "Personal Dashboard & Web Apps"
+    fr_fr: "Tableau de bord et applications personnelles"
+  title:
+    en_us: "VicozWorld"
+    fr_fr: "VicozWorld"
+  index: /
+  port_map: "8085"
+  scheme: http
