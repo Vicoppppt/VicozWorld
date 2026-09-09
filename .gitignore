@@ -41,6 +41,9 @@ wheels/
 # Data persistence & caches
 data/letterboxd/*.db
 data/letterboxd/app.db
+data/letterboxd/woob-config/
+data/letterboxd/woob-data/
+data/letterboxd/*.json
 data/gmail/kept_emails.json
 data/gmail/categorized_emails.json
 apps/gmail-assistant/kept_emails.json
