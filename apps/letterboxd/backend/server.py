@@ -14,7 +14,7 @@ import threading
 import xml.etree.ElementTree as ET
 from email.utils import parsedate_to_datetime
 from datetime import datetime, timedelta, date
-from typing import Any, Optional, List
+from typing import Any, Optional, List, Dict
 
 try:
     from woob.core import Woob
@@ -1537,6 +1537,35 @@ def set_hub_permissions(req: HubPermissionsRequest):
         return {"status": "ok", "allowed_modules": req.allowed_modules}
     except Exception as e:
         logger.error(f"Erreur écriture {PERMISSIONS_FILE}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class HubUrlsRequest(BaseModel):
+    urls: Dict[str, str]
+
+URLS_FILE = os.path.join(DB_DIR, "hub_urls.json")
+
+@app.get("/api/hub/urls")
+def get_hub_urls():
+    """Retourne les URLs personnalisées des applications du Hub."""
+    if os.path.exists(URLS_FILE):
+        try:
+            with open(URLS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.warning(f"Erreur lecture {URLS_FILE}: {e}")
+    return {"urls": {}}
+
+@app.post("/api/hub/urls")
+def set_hub_urls(req: HubUrlsRequest):
+    """Enregistre les URLs personnalisées des applications du Hub."""
+    data = {"urls": req.urls}
+    try:
+        with open(URLS_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        return {"status": "ok", "urls": req.urls}
+    except Exception as e:
+        logger.error(f"Erreur écriture {URLS_FILE}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

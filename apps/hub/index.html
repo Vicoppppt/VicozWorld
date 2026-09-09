@@ -524,6 +524,68 @@
       transform: translateX(16px);
     }
 
+    /* URL Manager Button & Card Edit Buttons */
+    .btn-manage-urls {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-manage-urls:hover {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: #38bdf8;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .card-edit-url-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #94a3b8;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.82rem;
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.2s ease;
+      z-index: 5;
+    }
+
+    .app-card:hover .card-edit-url-btn {
+      opacity: 1;
+    }
+
+    .card-edit-url-btn:hover {
+      background: rgba(56, 189, 248, 0.3);
+      border-color: #38bdf8;
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .profile-victor .card-edit-url-btn {
+      display: flex;
+    }
+
+    .profile-claire .card-edit-url-btn {
+      display: none !important;
+    }
+
     /* Section Title */
     .section-header {
       display: flex;
@@ -923,7 +985,13 @@
             <span>⚙️</span>
             <span>Modules visibles par Maman (Claire) :</span>
           </div>
-          <span style="font-size: 0.78rem; color: var(--text-muted);">Cochez ou décochez les modules autorisés</span>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="btn-manage-urls" onclick="openAllUrlsModal()">
+              <span>🔗</span>
+              <span>Modifier les URLs des Apps (Nginx)</span>
+            </button>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">Cochez ou décochez les modules autorisés</span>
+          </div>
         </div>
         
         <div class="perm-toggles-grid" id="permTogglesGrid">
@@ -1238,23 +1306,319 @@
     </div>
   </div>
 
+  <!-- Modal: Édition d'une URL d'application -->
+  <div class="modal-overlay" id="singleUrlModal">
+    <div class="modal-card">
+      <div class="modal-title" id="singleUrlTitle">✏️ Modifier le lien de l'application</div>
+      
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+        Personnalisez l'adresse vers laquelle pointe cette carte (idéal pour Nginx, sous-domaine ou port personnalisé).
+      </div>
+
+      <div class="form-group">
+        <label>URL / Chemin cible :</label>
+        <input type="text" id="singleUrlInput" placeholder="Ex: https://cinema.mondomaine.fr ou /mon-chemin" style="font-family: monospace; font-size: 0.9rem;">
+      </div>
+
+      <div style="margin-bottom: 18px; padding: 10px 14px; background: rgba(255,255,255,0.04); border-radius: 10px; font-size: 0.8rem; border: 1px solid var(--border);">
+        <span style="color: var(--text-muted);">URL par défaut : </span>
+        <code id="singleUrlDefault" style="color: #38bdf8; word-break: break-all;">--</code>
+      </div>
+
+      <div class="modal-btns" style="justify-content: space-between;">
+        <button class="btn btn-secondary" onclick="resetSingleUrlToDefault()" style="border-color: #f59e0b; color: #f59e0b;" title="Revenir au lien original">
+          ↺ Rétablir défaut
+        </button>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-secondary" onclick="closeSingleUrlModal()">Annuler</button>
+          <button class="btn btn-primary" onclick="saveSingleUrl()">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Configuration globale de toutes les URLs (Nginx) -->
+  <div class="modal-overlay" id="allUrlsModal">
+    <div class="modal-card" style="max-width: 680px; max-height: 85vh; display: flex; flex-direction: column;">
+      <div class="modal-title">🔗 Configuration globale des URLs (Nginx)</div>
+      
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+        Ajustez ici les liens de redirection de toutes les applications du Hub suite à votre mise en place de Nginx.
+      </div>
+
+      <div id="allUrlsList" style="overflow-y: auto; flex: 1; padding-right: 6px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+        <!-- Généré dynamiquement en JS -->
+      </div>
+
+      <div class="modal-btns" style="justify-content: space-between; border-top: 1px solid var(--border); padding-top: 14px;">
+        <button class="btn btn-secondary" onclick="resetAllUrlsToDefault()" style="border-color: #ef4444; color: #f87171;">
+          ↺ Tout réinitialiser
+        </button>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-secondary" onclick="closeAllUrlsModal()">Annuler</button>
+          <button class="btn btn-primary" onclick="saveAllUrls()">Enregistrer toutes les URLs</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Modules configuration metadata
+    // Modules configuration metadata & URLs
     const AVAILABLE_MODULES = [
-      { id: "cinematheque", name: "🎬 Cinémathèque & Médias", defaultMaman: true },
-      { id: "quiz", name: "🎮 Quiz Cinéma", defaultMaman: true },
-      { id: "extracteur_texte", name: "📑 OCR & Extraction Texte", defaultMaman: true },
-      { id: "correcteur_redaction", name: "✍️ Correcteur Rédactions IA", defaultMaman: true },
-      { id: "editeur_pdf", name: "🛠️ Éditeur PDF", defaultMaman: true },
-      { id: "convertisseur_excel", name: "📊 Convertisseur PDF ➔ Excel", defaultMaman: true },
-      { id: "notes", name: "📝 Carnet de Notes", defaultMaman: true },
-      { id: "genealogie", name: "🌳 Généalogie", defaultMaman: true },
-      { id: "banque", name: "💳 Banque & Finances", defaultMaman: false },
-      { id: "energie", name: "⚡ Énergie & EDF", defaultMaman: false },
-      { id: "gmail_cleaner", name: "📧 Gmail Assistant IA", defaultMaman: false },
-      { id: "casaos", name: "🏠 CasaOS Dashboard", defaultMaman: false },
-      { id: "vicoz_app", name: "🌐 VicozWorld Web App", defaultMaman: false }
+      { id: "cinematheque", name: "🎬 Cinémathèque & Médias", defaultMaman: true, category: "Cinéma & Médias", defaultUrl: () => 'http://' + window.location.hostname + ':3000/#/cinematheque' },
+      { id: "quiz", name: "🎮 Quiz Cinéma", defaultMaman: true, category: "Cinéma & Médias", defaultUrl: () => 'http://' + window.location.hostname + ':3000/#/quiz' },
+      { id: "extracteur_texte", name: "📑 OCR & Extraction Texte", defaultMaman: true, category: "Productivité & Outils IA", defaultUrl: () => '/tools/extracteur_texte.html' },
+      { id: "correcteur_redaction", name: "✍️ Correcteur Rédactions IA", defaultMaman: true, category: "Productivité & Outils IA", defaultUrl: () => '/tools/correcteur_redaction.html' },
+      { id: "editeur_pdf", name: "🛠️ Éditeur PDF", defaultMaman: true, category: "Productivité & Outils IA", defaultUrl: () => '/tools/editeur_pdf.html' },
+      { id: "convertisseur_excel", name: "📊 Convertisseur PDF ➔ Excel", defaultMaman: true, category: "Productivité & Outils IA", defaultUrl: () => '/tools/convertisseur_excel.html' },
+      { id: "notes", name: "📝 Carnet de Notes", defaultMaman: true, category: "Espace Personnel & Finances", defaultUrl: () => 'http://' + window.location.hostname + ':3000/#/notes' },
+      { id: "genealogie", name: "🌳 Généalogie", defaultMaman: true, category: "Espace Personnel & Finances", defaultUrl: () => 'http://' + window.location.hostname + ':3000/#/genealogie' },
+      { id: "banque", name: "💳 Banque & Finances", defaultMaman: false, category: "Espace Personnel & Finances", defaultUrl: () => 'http://' + window.location.hostname + ':3000/#/banque' },
+      { id: "energie", name: "⚡ Énergie & EDF", defaultMaman: false, category: "Espace Personnel & Finances", defaultUrl: () => 'http://' + window.location.hostname + ':3000/#/energie' },
+      { id: "gmail_cleaner", name: "📧 Gmail Assistant IA", defaultMaman: false, category: "Productivité & Outils IA", defaultUrl: () => 'http://' + window.location.hostname + ':8501' },
+      { id: "casaos", name: "🏠 CasaOS Dashboard", defaultMaman: false, category: "Système & Serveur", defaultUrl: () => 'http://' + window.location.hostname + ':80' },
+      { id: "vicoz_app", name: "🌐 VicozWorld Web App", defaultMaman: false, category: "Système & Serveur", defaultUrl: () => 'http://' + window.location.hostname + ':3000/' }
     ];
+
+    const EXTRA_URL_TARGETS = [
+      { id: "actualites", name: "📰 Actualités & Briefing", defaultMaman: false, category: "Widgets & Raccourcis", defaultUrl: () => 'http://' + window.location.hostname + ':3000/#/actualites' },
+      { id: "meteo", name: "🌤️ Météo Complète", defaultMaman: false, category: "Widgets & Raccourcis", defaultUrl: () => 'http://' + window.location.hostname + ':3000/#/meteo' }
+    ];
+
+    const ALL_TARGET_APPS = [...AVAILABLE_MODULES, ...EXTRA_URL_TARGETS];
+
+    let currentUrls = {};
+
+    function getDefaultAppUrl(appId) {
+      const app = ALL_TARGET_APPS.find(a => a.id === appId);
+      if (app && app.defaultUrl) {
+        return typeof app.defaultUrl === 'function' ? app.defaultUrl() : app.defaultUrl;
+      }
+      return '#';
+    }
+
+    function getAppUrl(appId) {
+      if (currentUrls && currentUrls[appId] && currentUrls[appId].trim() !== '') {
+        return currentUrls[appId].trim();
+      }
+      return getDefaultAppUrl(appId);
+    }
+
+    function applyAppUrls() {
+      // 1. Mettre à jour les liens des cartes
+      document.querySelectorAll('.app-card[data-app-id]').forEach(card => {
+        const appId = card.getAttribute('data-app-id');
+        if (appId === 'custom_add') return;
+
+        const targetUrl = getAppUrl(appId);
+        card.href = targetUrl;
+        
+        // Retirer les onclick inline contenant this.href
+        if (card.getAttribute('onclick') && card.getAttribute('onclick').includes('this.href')) {
+          card.removeAttribute('onclick');
+        }
+
+        // Mettre à jour le statut dans le footer de la carte
+        const isCustom = Boolean(currentUrls && currentUrls[appId] && currentUrls[appId].trim() !== '');
+        const footerSpan = card.querySelector('.card-footer span:first-child');
+        if (footerSpan && isCustom) {
+          footerSpan.textContent = '● Personnalisé (Nginx)';
+          footerSpan.style.color = '#38bdf8';
+        }
+      });
+
+      // 2. Mettre à jour le widget Actualités
+      const newsLink = document.querySelector('#newsWidget a');
+      if (newsLink) {
+        newsLink.href = getAppUrl('actualites');
+        if (newsLink.getAttribute('onclick') && newsLink.getAttribute('onclick').includes('this.href')) {
+          newsLink.removeAttribute('onclick');
+        }
+      }
+
+      // 3. Injecter ou rafraîchir les boutons d'édition (profil Victor)
+      updateCardEditButtons();
+    }
+
+    function updateCardEditButtons() {
+      const isVictor = (activeProfile === 'victor');
+      document.querySelectorAll('.app-card[data-app-id]').forEach(card => {
+        const appId = card.getAttribute('data-app-id');
+        if (appId === 'custom_add') return;
+
+        let btn = card.querySelector('.card-edit-url-btn');
+        if (!btn) {
+          btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'card-edit-url-btn';
+          btn.title = "Modifier l'URL de cette application";
+          btn.innerHTML = '✏️';
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openSingleUrlModal(appId);
+          });
+          card.appendChild(btn);
+        }
+        btn.style.display = isVictor ? 'flex' : 'none';
+      });
+    }
+
+    async function syncUrlsFromServer() {
+      // 1. Lecture cache local
+      try {
+        const saved = localStorage.getItem('my_hub_urls');
+        if (saved) {
+          currentUrls = JSON.parse(saved);
+          applyAppUrls();
+        }
+      } catch(e) {}
+
+      // 2. Synchronisation serveur
+      try {
+        const res = await fetch('/api/hub/urls');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.urls) {
+            currentUrls = data.urls;
+            localStorage.setItem('my_hub_urls', JSON.stringify(currentUrls));
+            applyAppUrls();
+          }
+        }
+      } catch (e) {
+        console.log("Lecture URLs serveur fallback local:", e);
+      }
+    }
+
+    async function saveUrls(newUrls) {
+      currentUrls = newUrls;
+      localStorage.setItem('my_hub_urls', JSON.stringify(currentUrls));
+      applyAppUrls();
+
+      try {
+        await fetch('/api/hub/urls', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ urls: newUrls })
+        });
+      } catch (e) {
+        console.warn("Synchronisation URLs sur le serveur échouée (sauvegardé localement):", e);
+      }
+    }
+
+    let currentEditingAppId = null;
+
+    function openSingleUrlModal(appId) {
+      const app = ALL_TARGET_APPS.find(a => a.id === appId);
+      if (!app) return;
+
+      currentEditingAppId = appId;
+      document.getElementById('singleUrlTitle').textContent = `✏️ Modifier l'URL : ${app.name}`;
+      
+      const currentVal = (currentUrls && currentUrls[appId]) ? currentUrls[appId] : '';
+      const defVal = getDefaultAppUrl(appId);
+
+      document.getElementById('singleUrlInput').value = currentVal || defVal;
+      document.getElementById('singleUrlDefault').textContent = defVal;
+      document.getElementById('singleUrlModal').style.display = 'flex';
+      setTimeout(() => document.getElementById('singleUrlInput').focus(), 50);
+    }
+
+    function closeSingleUrlModal() {
+      document.getElementById('singleUrlModal').style.display = 'none';
+      currentEditingAppId = null;
+    }
+
+    function resetSingleUrlToDefault() {
+      if (!currentEditingAppId) return;
+      const defVal = getDefaultAppUrl(currentEditingAppId);
+      document.getElementById('singleUrlInput').value = defVal;
+    }
+
+    async function saveSingleUrl() {
+      if (!currentEditingAppId) return;
+      const inputVal = document.getElementById('singleUrlInput').value.trim();
+      const defVal = getDefaultAppUrl(currentEditingAppId);
+
+      const updated = { ...currentUrls };
+      if (!inputVal || inputVal === defVal) {
+        delete updated[currentEditingAppId];
+      } else {
+        updated[currentEditingAppId] = inputVal;
+      }
+
+      await saveUrls(updated);
+      closeSingleUrlModal();
+    }
+
+    function openAllUrlsModal() {
+      const list = document.getElementById('allUrlsList');
+      list.innerHTML = '';
+
+      ALL_TARGET_APPS.forEach(app => {
+        const currentVal = (currentUrls && currentUrls[app.id]) ? currentUrls[app.id] : '';
+        const defVal = getDefaultAppUrl(app.id);
+        const isCustom = Boolean(currentVal && currentVal !== defVal);
+
+        const item = document.createElement('div');
+        item.style.background = 'rgba(15, 23, 42, 0.7)';
+        item.style.border = isCustom ? '1px solid #38bdf8' : '1px solid var(--border)';
+        item.style.borderRadius = '12px';
+        item.style.padding = '12px 14px';
+
+        const safeDef = defVal.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safeVal = (currentVal || defVal).replace(/"/g, '&quot;');
+
+        item.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div style="font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+              <span>${app.name}</span>
+              ${isCustom ? '<span style="font-size: 0.68rem; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 7px; border-radius: 6px; font-weight: 600;">Personnalisé</span>' : ''}
+            </div>
+            <button type="button" style="background: transparent; border: none; color: #f59e0b; font-size: 0.78rem; cursor: pointer; text-decoration: underline;" onclick="document.getElementById('allUrlInput_${app.id}').value = '${safeDef}'">
+              ↺ Rétablir défaut
+            </button>
+          </div>
+          <input type="text" id="allUrlInput_${app.id}" class="search-input" style="padding: 9px 12px; font-size: 0.88rem; font-family: monospace; border-radius: 8px; width: 100%;" value="${safeVal}" placeholder="${safeDef}">
+          <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            URL par défaut : <span style="color: #64748b;">${defVal}</span>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+
+      document.getElementById('allUrlsModal').style.display = 'flex';
+    }
+
+    function closeAllUrlsModal() {
+      document.getElementById('allUrlsModal').style.display = 'none';
+    }
+
+    function resetAllUrlsToDefault() {
+      if (confirm("Voulez-vous réinitialiser tous les liens à leurs URLs d'origine ?")) {
+        ALL_TARGET_APPS.forEach(app => {
+          const defVal = getDefaultAppUrl(app.id);
+          const input = document.getElementById('allUrlInput_' + app.id);
+          if (input) input.value = defVal;
+        });
+      }
+    }
+
+    async function saveAllUrls() {
+      const updated = {};
+      ALL_TARGET_APPS.forEach(app => {
+        const input = document.getElementById('allUrlInput_' + app.id);
+        if (!input) return;
+        const val = input.value.trim();
+        const defVal = getDefaultAppUrl(app.id);
+        if (val && val !== defVal) {
+          updated[app.id] = val;
+        }
+      });
+
+      await saveUrls(updated);
+      closeAllUrlsModal();
+    }
 
     let activeProfile = localStorage.getItem('active_hub_profile') || null;
 
@@ -1309,6 +1673,7 @@
       localStorage.setItem('active_hub_profile', profile);
       applyProfile();
       syncPermissionsFromServer();
+      syncUrlsFromServer();
     }
 
     function openProfileScreen() {
@@ -1335,6 +1700,8 @@
       const mamanAllowed = getMamanAllowedModules();
 
       if (activeProfile === 'claire') {
+        document.body.classList.remove('profile-victor');
+        document.body.classList.add('profile-claire');
         userGreeting.textContent = "Espace Claire 👩‍🏫";
         userSubGreeting.textContent = "Vos outils pratiques, documents et médias";
         userAvatarHeader.textContent = "👩‍🏫";
@@ -1344,6 +1711,8 @@
         pillName.textContent = "Claire";
         adminPermsCard.style.display = 'none';
       } else {
+        document.body.classList.remove('profile-claire');
+        document.body.classList.add('profile-victor');
         userGreeting.textContent = "Hub de Victor 🚀";
         userSubGreeting.textContent = "Tous vos outils, services et gestion du serveur";
         userAvatarHeader.textContent = "🚀";
@@ -1378,6 +1747,7 @@
       });
 
       updateCategoryVisibility();
+      applyAppUrls();
     }
 
     // Hide empty category sections when no cards are visible
@@ -1658,12 +2028,31 @@
       loadCustomApps();
       applyProfile();
       syncPermissionsFromServer();
+      syncUrlsFromServer();
       loadWeather();
       loadNews();
       loadServerBattery();
       // Rafraîchissement de la batterie toutes les minutes (60 000 ms)
       setInterval(loadServerBattery, 60000);
     };
+
+    // Fermeture des modales avec la touche Échap
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeSingleUrlModal();
+        closeAllUrlsModal();
+        closeAddModal();
+      }
+    });
+
+    // Fermeture en cliquant sur l'arrière-plan
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          overlay.style.display = 'none';
+        }
+      });
+    });
   </script>
 </body>
 </html>
