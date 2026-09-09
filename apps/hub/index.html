@@ -1616,21 +1616,36 @@
 
         badge.style.display = 'flex';
         const pct = (data.percentage !== null && data.percentage !== undefined) ? data.percentage : 100;
-        const isCharging = data.is_charging;
+        const isCharging = Boolean(data.is_charging);
+        const pluggedIn = Boolean(data.plugged_in !== undefined ? data.plugged_in : (isCharging || (data.status && data.status.toLowerCase().includes('secteur'))));
+        const statusRaw = (data.status || '').toLowerCase();
 
-        let icon = isCharging ? '⚡' : (pct <= 15 ? '🪫' : '🔋');
+        let icon = '🔋';
+        let statusText = 'Sur batterie';
+
+        if (isCharging) {
+          icon = '⚡';
+          statusText = 'En charge';
+        } else if (pluggedIn || statusRaw === 'not charging' || statusRaw === 'full' || statusRaw.includes('secteur')) {
+          icon = '🔌';
+          if (statusRaw === 'not charging') {
+            statusText = 'Secteur (Seuil ' + pct + '%)';
+          } else if (statusRaw === 'full' || pct >= 99) {
+            statusText = 'Secteur (Pleine)';
+          } else {
+            statusText = 'Sur secteur';
+          }
+        } else {
+          icon = pct <= 15 ? '🪫' : '🔋';
+          statusText = 'Sur batterie';
+        }
 
         document.getElementById('batteryIcon').textContent = icon;
         document.getElementById('batteryText').textContent = `${pct}%`;
-        
-        let statusText = isCharging ? 'En charge' : 'Sur batterie';
-        if (data.status && (data.status.toLowerCase().includes('secteur') || data.status.toLowerCase().includes('full'))) {
-          statusText = isCharging ? 'Secteur (100%)' : 'Sur batterie';
-        }
         document.getElementById('batteryStatus').textContent = statusText;
 
         badge.classList.remove('battery-low', 'battery-warn');
-        if (!isCharging) {
+        if (!pluggedIn && !isCharging) {
           if (pct <= 15) badge.classList.add('battery-low');
           else if (pct <= 30) badge.classList.add('battery-warn');
         }

@@ -1607,12 +1607,21 @@ def get_server_battery():
                                     status = f.read().strip()
                             except Exception:
                                 pass
-                        is_charging = status in ["Charging", "Full", "Not charging"] or "charg" in status.lower()
+
+                        status_lower = status.lower()
+                        # "Charging" = activement en charge
+                        # "Not charging" = seuil atteint (ex: 80%) ou pas de charge
+                        # "Full" = batterie pleine à 100%
+                        # "Discharging" = débranché, sur batterie
+                        is_charging = status_lower == "charging"
+                        plugged_in = status_lower in ["charging", "full", "not charging"]
+
                         return {
                             "available": True,
                             "percentage": max(0, min(100, percentage)),
                             "status": status,
                             "is_charging": is_charging,
+                            "plugged_in": plugged_in,
                             "device": item
                         }
         except Exception as e:
@@ -1623,11 +1632,13 @@ def get_server_battery():
         import psutil
         bat = psutil.sensors_battery()
         if bat is not None and bat.percent is not None:
+            is_charging = bool(bat.power_plugged) and bat.percent < 99
             return {
                 "available": True,
                 "percentage": round(bat.percent),
-                "status": "En charge" if bat.power_plugged else "Sur batterie",
-                "is_charging": bool(bat.power_plugged),
+                "status": "En charge" if is_charging else ("Sur secteur" if bat.power_plugged else "Sur batterie"),
+                "is_charging": is_charging,
+                "plugged_in": bool(bat.power_plugged),
                 "device": "psutil"
             }
     except Exception as e:
@@ -1638,7 +1649,8 @@ def get_server_battery():
         "available": True,
         "percentage": 100,
         "status": "Sur secteur 🔌",
-        "is_charging": True,
+        "is_charging": False,
+        "plugged_in": True,
         "device": "AC"
     }
 
