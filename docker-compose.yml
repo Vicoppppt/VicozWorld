@@ -3,6 +3,7 @@ version: '3.8'
 services:
   # 🌐 Portail Central & Outils Web (Hub d'accueil)
   hub:
+    image: vicozworld/hub:latest
     build:
       context: ./apps/hub
       dockerfile: Dockerfile
@@ -25,6 +26,7 @@ services:
 
   # 🎬 Mon Letterboxd - Frontend (React 19 + Vite)
   letterboxd-frontend:
+    image: vicozworld/letterboxd-frontend:latest
     build:
       context: ./apps/letterboxd/frontend
       dockerfile: Dockerfile
@@ -41,6 +43,7 @@ services:
 
   # ⚙️ Mon Letterboxd - Backend (FastAPI + SQLite + Woob)
   letterboxd-backend:
+    image: vicozworld/letterboxd-backend:latest
     build:
       context: ./apps/letterboxd/backend
       dockerfile: Dockerfile
@@ -64,6 +67,7 @@ services:
 
   # 📧 Gmail Assistant IA (Streamlit + Gemini IA)
   gmail-assistant:
+    image: vicozworld/gmail-assistant:latest
     build:
       context: ./apps/gmail-assistant
       dockerfile: Dockerfile
