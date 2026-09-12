@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import subprocess
 import shutil
+import secrets
 import logging
 import sqlite3
 import json
@@ -207,6 +208,21 @@ def extract_cn(raw_dn: str) -> Optional[str]:
         return match.group(1).strip()
     return raw_dn.strip() if raw_dn else None
 
+# Système OTP Invité Dynamique (rotation 2 minutes)
+current_guest_otp = {
+    "code": None,
+    "expires_at": 0
+}
+
+def verify_victor_admin(request: Request):
+    """Vérifie que la requête provient bien d'un appareil officiel de Victor."""
+    device_cn = getattr(request.state, "device_cn", "")
+    if not device_cn or "victor" not in device_cn.lower():
+        raise HTTPException(
+            status_code=403, 
+            detail="Accès interdit : Cette fonction d'administration est strictement réservée à Victor."
+        )
+
 # Middleware mTLS & Audit Log
 @app.middleware("http")
 async def mtls_and_audit_middleware(request: Request, call_next):
@@ -214,14 +230,41 @@ async def mtls_and_audit_middleware(request: Request, call_next):
     if not client_cn:
         raw_dn = request.headers.get("x-client-cert-dn", "")
         client_cn = extract_cn(raw_dn)
+        
+    # Vérification du mode invité temporaire (Code OTP 2 minutes)
+    now = time.time()
+    guest_param = request.query_params.get("guest")
+    guest_cookie = request.cookies.get("vicoz_guest_session")
+    
+    is_guest = False
+    if guest_param and current_guest_otp["code"] and guest_param == current_guest_otp["code"]:
+        if now < current_guest_otp["expires_at"]:
+            client_cn = "Invité Démo (Code OTP)"
+            is_guest = True
+    elif guest_cookie == "allowed":
+        client_cn = "Invité Démo"
+        is_guest = True
             
     request.state.device_cn = client_cn or "Anonyme / Non vérifié"
+    request.state.is_guest = is_guest
     
     response = await call_next(request)
     
-    # Enregistrer dans l'audit log pour les routes API (hors healthcheck et tracking interne)
+    if is_guest and guest_param:
+        response.set_cookie(
+            key="vicoz_guest_session",
+            value="allowed",
+            max_age=1800, # 30 minutes de session démo
+            httponly=False,
+            samesite="lax"
+        )
+    
+    # Enregistrer dans l'audit log pour les routes API significatives
     path = request.url.path
-    if path.startswith("/api") and path not in ["/api/health", "/api/hub/battery", "/api/audit/page-view"]:
+    if path.startswith("/api") and path not in [
+        "/api/health", "/api/hub/battery", "/api/audit/page-view", 
+        "/api/admin/guest-code/status", "/api/auth/device-info"
+    ]:
         try:
             forwarded = request.headers.get("x-forwarded-for")
             client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")
@@ -237,6 +280,41 @@ async def mtls_and_audit_middleware(request: Request, call_next):
             logger.debug(f"Audit log error: {e}")
             
     return response
+
+@app.post("/api/admin/guest-code/generate")
+def generate_guest_code(request: Request):
+    """Génère un code d'accès invité aléatoire à 6 chiffres valable exactement 2 minutes."""
+    verify_victor_admin(request)
+    code = f"{secrets.randbelow(900000) + 100000}"
+    current_guest_otp["code"] = code
+    current_guest_otp["expires_at"] = time.time() + 120 # 120 secondes
+    return {
+        "code": code,
+        "expires_in_seconds": 120,
+        "guest_url": f"https://vw.vicopetit.dedyn.io/?guest={code}"
+    }
+
+@app.get("/api/admin/guest-code/status")
+def get_guest_code_status():
+    """Vérifie le code invité actif et le temps restant."""
+    now = time.time()
+    remaining = max(0, int(current_guest_otp["expires_at"] - now))
+    if remaining <= 0:
+        current_guest_otp["code"] = None
+    return {
+        "active": current_guest_otp["code"] is not None and remaining > 0,
+        "code": current_guest_otp["code"] if remaining > 0 else None,
+        "remaining_seconds": remaining,
+        "guest_url": f"https://vw.vicopetit.dedyn.io/?guest={current_guest_otp['code']}" if remaining > 0 else None
+    }
+
+@app.post("/api/admin/guest-code/revoke")
+def revoke_guest_code(request: Request):
+    """Révoque instantanément le code invité actif."""
+    verify_victor_admin(request)
+    current_guest_otp["code"] = None
+    current_guest_otp["expires_at"] = 0
+    return {"success": True, "message": "Code invité révoqué avec succès."}
 
 class PageViewRequest(BaseModel):
     page: str
@@ -353,8 +431,9 @@ class CertCreateRequest(BaseModel):
     email: Optional[str] = None
 
 @app.get("/api/admin/certs")
-def list_certificates():
-    """Liste les appareils certifiés et l'état de la CA racine."""
+def list_certificates(request: Request):
+    """Liste les appareils certifiés et l'état de la CA racine (Réservé à Victor)."""
+    verify_victor_admin(request)
     ca_crt = os.path.join(CERTS_DIR, "ca.crt")
     ca_exists = os.path.exists(ca_crt)
     certs = []
@@ -391,8 +470,9 @@ def list_certificates():
     }
 
 @app.post("/api/admin/certs/generate")
-def generate_certificate(payload: CertCreateRequest):
+def generate_certificate(payload: CertCreateRequest, request: Request):
     """Génère un nouveau certificat client mTLS (.p12) avec mot de passe et envoi email optionnel."""
+    verify_victor_admin(request)
     device = payload.device_name.strip().replace(" ", "-")
     if not device:
         raise HTTPException(status_code=400, detail="Veuillez spécifier un nom d'appareil valide.")
@@ -499,8 +579,9 @@ def generate_certificate(payload: CertCreateRequest):
     }
 
 @app.get("/api/admin/certs/download/{device_name}")
-def download_certificate(device_name: str):
+def download_certificate(device_name: str, request: Request):
     """Télécharge le fichier .p12 d'un appareil."""
+    verify_victor_admin(request)
     device = device_name.strip().replace(" ", "-")
     p12_path = os.path.join(CERTS_DIR, device, f"{device}.p12")
     if not os.path.exists(p12_path):
@@ -512,8 +593,9 @@ def download_certificate(device_name: str):
     )
 
 @app.delete("/api/admin/certs/{device_name}")
-def delete_certificate(device_name: str):
+def delete_certificate(device_name: str, request: Request):
     """Supprime un certificat client."""
+    verify_victor_admin(request)
     device = device_name.strip().replace(" ", "-")
     device_dir = os.path.join(CERTS_DIR, device)
     if os.path.exists(device_dir):
