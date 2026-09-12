@@ -115,7 +115,8 @@ export function Genealogie() {
       });
 
       setMembers(updatedMembers);
-      await saveFamilyMember(memberData);
+      // Persister l'ensemble des membres modifiés (liens réciproques parents/enfants/conjoints) vers SQLite
+      await bulkSaveFamilyMembers(updatedMembers, false);
       toast.success(isNew ? "Membre ajouté à l'arbre !" : "Fiche mise à jour !");
       setIsPersonModalOpen(false);
       setEditingMember(null);
@@ -128,9 +129,18 @@ export function Genealogie() {
   // Supprimer un membre
   const handleDeleteMember = async (memberId) => {
     try {
-      await deleteFamilyMember(memberId);
-      const remaining = members.filter(m => String(m.id) !== String(memberId));
+      // Nettoyer les références réciproques vers ce membre supprimé
+      const remaining = members
+        .filter(m => String(m.id) !== String(memberId))
+        .map(m => ({
+          ...m,
+          parentIds: (m.parentIds || []).filter(pId => String(pId) !== String(memberId)),
+          spouseIds: (m.spouseIds || []).filter(sId => String(sId) !== String(memberId)),
+          childrenIds: (m.childrenIds || []).filter(cId => String(cId) !== String(memberId)),
+        }));
       setMembers(remaining);
+      await deleteFamilyMember(memberId);
+      await bulkSaveFamilyMembers(remaining, true);
       if (selectedMemberId === memberId) {
         setSelectedMemberId(null);
       }

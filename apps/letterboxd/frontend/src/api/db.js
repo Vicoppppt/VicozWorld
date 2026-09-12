@@ -147,13 +147,30 @@ export async function fetchFamilyMembers() {
     const res = await fetch(`${API_BASE}/genealogy`);
     if (!res.ok) throw new Error("API non disponible");
     const data = await res.json();
-    localStorage.setItem(LOCAL_GENEALOGY_KEY, JSON.stringify(data));
-    return data;
+    if (Array.isArray(data) && data.length > 0) {
+      localStorage.setItem(LOCAL_GENEALOGY_KEY, JSON.stringify(data));
+      return data;
+    }
+    // Si l'API retourne une liste vide, vérifier si le localStorage contient des données
+    const local = localStorage.getItem(LOCAL_GENEALOGY_KEY);
+    const localMembers = local ? JSON.parse(local) : [];
+    if (localMembers.length > 0) {
+      // Synchroniser les données locales vers le backend SQLite pour ne rien perdre
+      try {
+        await bulkSaveFamilyMembers(localMembers, true);
+      } catch (e) {
+        console.warn("Échec auto-sync local vers SQLite:", e);
+      }
+      return localMembers;
+    }
+    return [];
   } catch {
     try {
       const snapshot = await getDocs(collection(db, "genealogy"));
       if (!snapshot.empty) {
-        return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+        const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+        localStorage.setItem(LOCAL_GENEALOGY_KEY, JSON.stringify(data));
+        return data;
       }
     } catch (e) {}
     const local = localStorage.getItem(LOCAL_GENEALOGY_KEY);
@@ -162,6 +179,14 @@ export async function fetchFamilyMembers() {
 }
 
 export async function saveFamilyMember(member) {
+  // Maintenir le cache local synchronisé immédiatement
+  const local = localStorage.getItem(LOCAL_GENEALOGY_KEY);
+  let members = local ? JSON.parse(local) : [];
+  const idx = members.findIndex(m => String(m.id) === String(member.id));
+  if (idx >= 0) members[idx] = member;
+  else members.push(member);
+  localStorage.setItem(LOCAL_GENEALOGY_KEY, JSON.stringify(members));
+
   try {
     const res = await fetch(`${API_BASE}/genealogy/${member.id}`, {
       method: 'PUT',
@@ -173,17 +198,25 @@ export async function saveFamilyMember(member) {
     try {
       await setDoc(doc(db, "genealogy", String(member.id)), member);
     } catch (e) {}
-    const local = localStorage.getItem(LOCAL_GENEALOGY_KEY);
-    let members = local ? JSON.parse(local) : [];
-    const idx = members.findIndex(m => String(m.id) === String(member.id));
-    if (idx >= 0) members[idx] = member;
-    else members.push(member);
-    localStorage.setItem(LOCAL_GENEALOGY_KEY, JSON.stringify(members));
   }
   return { success: true, id: member.id };
 }
 
 export async function deleteFamilyMember(id) {
+  const local = localStorage.getItem(LOCAL_GENEALOGY_KEY);
+  if (local) {
+    let members = JSON.parse(local);
+    members = members
+      .filter(m => String(m.id) !== String(id))
+      .map(m => ({
+        ...m,
+        parentIds: (m.parentIds || []).filter(pId => String(pId) !== String(id)),
+        spouseIds: (m.spouseIds || []).filter(sId => String(sId) !== String(id)),
+        childrenIds: (m.childrenIds || []).filter(cId => String(cId) !== String(id)),
+      }));
+    localStorage.setItem(LOCAL_GENEALOGY_KEY, JSON.stringify(members));
+  }
+
   try {
     const res = await fetch(`${API_BASE}/genealogy/${id}`, { method: 'DELETE' });
     if (res.ok) return await res.json();
@@ -191,24 +224,12 @@ export async function deleteFamilyMember(id) {
     try {
       await deleteDoc(doc(db, "genealogy", String(id)));
     } catch (e) {}
-    const local = localStorage.getItem(LOCAL_GENEALOGY_KEY);
-    if (local) {
-      let members = JSON.parse(local);
-      members = members
-        .filter(m => String(m.id) !== String(id))
-        .map(m => ({
-          ...m,
-          parentIds: (m.parentIds || []).filter(pId => String(pId) !== String(id)),
-          spouseIds: (m.spouseIds || []).filter(sId => String(sId) !== String(id)),
-          childrenIds: (m.childrenIds || []).filter(cId => String(cId) !== String(id)),
-        }));
-      localStorage.setItem(LOCAL_GENEALOGY_KEY, JSON.stringify(members));
-    }
   }
   return { success: true, id };
 }
 
 export async function bulkSaveFamilyMembers(members, replace = false) {
+  localStorage.setItem(LOCAL_GENEALOGY_KEY, JSON.stringify(members));
   try {
     const res = await fetch(`${API_BASE}/genealogy/bulk`, {
       method: 'POST',
@@ -228,7 +249,6 @@ export async function bulkSaveFamilyMembers(members, replace = false) {
         await setDoc(doc(db, "genealogy", String(member.id)), member);
       }
     } catch (e) {}
-    localStorage.setItem(LOCAL_GENEALOGY_KEY, JSON.stringify(members));
   }
   return { success: true, count: members.length };
 }
