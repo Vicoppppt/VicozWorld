@@ -1,6 +1,9 @@
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import subprocess
+import shutil
 import logging
 import sqlite3
 import json
@@ -32,6 +35,7 @@ app = FastAPI(title="Letterboxd Local API", description="Micro-service local ave
 DB_DIR = os.getenv("DATA_DIR", os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(DB_DIR, "app.db")
 BACKUP_DIR = os.path.join(DB_DIR, "backups")
+CERTS_DIR = os.getenv("CERTS_DIR", os.path.join(DB_DIR, "certs"))
 
 def get_db():
     conn = sqlite3.connect(DB_PATH, timeout=30.0)
@@ -314,6 +318,171 @@ def list_backups():
             })
     files.sort(key=lambda x: x["modified"], reverse=True)
     return {"backups": files}
+
+# --- ENDPOINTS GESTION DES CERTIFICATS MTLS ---
+class CertCreateRequest(BaseModel):
+    device_name: str
+    password: str
+    email: Optional[str] = None
+
+@app.get("/api/admin/certs")
+def list_certificates():
+    """Liste les appareils certifiés et l'état de la CA racine."""
+    ca_crt = os.path.join(CERTS_DIR, "ca.crt")
+    ca_exists = os.path.exists(ca_crt)
+    certs = []
+    
+    if os.path.exists(CERTS_DIR):
+        for entry in os.listdir(CERTS_DIR):
+            dev_path = os.path.join(CERTS_DIR, entry)
+            if os.path.isdir(dev_path):
+                crt_file = os.path.join(dev_path, f"{entry}.crt")
+                p12_file = os.path.join(dev_path, f"{entry}.p12")
+                if os.path.exists(crt_file):
+                    expires_at = "Valide (5 ans)"
+                    try:
+                        res = subprocess.run(
+                            ["openssl", "x509", "-enddate", "-noout", "-in", crt_file],
+                            capture_output=True, text=True, timeout=5
+                        )
+                        if res.returncode == 0 and "notAfter=" in res.stdout:
+                            expires_at = res.stdout.split("notAfter=")[1].strip()
+                    except Exception:
+                        pass
+                        
+                    certs.append({
+                        "name": entry,
+                        "has_p12": os.path.exists(p12_file),
+                        "expires_at": expires_at,
+                        "created_at": datetime.fromtimestamp(os.path.getmtime(crt_file)).strftime("%Y-%m-%d %H:%M"),
+                        "download_url": f"/api/admin/certs/download/{entry}"
+                    })
+    certs.sort(key=lambda x: x["created_at"], reverse=True)
+    return {
+        "ca_exists": ca_exists,
+        "certs": certs
+    }
+
+@app.post("/api/admin/certs/generate")
+def generate_certificate(payload: CertCreateRequest):
+    """Génère un nouveau certificat client mTLS (.p12) avec mot de passe et envoi email optionnel."""
+    device = payload.device_name.strip().replace(" ", "-")
+    if not device:
+        raise HTTPException(status_code=400, detail="Veuillez spécifier un nom d'appareil valide.")
+        
+    password = payload.password or "VicozWorld2026!"
+    email = payload.email.strip() if payload.email else None
+    
+    os.makedirs(CERTS_DIR, exist_ok=True)
+    ca_crt = os.path.join(CERTS_DIR, "ca.crt")
+    ca_key = os.path.join(CERTS_DIR, "ca.key")
+    
+    # 1. Créer la CA si inexistante
+    if not os.path.exists(ca_crt) or not os.path.exists(ca_key):
+        try:
+            subprocess.run(["openssl", "genrsa", "-out", ca_key, "4096"], check=True, timeout=15)
+            os.chmod(ca_key, 0o600)
+            subprocess.run([
+                "openssl", "req", "-x509", "-new", "-nodes", "-key", ca_key, "-sha256", "-days", "3650",
+                "-out", ca_crt, "-subj", "/C=FR/ST=IDF/O=VicozWorld/OU=Security/CN=VicozWorld-Root-CA"
+            ], check=True, timeout=15)
+        except Exception as e:
+            logger.error(f"Erreur création CA: {e}")
+            raise HTTPException(status_code=500, detail=f"Échec initialisation CA: {e}")
+
+    # 2. Créer le certificat de l'appareil
+    device_dir = os.path.join(CERTS_DIR, device)
+    os.makedirs(device_dir, exist_ok=True)
+    
+    dev_key = os.path.join(device_dir, f"{device}.key")
+    dev_csr = os.path.join(device_dir, f"{device}.csr")
+    dev_crt = os.path.join(device_dir, f"{device}.crt")
+    dev_ext = os.path.join(device_dir, f"{device}.ext")
+    dev_p12 = os.path.join(device_dir, f"{device}.p12")
+    
+    try:
+        subprocess.run(["openssl", "genrsa", "-out", dev_key, "2048"], check=True, timeout=10)
+        os.chmod(dev_key, 0o600)
+        
+        subprocess.run([
+            "openssl", "req", "-new", "-key", dev_key, "-out", dev_csr,
+            "-subj", f"/C=FR/O=VicozWorld/CN={device}"
+        ], check=True, timeout=10)
+        
+        with open(dev_ext, "w") as f:
+            f.write("basicConstraints = CA:FALSE\nnsCertType = client\nkeyUsage = digitalSignature, keyEncipherment\nextendedKeyUsage = clientAuth\n")
+            
+        subprocess.run([
+            "openssl", "x509", "-req", "-in", dev_csr, "-CA", ca_crt, "-CAkey", ca_key,
+            "-CAcreateserial", "-out", dev_crt, "-days", "1825", "-sha256", "-extfile", dev_ext
+        ], check=True, timeout=15)
+        
+        subprocess.run([
+            "openssl", "pkcs12", "-export", "-out", dev_p12,
+            "-inkey", dev_key, "-in", dev_crt, "-certfile", ca_crt,
+            "-name", device, "-passout", f"pass:{password}"
+        ], check=True, timeout=15)
+        
+        if os.path.exists(dev_csr): os.remove(dev_csr)
+        if os.path.exists(dev_ext): os.remove(dev_ext)
+        
+    except Exception as e:
+        logger.error(f"Erreur création certificat client {device}: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur création certificat: {e}")
+
+    # 3. Envoi par email optionnel
+    email_sent = False
+    if email:
+        sender = os.getenv("GMAIL_EMAIL", "")
+        sender_password = os.getenv("GMAIL_PASSWORD", "")
+        if sender and sender_password:
+            try:
+                import smtplib
+                from email.message import EmailMessage
+                msg = EmailMessage()
+                msg['Subject'] = f"🔒 Votre Certificat de Sécurité VicozWorld ({device})"
+                msg['From'] = sender
+                msg['To'] = email
+                msg.set_content(f"""Bonjour,\n\nVoici votre certificat de sécurité personnel pour vous connecter à VicozWorld.\n\n📱 Appareil : {device}\n🔑 Mot de passe de déverrouillage : {password}\n\nPour l'installer :\n1. Téléchargez le fichier joint ({device}.p12).\n2. Cliquez dessus pour lancer l'installation sur votre appareil.\n3. Entrez le mot de passe indiqué ci-dessus.\n\nUne fois installé, vous pourrez accéder en toute sécurité à https://vw.vicopetit.dedyn.io/ !\n""")
+                with open(dev_p12, 'rb') as f:
+                    msg.add_attachment(f.read(), maintype='application', subtype='x-pkcs12', filename=f"{device}.p12")
+                with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+                    server.login(sender, sender_password)
+                    server.send_message(msg)
+                email_sent = True
+            except Exception as e:
+                logger.error(f"Erreur envoi email certificat: {e}")
+
+    return {
+        "success": True,
+        "name": device,
+        "download_url": f"/api/admin/certs/download/{device}",
+        "email_sent": email_sent,
+        "message": f"Certificat client pour {device} généré avec succès !"
+    }
+
+@app.get("/api/admin/certs/download/{device_name}")
+def download_certificate(device_name: str):
+    """Télécharge le fichier .p12 d'un appareil."""
+    device = device_name.strip().replace(" ", "-")
+    p12_path = os.path.join(CERTS_DIR, device, f"{device}.p12")
+    if not os.path.exists(p12_path):
+        raise HTTPException(status_code=404, detail="Certificat .p12 introuvable pour cet appareil.")
+    return FileResponse(
+        p12_path,
+        media_type="application/x-pkcs12",
+        filename=f"{device}.p12"
+    )
+
+@app.delete("/api/admin/certs/{device_name}")
+def delete_certificate(device_name: str):
+    """Supprime un certificat client."""
+    device = device_name.strip().replace(" ", "-")
+    device_dir = os.path.join(CERTS_DIR, device)
+    if os.path.exists(device_dir):
+        shutil.rmtree(device_dir, ignore_errors=True)
+        return {"success": True, "message": f"Certificat {device} supprimé."}
+    raise HTTPException(status_code=404, detail="Appareil introuvable.")
 
 # --- ENDPOINTS BANQUE (WOOB) ---
 class AccountBalance(BaseModel):

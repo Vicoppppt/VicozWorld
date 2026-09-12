@@ -19,7 +19,8 @@ import {
   FileSpreadsheet,
   Layers,
   Sparkles,
-  Mail
+  Mail,
+  ShieldCheck
 } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import { useProfile } from "../context/ProfileContext";
@@ -41,6 +42,7 @@ export function Layout({ children }) {
     { name: "Énergie & EDF", desc: "Suivi Tempo & consommation", path: "/energie", icon: Zap },
     { name: "Carnet de Notes", desc: "Notes & pense-bêtes Markdown", path: "/notes", icon: FileText },
     { name: "Généalogie", desc: "Arbre généalogique & GEDCOM", path: "/genealogie", icon: Network },
+    { name: "Sécurité & Badges", desc: "Certificats mTLS & appareils", path: "/securite", icon: ShieldCheck },
   ];
 
   const toolsItems = [

@@ -40,6 +40,7 @@ services:
       start_period: 15s
     volumes:
       - ./data/letterboxd:/app/data
+      - ./data/certs:/app/data/certs
       - ./data/letterboxd/woob-config:/root/.config/woob
       - ./data/letterboxd/woob-data:/root/.local/share/woob
       - /sys/class/power_supply:/sys/class/power_supply:ro

@@ -12,6 +12,7 @@ import { Genealogie } from "./pages/Genealogie";
 import { Energie } from "./pages/Energie";
 import { Actualites } from "./pages/Actualites";
 import { Meteo } from "./pages/Meteo";
+import { Securite } from "./pages/Securite";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
             <Route path="/genealogie" element={<Genealogie />} />
             <Route path="/notes" element={<Notes />} />
             <Route path="/portfolio" element={<Portfolio />} />
+            <Route path="/securite" element={<Securite />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>
