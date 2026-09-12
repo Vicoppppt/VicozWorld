@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import logging
@@ -150,6 +150,17 @@ def init_db():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS access_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            device_cn TEXT,
+            ip TEXT,
+            method TEXT,
+            path TEXT,
+            status_code INTEGER,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
     # Insertion par défaut des paramètres s'ils n'existent pas
     default_enedis_pdl = os.getenv("ENEDIS_PDL", "01139218434363")
     default_enedis_token = os.getenv("ENEDIS_TOKEN", "6yAJ9dvdgamG8djiG3sMkoBHqQY0LoZ57eXkYtikVLc=")
@@ -182,6 +193,44 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Middleware mTLS & Audit Log
+@app.middleware("http")
+async def mtls_and_audit_middleware(request: Request, call_next):
+    client_cn = request.headers.get("x-client-cert-cn")
+    if not client_cn:
+        raw_dn = request.headers.get("x-client-cert-dn", "")
+        if "CN=" in raw_dn:
+            match = re.search(r"CN=([^,]+)", raw_dn)
+            if match:
+                client_cn = match.group(1).strip()
+            else:
+                client_cn = raw_dn
+        elif raw_dn:
+            client_cn = raw_dn
+            
+    request.state.device_cn = client_cn or "Anonyme / Non vérifié"
+    
+    response = await call_next(request)
+    
+    # Enregistrer dans l'audit log pour les routes API (hors healthcheck)
+    path = request.url.path
+    if path.startswith("/api") and path not in ["/api/health", "/api/hub/battery"]:
+        try:
+            forwarded = request.headers.get("x-forwarded-for")
+            client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO access_logs (device_cn, ip, method, path, status_code)
+                VALUES (?, ?, ?, ?, ?)
+            """, (request.state.device_cn, client_ip, request.method, path, response.status_code))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            logger.debug(f"Audit log error: {e}")
+            
+    return response
+
 # --- ENDPOINTS HEALTH & MAINTENANCE ---
 @app.get("/api/health")
 def health_check():
@@ -201,6 +250,45 @@ def health_check():
     except Exception as e:
         logger.error(f"Health check échoué: {e}")
         raise HTTPException(status_code=503, detail=f"Base de données inaccessible: {str(e)}")
+
+@app.get("/api/auth/device-info")
+def get_device_info(request: Request):
+    """Retourne les informations de l'équipement connecté via certificat client mTLS."""
+    device_cn = getattr(request.state, "device_cn", "Inconnu")
+    status = request.headers.get("x-client-cert-status", "")
+    verified = (status == "SUCCESS") or (device_cn and device_cn != "Anonyme / Non vérifié")
+    
+    profile_hint = "victor"
+    cn_lower = device_cn.lower()
+    if "claire" in cn_lower or "maman" in cn_lower:
+        profile_hint = "claire"
+        
+    return {
+        "authenticated": verified,
+        "device_cn": device_cn,
+        "verified": verified,
+        "profile_hint": profile_hint,
+        "serial": request.headers.get("x-client-cert-serial", None)
+    }
+
+@app.get("/api/admin/access-logs")
+def get_access_logs(limit: int = 50):
+    """Historique des connexions et appareils ayant accédé à l'API."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, device_cn, ip, method, path, status_code, timestamp
+            FROM access_logs
+            ORDER BY id DESC
+            LIMIT ?
+        """, (limit,))
+        rows = cursor.fetchall()
+        conn.close()
+        return {"logs": [dict(r) for r in rows]}
+    except Exception as e:
+        logger.error(f"Erreur lecture access_logs: {e}")
+        return {"logs": []}
 
 @app.post("/api/admin/backup")
 def trigger_backup():

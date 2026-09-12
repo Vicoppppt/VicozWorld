@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const ProfileContext = createContext(null);
 
@@ -7,12 +7,30 @@ export function ProfileProvider({ children }) {
     return localStorage.getItem('vicoz_active_profile') || null;
   });
   const [showProfileSelector, setShowProfileSelector] = useState(false);
+  const [deviceInfo, setDeviceInfo] = useState(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('vicoz_active_profile');
-    if (!saved) {
-      setShowProfileSelector(true);
-    }
+    
+    fetch('/api/auth/device-info')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) {
+          setDeviceInfo(data);
+          if (!saved && data.authenticated && data.profile_hint) {
+            selectProfile(data.profile_hint);
+            return;
+          }
+        }
+        if (!saved) {
+          setShowProfileSelector(true);
+        }
+      })
+      .catch(() => {
+        if (!saved) {
+          setShowProfileSelector(true);
+        }
+      });
   }, []);
 
   const selectProfile = (profile) => {
@@ -36,6 +54,7 @@ export function ProfileProvider({ children }) {
         openProfileSelector,
         showProfileSelector,
         setShowProfileSelector,
+        deviceInfo,
       }}
     >
       {children}
