@@ -179,19 +179,6 @@ export function Home() {
         </div>
 
         <div className="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
-          {/* Bouton de changement de profil */}
-          <button
-            onClick={openProfileSelector}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-semibold transition-all border shadow-sm ${
-              isMaman 
-                ? 'bg-pink-950/40 text-pink-300 border-pink-500/30 hover:bg-pink-900/40' 
-                : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:border-zinc-700'
-            }`}
-          >
-            <span>{isMaman ? '👩‍🏫 Espace Maman' : '🚀 Espace Victor'}</span>
-            <span className="text-[10px] text-zinc-500">Changer ⇄</span>
-          </button>
-
           {!isMaman && (
             <button
               onClick={() => fetchHubData(true)}
@@ -530,19 +517,20 @@ export function Home() {
         </div>
       )}
 
-      {/* 🛠️ BOÎTE À OUTILS WEB & IA (MIGRÉS DU HUB) */}
-      <div className="space-y-4 pt-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-              <Wrench className="w-4 h-4" />
+      {/* 🛠️ BOÎTE À OUTILS WEB & IA (Affichée sur la page d'accueil pour Maman) */}
+      {isMaman && (
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-pink-500/10 text-pink-400 border border-pink-500/20">
+                <Wrench className="w-4 h-4" />
+              </div>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-300">
+                Boîte à Outils & Utilitaires Web
+              </h2>
             </div>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-300">
-              Boîte à Outils & Utilitaires Web
-            </h2>
+            <span className="text-[11px] text-zinc-500 font-medium">100% Locaux & Navigateur</span>
           </div>
-          <span className="text-[11px] text-zinc-500 font-medium">100% Locaux & Navigateur</span>
-        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Correcteur de rédactions IA */}
@@ -662,6 +650,7 @@ export function Home() {
           </a>
         </div>
       </div>
+      )}
 
       {/* 🚀 SERVICES & ACCÈS SYSTÈME (Accessible par Victor) */}
       {!isMaman && (
