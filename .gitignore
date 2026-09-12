@@ -46,6 +46,11 @@ data/letterboxd/woob-data/
 data/letterboxd/*.json
 data/gmail/kept_emails.json
 data/gmail/categorized_emails.json
+data/certs/
+pre_deploy_backups/
+backups/
+*.p12
+*.key
 apps/gmail-assistant/kept_emails.json
 apps/gmail-assistant/categorized_emails.json
 apps/letterboxd/backend/app.db
