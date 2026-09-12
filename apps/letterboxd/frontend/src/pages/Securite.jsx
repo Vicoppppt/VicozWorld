@@ -16,7 +16,9 @@ import {
   PlusCircle,
   HelpCircle,
   Clock,
-  Globe
+  Globe,
+  Share2,
+  Copy
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -283,6 +285,36 @@ export function Securite() {
                 </a>
               </motion.div>
             )}
+          </div>
+
+          {/* Mode Démo / Accès Invité temporaire */}
+          <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6 backdrop-blur-sm shadow-xl space-y-4">
+            <div className="flex items-center gap-2">
+              <Share2 className="w-5 h-5 text-amber-400" />
+              <h2 className="text-base font-bold text-white">Accès Invité / Mode Démo</h2>
+            </div>
+            <p className="text-xs text-zinc-400">
+              Besoin de montrer VicozWorld à un ami sur son PC sans certificat ? Transmettez-lui ce lien d'accès temporaire :
+            </p>
+
+            <div className="flex items-center gap-2 bg-zinc-950/80 border border-zinc-800 p-2.5 rounded-xl">
+              <code className="text-xs text-amber-300 font-mono flex-1 truncate">
+                https://vw.vicopetit.dedyn.io/?guest=vicoz2026
+              </code>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText('https://vw.vicopetit.dedyn.io/?guest=vicoz2026');
+                  toast.success("Lien d'accès invité copié !");
+                }}
+                className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition-colors"
+                title="Copier le lien invité"
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <p className="text-[11px] text-zinc-500">
+              💡 Ce lien permet à un navigateur temporaire de franchir le filtre mTLS.
+            </p>
           </div>
 
           {/* Guide rapide installation */}

@@ -63,9 +63,30 @@ export function Layout({ children }) {
   const isInfoActive = infoItems.some(item => location.pathname === item.path);
   const isHomeActive = location.pathname === "/";
 
-  // Close menus on route change or click outside
+  // Mapping des titres de page pour le journal d'audit
+  const PAGE_NAMES = {
+    "/": "Accueil",
+    "/cinematheque": "Cinémathèque",
+    "/quiz": "Quiz Cinéma",
+    "/portfolio": "Portfolio",
+    "/banque": "Banque & Finances",
+    "/energie": "Énergie & EDF",
+    "/notes": "Carnet de Notes",
+    "/genealogie": "Généalogie",
+    "/securite": "Sécurité & Badges",
+    "/actualites": "Actualités",
+    "/meteo": "Météo IA",
+  };
+
+  // Close menus on route change and send audit log
   useEffect(() => {
     setOpenMenu(null);
+    const pageName = PAGE_NAMES[location.pathname] || location.pathname;
+    fetch('/api/audit/page-view', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ page: pageName, path: location.pathname })
+    }).catch(() => {});
   }, [location.pathname]);
 
   useEffect(() => {

@@ -197,28 +197,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def extract_cn(raw_dn: str) -> Optional[str]:
+    """Extrait proprement le Common Name (CN) d'un Subject DN X.509."""
+    if not raw_dn:
+        return None
+    # Gère formats: /C=FR/O=VicozWorld/CN=Victor-PC ou CN=Victor-PC,O=VicozWorld
+    match = re.search(r"CN=([^/,]+)", raw_dn)
+    if match:
+        return match.group(1).strip()
+    return raw_dn.strip() if raw_dn else None
+
 # Middleware mTLS & Audit Log
 @app.middleware("http")
 async def mtls_and_audit_middleware(request: Request, call_next):
     client_cn = request.headers.get("x-client-cert-cn")
     if not client_cn:
         raw_dn = request.headers.get("x-client-cert-dn", "")
-        if "CN=" in raw_dn:
-            match = re.search(r"CN=([^,]+)", raw_dn)
-            if match:
-                client_cn = match.group(1).strip()
-            else:
-                client_cn = raw_dn
-        elif raw_dn:
-            client_cn = raw_dn
+        client_cn = extract_cn(raw_dn)
             
     request.state.device_cn = client_cn or "Anonyme / Non vérifié"
     
     response = await call_next(request)
     
-    # Enregistrer dans l'audit log pour les routes API (hors healthcheck)
+    # Enregistrer dans l'audit log pour les routes API (hors healthcheck et tracking interne)
     path = request.url.path
-    if path.startswith("/api") and path not in ["/api/health", "/api/hub/battery"]:
+    if path.startswith("/api") and path not in ["/api/health", "/api/hub/battery", "/api/audit/page-view"]:
         try:
             forwarded = request.headers.get("x-forwarded-for")
             client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")
@@ -234,6 +237,30 @@ async def mtls_and_audit_middleware(request: Request, call_next):
             logger.debug(f"Audit log error: {e}")
             
     return response
+
+class PageViewRequest(BaseModel):
+    page: str
+    path: str
+
+@app.post("/api/audit/page-view")
+def log_page_view(payload: PageViewRequest, request: Request):
+    """Enregistre la visite d'une page dans le journal d'audit."""
+    device_cn = getattr(request.state, "device_cn", "Anonyme / Non vérifié")
+    try:
+        forwarded = request.headers.get("x-forwarded-for")
+        client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO access_logs (device_cn, ip, method, path, status_code)
+            VALUES (?, ?, 'PAGE', ?, 200)
+        """, (device_cn, client_ip, f"Visite : {payload.page} ({payload.path})"))
+        conn.commit()
+        conn.close()
+        return {"success": True}
+    except Exception as e:
+        logger.debug(f"Page view log error: {e}")
+        return {"success": False}
 
 # --- ENDPOINTS HEALTH & MAINTENANCE ---
 @app.get("/api/health")
