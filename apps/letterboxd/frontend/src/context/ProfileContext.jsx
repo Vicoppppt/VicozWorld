@@ -17,14 +17,39 @@ export function ProfileProvider({ children }) {
     ));
 
   useEffect(() => {
+    // 1. Extraire le code invité depuis l'URL (?guest=123456 ou #/?guest=123456)
+    let guestCode = null;
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      guestCode = searchParams.get('guest');
+      if (!guestCode && window.location.hash.includes('guest=')) {
+        const hashPart = window.location.hash.includes('?') 
+          ? window.location.hash.split('?')[1] 
+          : window.location.hash;
+        const hashParams = new URLSearchParams(hashPart);
+        guestCode = hashParams.get('guest');
+      }
+    } catch (e) {
+      console.warn('Erreur lecture guest code:', e);
+    }
+
+    if (guestCode) {
+      document.cookie = `vw_guest=${guestCode}; path=/; max-age=1800; SameSite=Lax`;
+      document.cookie = `vicoz_guest_session=allowed; path=/; max-age=1800; SameSite=Lax`;
+      selectProfile('invite');
+    }
+
     const saved = localStorage.getItem('vicoz_active_profile');
+    const endpoint = guestCode 
+      ? `/api/auth/device-info?guest=${encodeURIComponent(guestCode)}`
+      : '/api/auth/device-info';
     
-    fetch('/api/auth/device-info')
+    fetch(endpoint)
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data) {
           setDeviceInfo(data);
-          if (data.is_guest || data.profile_hint === 'invite') {
+          if (data.is_guest || data.profile_hint === 'invite' || guestCode) {
             selectProfile('invite');
             return;
           }
@@ -33,12 +58,12 @@ export function ProfileProvider({ children }) {
             return;
           }
         }
-        if (!saved) {
+        if (!saved && !guestCode) {
           setShowProfileSelector(true);
         }
       })
       .catch(() => {
-        if (!saved) {
+        if (!saved && !guestCode) {
           setShowProfileSelector(true);
         }
       });

@@ -377,6 +377,10 @@ if ($ssl_client_verify = "SUCCESS") { set $auth_ok 1; }
 if ($arg_guest ~ "^[0-9]{6}$") { set $auth_ok 1; }
 if ($http_cookie ~* "vw_guest=") { set $auth_ok 1; }
 
+# Autoriser les ressources graphiques & scripts nécessaires au rendu
+if ($uri ~* "^/assets/") { set $auth_ok 1; }
+if ($uri ~* "\\.(css|js|svg|png|jpg|jpeg|ico|woff2?)$") { set $auth_ok 1; }
+
 if ($auth_ok = 0) { return 403 "Acces refuse : Certificat client ou Code Invite requis."; }
 
 proxy_set_header X-Client-Cert-Status $ssl_client_verify;
