@@ -18,7 +18,8 @@ import {
   PenTool,
   FileSpreadsheet,
   Layers,
-  Sparkles
+  Sparkles,
+  Mail
 } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import { useProfile } from "../context/ProfileContext";
@@ -43,6 +44,7 @@ export function Layout({ children }) {
   ];
 
   const toolsItems = [
+    { name: "Gmail Assistant IA", desc: "Tri de boîte mail & IA Gemini", href: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:8501`, icon: Mail },
     { name: "Correcteur Rédactions", desc: "IA Gemini & Barème Français", href: "/tools/correcteur_redaction.html", icon: PenTool },
     { name: "OCR & Extraction", desc: "PDF & Images vers Texte", href: "/tools/extracteur_texte.html", icon: FileText },
     { name: "Éditeur & Fusion PDF", desc: "Organiser & compresser PDF", href: "/tools/editeur_pdf.html", icon: Layers },
@@ -98,21 +100,27 @@ export function Layout({ children }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16" ref={menuRef}>
             
-            {/* Logo VicozWorld */}
+            {/* Logo VicozWorld (Redirige vers CasaOS pour Victor, et vers l'accueil pour Maman) */}
             <div className="flex items-center gap-3">
-              <Link to="/" className="flex items-center gap-2.5 group">
+              <a
+                href={isMaman ? "/" : "https://casa.vicopetit.dedyn.io/#/"}
+                target={isMaman ? "_self" : "_blank"}
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 group"
+                title={isMaman ? "Accueil" : "Ouvrir CasaOS (https://casa.vicopetit.dedyn.io/#/)"}
+              >
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-pink-600 to-rose-500 flex items-center justify-center text-white font-black shadow-md shadow-pink-500/20 group-hover:scale-105 transition-transform">
                   {isMaman ? "👩‍🏫" : "V"}
                 </div>
                 <div>
-                  <span className="text-lg font-bold tracking-tight text-white group-hover:text-pink-300 transition-colors">
+                  <span className="text-lg font-bold tracking-tight text-white group-hover:text-pink-300 transition-colors flex items-center gap-1">
                     {isMaman ? "Espace Maman" : "VicozWorld"}
                   </span>
                   {isMaman && (
                     <span className="block text-[10px] font-medium text-pink-400 -mt-1">Boîte à outils collège</span>
                   )}
                 </div>
-              </Link>
+              </a>
             </div>
 
             {/* Desktop Structured Nav (Affiché UNIQUEMENT pour Victor) */}

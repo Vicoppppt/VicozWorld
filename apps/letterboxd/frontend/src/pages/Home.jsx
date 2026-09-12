@@ -172,6 +172,8 @@ export function Home() {
   const yesterdayElectricity = electricity?.yesterday || {};
 
   const displayGreeting = isMaman ? "Bonjour Claire 👩‍🏫" : greeting;
+  const batteryPercent = battery ? (battery.percentage ?? battery.percent) : null;
+  const isBatteryPlugged = battery ? Boolean(battery.plugged_in ?? battery.plugged ?? false) : false;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
@@ -182,18 +184,18 @@ export function Home() {
             <span>{capitalize(todayFormatted)}</span>
             <span>•</span>
             <span className="text-indigo-400">VicozWorld Hub</span>
-            {battery && battery.percent !== undefined && (
+            {batteryPercent !== null && batteryPercent !== undefined && (
               <>
                 <span>•</span>
                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                  battery.percent <= 20 
+                  batteryPercent <= 20 
                     ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' 
-                    : battery.percent <= 40 
+                    : batteryPercent <= 40 
                     ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' 
                     : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                 }`}>
-                  {battery.plugged ? <BatteryCharging className="w-3 h-3 animate-pulse" /> : <Battery className="w-3 h-3" />}
-                  <span>{battery.percent}% {battery.plugged ? '(Secteur)' : 'Serveur'}</span>
+                  {isBatteryPlugged ? <BatteryCharging className="w-3 h-3 animate-pulse" /> : <Battery className="w-3 h-3" />}
+                  <span>{batteryPercent}% {isBatteryPlugged ? '(Secteur)' : 'Serveur'}</span>
                 </span>
               </>
             )}
@@ -204,25 +206,25 @@ export function Home() {
         </div>
 
         <div className="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
-          {battery && battery.percent !== undefined && (
+          {batteryPercent !== null && batteryPercent !== undefined && (
             <div 
               className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
-                battery.percent <= 20
+                batteryPercent <= 20
                   ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
-                  : battery.percent <= 40
+                  : batteryPercent <= 40
                   ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
                   : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
               }`}
-              title={`Batterie du serveur : ${battery.percent}% - ${battery.plugged ? 'Branché sur secteur' : 'Sur batterie'}`}
+              title={`Batterie du serveur : ${batteryPercent}% - ${isBatteryPlugged ? 'Branché sur secteur' : 'Sur batterie'}`}
             >
-              {battery.plugged ? (
+              {isBatteryPlugged ? (
                 <BatteryCharging className="w-4 h-4 animate-pulse text-emerald-400" />
               ) : (
-                <Battery className={`w-4 h-4 ${battery.percent <= 20 ? 'text-rose-400' : 'text-emerald-400'}`} />
+                <Battery className={`w-4 h-4 ${batteryPercent <= 20 ? 'text-rose-400' : 'text-emerald-400'}`} />
               )}
               <div className="flex flex-col text-left leading-tight">
-                <span className="font-bold text-zinc-100">{battery.percent}%</span>
-                <span className="text-[9px] text-zinc-400">{battery.plugged ? 'Secteur' : 'Serveur'}</span>
+                <span className="font-bold text-zinc-100">{batteryPercent}%</span>
+                <span className="text-[9px] text-zinc-400">{isBatteryPlugged ? 'Secteur' : 'Serveur'}</span>
               </div>
             </div>
           )}
@@ -711,10 +713,10 @@ export function Home() {
             <span className="text-[11px] text-zinc-500 font-medium">Accès direct</span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             <Link
               to="/banque"
-              className="p-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-emerald-500/30 transition-all flex items-center gap-3 group"
+              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-emerald-500/30 transition-all flex items-center gap-3 group"
             >
               <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:scale-110 transition-transform">
                 <Landmark className="w-4 h-4" />
@@ -727,7 +729,7 @@ export function Home() {
 
             <Link
               to="/genealogie"
-              className="p-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-indigo-500/30 transition-all flex items-center gap-3 group"
+              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-indigo-500/30 transition-all flex items-center gap-3 group"
             >
               <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:scale-110 transition-transform">
                 <Network className="w-4 h-4" />
@@ -740,7 +742,7 @@ export function Home() {
 
             <Link
               to="/notes"
-              className="p-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-amber-500/30 transition-all flex items-center gap-3 group"
+              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-amber-500/30 transition-all flex items-center gap-3 group"
             >
               <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 group-hover:scale-110 transition-transform">
                 <FileText className="w-4 h-4" />
@@ -751,27 +753,9 @@ export function Home() {
               </div>
             </Link>
 
-            <a
-              href={`http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:8501`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-red-500/30 transition-all flex items-center gap-3 group"
-            >
-              <div className="p-2 rounded-xl bg-red-500/10 text-red-400 group-hover:scale-110 transition-transform">
-                <Mail className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-xs font-bold text-zinc-200 group-hover:text-red-400 transition-colors flex items-center gap-1">
-                  <span>Gmail IA</span>
-                  <ExternalLink className="w-2.5 h-2.5 text-zinc-500" />
-                </div>
-                <div className="text-[10px] text-zinc-500">Tri de boîte mail</div>
-              </div>
-            </a>
-
             <Link
               to="/portfolio"
-              className="p-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-sky-500/30 transition-all flex items-center gap-3 group"
+              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-sky-500/30 transition-all flex items-center gap-3 group"
             >
               <div className="p-2 rounded-xl bg-sky-500/10 text-sky-400 group-hover:scale-110 transition-transform">
                 <Briefcase className="w-4 h-4" />
@@ -784,7 +768,7 @@ export function Home() {
 
             <Link
               to="/quiz"
-              className="p-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-pink-500/30 transition-all flex items-center gap-3 group"
+              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-pink-500/30 transition-all flex items-center gap-3 group"
             >
               <div className="p-2 rounded-xl bg-pink-500/10 text-pink-400 group-hover:scale-110 transition-transform">
                 <Gamepad2 className="w-4 h-4" />
@@ -794,24 +778,6 @@ export function Home() {
                 <div className="text-[10px] text-zinc-500">Défis Cinéma</div>
               </div>
             </Link>
-
-            <a
-              href={`http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:80`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-blue-500/30 transition-all flex items-center gap-3 group"
-            >
-              <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 group-hover:scale-110 transition-transform">
-                <Server className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-xs font-bold text-zinc-200 group-hover:text-blue-400 transition-colors flex items-center gap-1">
-                  <span>CasaOS</span>
-                  <ExternalLink className="w-2.5 h-2.5 text-zinc-500" />
-                </div>
-                <div className="text-[10px] text-zinc-500">Serveur & Fichiers</div>
-              </div>
-            </a>
           </div>
         </div>
       )}

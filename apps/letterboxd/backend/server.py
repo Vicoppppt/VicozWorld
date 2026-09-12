@@ -1645,12 +1645,15 @@ def get_server_battery():
                         is_charging = status_lower == "charging"
                         plugged_in = status_lower in ["charging", "full", "not charging"]
 
+                        pct = max(0, min(100, percentage))
                         return {
                             "available": True,
-                            "percentage": max(0, min(100, percentage)),
+                            "percentage": pct,
+                            "percent": pct,
                             "status": status,
                             "is_charging": is_charging,
                             "plugged_in": plugged_in,
+                            "plugged": plugged_in,
                             "device": item
                         }
         except Exception as e:
@@ -1662,12 +1665,16 @@ def get_server_battery():
         bat = psutil.sensors_battery()
         if bat is not None and bat.percent is not None:
             is_charging = bool(bat.power_plugged) and bat.percent < 99
+            pct = round(bat.percent)
+            plugged_in = bool(bat.power_plugged)
             return {
                 "available": True,
-                "percentage": round(bat.percent),
-                "status": "En charge" if is_charging else ("Sur secteur" if bat.power_plugged else "Sur batterie"),
+                "percentage": pct,
+                "percent": pct,
+                "status": "En charge" if is_charging else ("Sur secteur" if plugged_in else "Sur batterie"),
                 "is_charging": is_charging,
-                "plugged_in": bool(bat.power_plugged),
+                "plugged_in": plugged_in,
+                "plugged": plugged_in,
                 "device": "psutil"
             }
     except Exception as e:
@@ -1677,9 +1684,11 @@ def get_server_battery():
     return {
         "available": True,
         "percentage": 100,
+        "percent": 100,
         "status": "Sur secteur 🔌",
         "is_charging": False,
         "plugged_in": True,
+        "plugged": True,
         "device": "AC"
     }
 
