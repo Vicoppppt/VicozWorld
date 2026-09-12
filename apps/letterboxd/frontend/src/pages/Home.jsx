@@ -49,7 +49,7 @@ import toast from 'react-hot-toast';
 import { useProfile } from '../context/ProfileContext';
 
 export function Home() {
-  const { activeProfile, isMaman, selectProfile, openProfileSelector } = useProfile();
+  const { activeProfile, isMaman, isGuest, isVictor, selectProfile, openProfileSelector } = useProfile();
   const [hubData, setHubData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -82,7 +82,7 @@ export function Home() {
 
   const switchProfile = (profile) => {
     selectProfile(profile);
-    toast.success(`Profil activé : ${profile === 'claire' ? 'Maman (Claire)' : 'Victor'}`);
+    toast.success(`Profil activé : ${profile === 'claire' ? 'Maman (Claire)' : profile === 'invite' ? 'Invité' : 'Victor'}`);
   };
 
   const fetchHubData = async (force = false) => {
@@ -92,7 +92,7 @@ export function Home() {
       if (!res.ok) throw new Error('Erreur HTTP ' + res.status);
       const data = await res.json();
       setHubData(data);
-      if (force) toast.success("Hub d'accueil actualisé par Gemini !");
+      if (force) toast.success("Hub d'accueil actualisé !");
     } catch (err) {
       console.error('Erreur chargement hub:', err);
       if (force) toast.error("Impossible d'actualiser le hub");
@@ -104,13 +104,13 @@ export function Home() {
 
   useEffect(() => {
     fetchHubData(false);
-    fetchBattery();
-    if (!isMaman) {
+    if (isVictor) {
+      fetchBattery();
       fetchBankBalances();
+      const timer = setInterval(fetchBattery, 30000);
+      return () => clearInterval(timer);
     }
-    const timer = setInterval(fetchBattery, 30000);
-    return () => clearInterval(timer);
-  }, [isMaman]);
+  }, [isVictor]);
 
   const renderWeatherIcon = (iconName, className = "w-6 h-6") => {
     switch (iconName) {
@@ -171,7 +171,9 @@ export function Home() {
   const thisMonthElectricity = electricity?.this_month || {};
   const yesterdayElectricity = electricity?.yesterday || {};
 
-  const displayGreeting = isMaman
+  const displayGreeting = isGuest
+    ? "Bienvenue Invité 🍿"
+    : isMaman
     ? "Bonjour Claire 👩‍🏫"
     : (greeting && greeting.includes("Victor") ? greeting : `${greeting || (new Date().getHours() >= 18 ? "Bonsoir" : "Bonjour")} Victor`);
   const batteryPercent = battery ? (battery.percentage ?? battery.percent) : null;
@@ -185,38 +187,40 @@ export function Home() {
           <div className="flex items-center gap-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
             <span>{capitalize(todayFormatted)}</span>
             <span>•</span>
-            <span className="text-indigo-400">VicozWorld Hub</span>
+            <span className={isGuest ? "text-amber-400 font-bold" : isMaman ? "text-pink-400 font-bold" : "text-indigo-400"}>
+              {isGuest ? "Espace Médias & Météo" : isMaman ? "Espace Maman" : "VicozWorld Hub"}
+            </span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-100 tracking-tight mt-1">
             {displayGreeting}
           </h1>
         </div>
 
-        <div className="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
-          {batteryPercent !== null && batteryPercent !== undefined && (
-            <div 
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
-                batteryPercent <= 20
-                  ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
-                  : batteryPercent <= 40
-                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                  : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-              }`}
-              title={`Batterie du serveur : ${batteryPercent}% - ${isBatteryPlugged ? 'Branché sur secteur' : 'Sur batterie'}`}
-            >
-              {isBatteryPlugged ? (
-                <BatteryCharging className="w-4 h-4 animate-pulse text-emerald-400" />
-              ) : (
-                <Battery className={`w-4 h-4 ${batteryPercent <= 20 ? 'text-rose-400' : 'text-emerald-400'}`} />
-              )}
-              <div className="flex flex-col text-left leading-tight">
-                <span className="font-bold text-zinc-100">{batteryPercent}%</span>
-                <span className="text-[9px] text-zinc-400">{isBatteryPlugged ? 'Secteur' : 'Serveur'}</span>
+        {isVictor && (
+          <div className="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+            {batteryPercent !== null && batteryPercent !== undefined && (
+              <div 
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
+                  batteryPercent <= 20
+                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                    : batteryPercent <= 40
+                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                    : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                }`}
+                title={`Batterie du serveur : ${batteryPercent}% - ${isBatteryPlugged ? 'Branché sur secteur' : 'Sur batterie'}`}
+              >
+                {isBatteryPlugged ? (
+                  <BatteryCharging className="w-4 h-4 animate-pulse text-emerald-400" />
+                ) : (
+                  <Battery className={`w-4 h-4 ${batteryPercent <= 20 ? 'text-rose-400' : 'text-emerald-400'}`} />
+                )}
+                <div className="flex flex-col text-left leading-tight">
+                  <span className="font-bold text-zinc-100">{batteryPercent}%</span>
+                  <span className="text-[9px] text-zinc-400">{isBatteryPlugged ? 'Secteur' : 'Serveur'}</span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {!isMaman && (
             <button
               onClick={() => fetchHubData(true)}
               disabled={isRefreshing || isLoading}
@@ -226,12 +230,12 @@ export function Home() {
               <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">{isRefreshing ? 'Génération...' : 'Actualiser'}</span>
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Briefing Exécutif Personnel (Gemini 2.5 Flash) - Visible UNIQUEMENT pour Victor */}
-      {!isMaman && (
+      {isVictor && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -263,7 +267,7 @@ export function Home() {
       )}
 
       {/* Grille des Widgets Connectés - Uniquement pour Victor */}
-      {!isMaman && (
+      {isVictor && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           
           {/* WIDGET 1 : MÉTÉO EN DIRECT */}
@@ -552,6 +556,163 @@ export function Home() {
             </Link>
           </motion.div>
 
+        </div>
+      )}
+
+      {/* 🍿 ESPACE INVITÉ : STRICTEMENT CINÉMA, QUIZ & MÉTÉO */}
+      {isGuest && (
+        <div className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-6 rounded-3xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-pink-500/10 border border-amber-500/30 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4"
+          >
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  Accès Libre Invité
+                </span>
+                <span className="text-xs text-zinc-400">Cinéma & Météo locale</span>
+              </div>
+              <h2 className="text-xl font-extrabold text-white tracking-tight">
+                Cinémathèque, Recommandations & Météo
+              </h2>
+              <p className="text-xs text-zinc-400 mt-1 max-w-xl">
+                Parcourez les centaines de films et séries catalogués, découvrez le coup de cœur du soir ou consultez les prévisions météo en direct.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+              <Link
+                to="/cinematheque"
+                className="px-4 py-2.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-xs font-bold shadow-lg shadow-pink-600/20 flex items-center gap-1.5 transition-all hover:scale-[1.02]"
+              >
+                <Film className="w-4 h-4" />
+                Cinémathèque
+              </Link>
+              <Link
+                to="/meteo"
+                className="px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-lg shadow-cyan-600/20 flex items-center gap-1.5 transition-all hover:scale-[1.02]"
+              >
+                <CloudSun className="w-4 h-4" />
+                Météo
+              </Link>
+            </div>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* WIDGET 1 : MÉTÉO EN DIRECT */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-6 rounded-3xl bg-zinc-900/60 border border-zinc-800 hover:border-cyan-500/40 transition-all flex flex-col justify-between space-y-5 group shadow-lg"
+            >
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-cyan-500/10 rounded-xl text-cyan-400 border border-cyan-500/20">
+                      <CloudSun className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-zinc-100">Météo en Direct</h3>
+                      <span className="text-[11px] text-zinc-500">{weather?.city || 'Paris'}</span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">
+                    Direct
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-extrabold text-zinc-100 tracking-tight">
+                      {weatherSynthesis.consensus_temp ?? 21}°C
+                    </span>
+                    <span className="text-xs text-zinc-400">
+                      {weatherSynthesis.consensus_condition || 'Agréable'}
+                    </span>
+                  </div>
+                  <div className="p-2.5 bg-zinc-950/80 rounded-2xl border border-zinc-800">
+                    {renderWeatherIcon(weather?.sources?.meteofrance?.icon || 'cloud-sun', "w-8 h-8")}
+                  </div>
+                </div>
+
+                {weatherSynthesis.outfit_advice && (
+                  <p className="text-xs text-zinc-400 bg-zinc-950/40 p-3 rounded-xl border border-zinc-800/60 leading-relaxed line-clamp-2">
+                    👕 <strong className="text-zinc-300">Conseil :</strong> {weatherSynthesis.outfit_advice}
+                  </p>
+                )}
+              </div>
+
+              <Link
+                to="/meteo"
+                className="flex items-center justify-between text-xs font-semibold text-cyan-400 group-hover:text-cyan-300 pt-3 border-t border-zinc-800/80 transition-colors"
+              >
+                <span>Voir les prévisions complètes sur 7 jours</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </motion.div>
+
+            {/* WIDGET 2 : SUGGESTION CINÉ DU SOIR */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-6 rounded-3xl bg-zinc-900/60 border border-zinc-800 hover:border-purple-500/40 transition-all flex flex-col justify-between space-y-5 group shadow-lg md:col-span-2 lg:col-span-2"
+            >
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-purple-500/10 rounded-xl text-purple-400 border border-purple-500/20">
+                      <Film className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-zinc-100">Coup de Cœur Cinéma</h3>
+                      <span className="text-[11px] text-zinc-500">Sélectionné pour vous ce soir</span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
+                    Recommandation
+                  </span>
+                </div>
+
+                {movie_pick && (
+                  <div className="flex flex-col sm:flex-row items-start gap-4 pt-1">
+                    {movie_pick.poster && (
+                      <img
+                        src={movie_pick.poster}
+                        alt={movie_pick.title}
+                        className="w-20 h-28 object-cover rounded-xl shadow-lg border border-zinc-700 shrink-0"
+                      />
+                    )}
+                    <div className="space-y-1.5 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-base font-extrabold text-zinc-100">{movie_pick.title}</h4>
+                        <span className="text-xs text-zinc-400 font-medium">({movie_pick.year})</span>
+                        <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 flex items-center gap-0.5">
+                          <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {movie_pick.rating}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-purple-300/90 font-medium">
+                        « {movie_pitch || movie_pick.synopsis} »
+                      </p>
+
+                      <p className="text-xs text-zinc-400 line-clamp-2">
+                        {movie_pick.synopsis}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <Link
+                to="/cinematheque"
+                className="flex items-center justify-between text-xs font-semibold text-purple-400 group-hover:text-purple-300 pt-3 border-t border-zinc-800/80 transition-colors"
+              >
+                <span>Découvrir la cinémathèque complète</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </motion.div>
+          </div>
         </div>
       )}
 

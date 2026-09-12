@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import subprocess
@@ -248,22 +248,55 @@ async def mtls_and_audit_middleware(request: Request, call_next):
         raw_dn = request.headers.get("x-client-cert-dn", "")
         client_cn = extract_cn(raw_dn)
         
-    # Vérification du mode invité temporaire (Code OTP 2 minutes)
+    # Vérification du mode invité temporaire (Code OTP 2 minutes) ou certificat Invité
     now = time.time()
     guest_param = request.query_params.get("guest")
     guest_cookie = request.cookies.get("vicoz_guest_session")
     
     is_guest = False
-    if guest_param and current_guest_otp["code"] and guest_param == current_guest_otp["code"]:
-        if now < current_guest_otp["expires_at"]:
+    if guest_param and current_guest_otp.get("code") and guest_param == current_guest_otp.get("code"):
+        if now < current_guest_otp.get("expires_at", 0):
             client_cn = "Invité Démo (Code OTP)"
             is_guest = True
     elif guest_cookie == "allowed":
         client_cn = "Invité Démo"
         is_guest = True
+    elif client_cn:
+        cn_lower = client_cn.lower()
+        if "invité" in cn_lower or "guest" in cn_lower:
+            is_guest = True
+    else:
+        # Aucun certificat client fourni
+        is_guest = True
             
     request.state.device_cn = client_cn or "Anonyme / Non vérifié"
     request.state.is_guest = is_guest
+    
+    # Pare-feu strict Invité : Blocage absolu des outils et données privées
+    if is_guest:
+        path = request.url.path
+        forbidden_prefixes = [
+            "/api/balances",
+            "/api/notes",
+            "/api/genealogy",
+            "/api/electricity",
+            "/api/admin",
+            "/api/hub/permissions",
+            "/api/hub/urls",
+            "/api/hub/battery",
+            "/api/migrate-firebase"
+        ]
+        if any(path.startswith(prefix) for prefix in forbidden_prefixes):
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "Accès refusé : les données personnelles et outils sont inaccessibles en mode invité."}
+            )
+        # Interdire modification de la cinémathèque en mode invité
+        if path.startswith("/api/medias") and request.method in ["POST", "PUT", "DELETE"]:
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "Accès refusé : la cinémathèque est en lecture seule pour les invités."}
+            )
     
     response = await call_next(request)
     
@@ -382,8 +415,19 @@ def get_device_info(request: Request):
     """Retourne les informations de l'équipement connecté via certificat client mTLS."""
     device_cn = getattr(request.state, "device_cn", "Inconnu")
     status = request.headers.get("x-client-cert-status", "")
-    verified = (status == "SUCCESS") or (device_cn and device_cn != "Anonyme / Non vérifié")
+    is_guest = getattr(request.state, "is_guest", False) or ("invité" in device_cn.lower()) or ("guest" in device_cn.lower())
     
+    if is_guest:
+        return {
+            "authenticated": False,
+            "device_cn": device_cn,
+            "verified": False,
+            "is_guest": True,
+            "profile_hint": "invite",
+            "serial": None
+        }
+        
+    verified = (status == "SUCCESS") or (device_cn and device_cn != "Anonyme / Non vérifié")
     profile_hint = "victor"
     cn_lower = device_cn.lower()
     if "claire" in cn_lower or "maman" in cn_lower:
@@ -393,6 +437,7 @@ def get_device_info(request: Request):
         "authenticated": verified,
         "device_cn": device_cn,
         "verified": verified,
+        "is_guest": False,
         "profile_hint": profile_hint,
         "serial": request.headers.get("x-client-cert-serial", None)
     }
@@ -1935,7 +1980,54 @@ HUB_CACHE = {
 }
 
 @app.get("/api/hub/summary")
-def get_hub_summary(force: Optional[bool] = False):
+def get_hub_summary(request: Request, force: Optional[bool] = False):
+    if getattr(request.state, "is_guest", False):
+        try:
+            weather_data = get_weather_report()
+        except Exception:
+            weather_data = {}
+        curated_movies = [
+            {
+                "title": "Interstellar",
+                "year": "2014",
+                "director": "Christopher Nolan",
+                "genre": "Sci-Fi / Drame",
+                "rating": 8.7,
+                "poster": "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+                "backdrop": "https://image.tmdb.org/t/p/w1280/xJHokMbljvjADYdit5fK5VQsXEG.jpg",
+                "synopsis": "Une équipe d'explorateurs voyage à travers un trou de ver pour assurer la survie de l'humanité."
+            },
+            {
+                "title": "Dune : Deuxième Partie",
+                "year": "2024",
+                "director": "Denis Villeneuve",
+                "genre": "Science-Fiction / Aventure",
+                "rating": 8.6,
+                "poster": "https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg",
+                "backdrop": "https://image.tmdb.org/t/p/w1280/xOMo8BRK7PfcJv9JCnx7s520bne.jpg",
+                "synopsis": "Paul Atréides s'unit à Chani et aux Fremen pour mener la révolte contre les conspirateurs."
+            },
+            {
+                "title": "Le Voyage de Chihiro",
+                "year": "2001",
+                "director": "Hayao Miyazaki",
+                "genre": "Animation / Fantastique",
+                "rating": 8.6,
+                "poster": "https://image.tmdb.org/t/p/w500/dL11niApZXKLWrmAhv1Z5w27Zq4.jpg",
+                "backdrop": "https://image.tmdb.org/t/p/w1280/mSDsSDwaP3E7dEfUPWy4J0djt4O.jpg",
+                "synopsis": "Chihiro, une fillette de dix ans, s'aventure dans un monde magique gouverné par des esprits."
+            }
+        ]
+        day_of_year = datetime.now().timetuple().tm_yday
+        movie_pick = curated_movies[day_of_year % len(curated_movies)]
+        return {
+            "weather": weather_data,
+            "movie_pick": movie_pick,
+            "movie_pitch": f"Chef-d'œuvre cinématographique sélectionné pour votre session invité ({movie_pick['title']}).",
+            "is_guest": True,
+            "today": datetime.now().strftime("%Y-%m-%d")
+        }
+
     current_time = time.time()
     if not force and HUB_CACHE["data"] and (current_time - HUB_CACHE["timestamp"]) < 1800:
         return HUB_CACHE["data"]

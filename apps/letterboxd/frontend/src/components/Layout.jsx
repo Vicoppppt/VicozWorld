@@ -26,7 +26,7 @@ import { Toaster } from "react-hot-toast";
 import { useProfile } from "../context/ProfileContext";
 
 export function Layout({ children }) {
-  const { isMaman, activeProfile, openProfileSelector } = useProfile();
+  const { isMaman, isGuest, isVictor, isStrictGuest, openProfileSelector } = useProfile();
   const location = useLocation();
   const [openMenu, setOpenMenu] = useState(null);
   const menuRef = useRef(null);
@@ -103,8 +103,6 @@ export function Layout({ children }) {
     setOpenMenu(openMenu === menuName ? null : menuName);
   };
 
-  const hubUrl = typeof window !== 'undefined' ? `http://${window.location.hostname}:8085` : 'http://localhost:8085';
-
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col text-zinc-100 font-sans">
       <Toaster
@@ -123,31 +121,90 @@ export function Layout({ children }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16" ref={menuRef}>
             
-            {/* Logo VicozWorld (Redirige vers CasaOS pour Victor, et vers l'accueil pour Maman) */}
+            {/* Logo VicozWorld (Redirige vers CasaOS pour Victor, vers / pour Invité et Maman) */}
             <div className="flex items-center gap-3">
               <a
-                href={isMaman ? "/" : "https://casa.vicopetit.dedyn.io/#/"}
-                target={isMaman ? "_self" : "_blank"}
+                href={isVictor ? "https://casa.vicopetit.dedyn.io/#/" : "/"}
+                target={isVictor ? "_blank" : "_self"}
                 rel="noopener noreferrer"
                 className="flex items-center gap-2.5 group"
-                title={isMaman ? "Accueil" : "Ouvrir CasaOS (https://casa.vicopetit.dedyn.io/#/)"}
+                title={isVictor ? "Ouvrir CasaOS (https://casa.vicopetit.dedyn.io/#/)" : "Accueil"}
               >
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-pink-600 to-rose-500 flex items-center justify-center text-white font-black shadow-md shadow-pink-500/20 group-hover:scale-105 transition-transform">
-                  {isMaman ? "👩‍🏫" : "V"}
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-black shadow-md group-hover:scale-105 transition-transform ${
+                  isGuest 
+                    ? "bg-gradient-to-tr from-amber-600 to-orange-500 shadow-amber-500/20" 
+                    : isMaman 
+                    ? "bg-gradient-to-tr from-pink-600 to-rose-500 shadow-pink-500/20" 
+                    : "bg-gradient-to-tr from-indigo-600 to-violet-500 shadow-indigo-500/20"
+                }`}>
+                  {isGuest ? "🍿" : isMaman ? "👩‍🏫" : "V"}
                 </div>
                 <div>
-                  <span className="text-lg font-bold tracking-tight text-white group-hover:text-pink-300 transition-colors flex items-center gap-1">
-                    {isMaman ? "Espace Maman" : "VicozWorld"}
+                  <span className="text-lg font-bold tracking-tight text-white group-hover:text-indigo-300 transition-colors flex items-center gap-1">
+                    {isGuest ? "VicozWorld" : isMaman ? "Espace Maman" : "VicozWorld"}
                   </span>
-                  {isMaman && (
-                    <span className="block text-[10px] font-medium text-pink-400 -mt-1">Boîte à outils collège</span>
-                  )}
+                  <span className="block text-[10px] font-medium text-zinc-400 -mt-1">
+                    {isGuest ? "Espace Médias & Météo" : isMaman ? "Boîte à outils collège" : "Portail Personnel"}
+                  </span>
                 </div>
               </a>
             </div>
 
+            {/* Desktop Structured Nav pour Invité (Strictement Cinéma & Météo) */}
+            {isGuest && (
+              <div className="hidden md:flex items-center gap-1.5 bg-zinc-900/60 p-1.5 rounded-2xl border border-zinc-800/60">
+                <Link
+                  to="/"
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-sm font-medium transition-all ${
+                    isHomeActive
+                      ? "bg-zinc-800 text-white shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/40"
+                  }`}
+                >
+                  <Globe className="w-4 h-4 text-amber-400" />
+                  Accueil
+                </Link>
+
+                <Link
+                  to="/cinematheque"
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-sm font-medium transition-all ${
+                    location.pathname === "/cinematheque"
+                      ? "bg-zinc-800 text-white shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/40"
+                  }`}
+                >
+                  <Film className="w-4 h-4 text-pink-400" />
+                  Cinémathèque
+                </Link>
+
+                <Link
+                  to="/quiz"
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-sm font-medium transition-all ${
+                    location.pathname === "/quiz"
+                      ? "bg-zinc-800 text-white shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/40"
+                  }`}
+                >
+                  <Gamepad2 className="w-4 h-4 text-purple-400" />
+                  Quiz Cinéma
+                </Link>
+
+                <Link
+                  to="/meteo"
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-sm font-medium transition-all ${
+                    location.pathname === "/meteo"
+                      ? "bg-zinc-800 text-white shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/40"
+                  }`}
+                >
+                  <CloudSun className="w-4 h-4 text-cyan-400" />
+                  Météo
+                </Link>
+              </div>
+            )}
+
             {/* Desktop Structured Nav (Affiché UNIQUEMENT pour Victor) */}
-            {!isMaman && (
+            {isVictor && (
               <div className="hidden md:flex items-center gap-1.5 bg-zinc-900/60 p-1.5 rounded-2xl border border-zinc-800/60">
                 
                 {/* Accueil */}
@@ -268,7 +325,7 @@ export function Layout({ children }) {
                           <div className="flex-1">
                             <div className="text-xs font-semibold flex items-center justify-between">
                               <span>{item.name}</span>
-                              <ExternalLink className="w-3 h-3 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <ExternalLink className="w-3 3 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
                             <div className="text-[11px] text-zinc-400">{item.desc}</div>
                           </div>
@@ -322,12 +379,18 @@ export function Layout({ children }) {
             {/* Profil switcher & Badge */}
             <div className="flex items-center gap-2">
               <button
-                onClick={openProfileSelector}
+                onClick={() => {
+                  if (isStrictGuest) {
+                    toast("Session Invité active (Cinéma & Météo)", { icon: "🔒" });
+                    return;
+                  }
+                  openProfileSelector();
+                }}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white text-xs font-semibold transition-all shadow-sm"
-                title="Changer d'utilisateur"
+                title={isStrictGuest ? "Mode invité restreint" : "Changer d'utilisateur"}
               >
-                <span>{isMaman ? "👩‍🏫 Maman" : "🚀 Victor"}</span>
-                <span className="text-[10px] text-zinc-500">⇄</span>
+                <span>{isGuest ? "🎉 Invité" : isMaman ? "👩‍🏫 Maman" : "🚀 Victor"}</span>
+                {!isStrictGuest && <span className="text-[10px] text-zinc-500">⇄</span>}
               </button>
             </div>
 
@@ -340,11 +403,57 @@ export function Layout({ children }) {
         {children}
       </div>
 
-      {/* Mobile Bottom Navigation Bar (Visible uniquement pour Victor) */}
-      {!isMaman && (
+      {/* Mobile Bottom Navigation Bar pour Invité */}
+      {isGuest && (
         <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-zinc-950/95 backdrop-blur-lg border-t border-zinc-800/80">
           <div className="grid grid-cols-4 px-2 py-1 safe-area-pb">
-            
+            <Link
+              to="/"
+              className={`flex flex-col items-center justify-center py-2 transition-colors ${
+                isHomeActive ? "text-amber-400 font-semibold" : "text-zinc-400"
+              }`}
+            >
+              <Globe className="w-5 h-5 mb-1" />
+              <span className="text-[10px]">Accueil</span>
+            </Link>
+
+            <Link
+              to="/cinematheque"
+              className={`flex flex-col items-center justify-center py-2 transition-colors ${
+                location.pathname === "/cinematheque" ? "text-pink-400 font-semibold" : "text-zinc-400"
+              }`}
+            >
+              <Film className="w-5 h-5 mb-1" />
+              <span className="text-[10px]">Ciné</span>
+            </Link>
+
+            <Link
+              to="/quiz"
+              className={`flex flex-col items-center justify-center py-2 transition-colors ${
+                location.pathname === "/quiz" ? "text-purple-400 font-semibold" : "text-zinc-400"
+              }`}
+            >
+              <Gamepad2 className="w-5 h-5 mb-1" />
+              <span className="text-[10px]">Quiz</span>
+            </Link>
+
+            <Link
+              to="/meteo"
+              className={`flex flex-col items-center justify-center py-2 transition-colors ${
+                location.pathname === "/meteo" ? "text-cyan-400 font-semibold" : "text-zinc-400"
+              }`}
+            >
+              <CloudSun className="w-5 h-5 mb-1" />
+              <span className="text-[10px]">Météo</span>
+            </Link>
+          </div>
+        </nav>
+      )}
+
+      {/* Mobile Bottom Navigation Bar pour Victor */}
+      {isVictor && (
+        <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-zinc-950/95 backdrop-blur-lg border-t border-zinc-800/80">
+          <div className="grid grid-cols-4 px-2 py-1 safe-area-pb">
             <Link
               to="/"
               className={`flex flex-col items-center justify-center py-2 transition-colors ${
@@ -384,7 +493,6 @@ export function Layout({ children }) {
               <Newspaper className="w-5 h-5 mb-1" />
               <span className="text-[10px]">Actualités</span>
             </Link>
-
           </div>
         </nav>
       )}

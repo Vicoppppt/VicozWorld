@@ -1,4 +1,4 @@
-﻿import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useProfile } from '../context/ProfileContext';
 import { Sparkles, Shield, User, X } from 'lucide-react';
 
@@ -40,26 +40,26 @@ export function ProfileModal() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-lg mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-2xl mx-auto">
             {/* Profil Victor */}
             <motion.button
               whileHover={{ scale: 1.03, y: -4 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => selectProfile('victor')}
-              className="p-6 rounded-3xl bg-zinc-900/80 hover:bg-zinc-900 border border-zinc-800 hover:border-indigo-500/50 transition-all text-left flex flex-col items-center sm:items-start group shadow-2xl relative overflow-hidden"
+              className="p-5 rounded-3xl bg-zinc-900/80 hover:bg-zinc-900 border border-zinc-800 hover:border-indigo-500/50 transition-all text-left flex flex-col items-center sm:items-start group shadow-2xl relative overflow-hidden"
             >
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-4xl shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform mb-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-3xl shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform mb-3">
                 🚀
               </div>
-              <div className="text-xl font-bold text-white group-hover:text-indigo-300 transition-colors">
+              <div className="text-lg font-bold text-white group-hover:text-indigo-300 transition-colors">
                 Victor
               </div>
-              <div className="text-xs text-zinc-400 mt-1">
-                Accès Complet (IA, Météo, Actus, Docker, Banques, Ciné)
+              <div className="text-xs text-zinc-400 mt-1 line-clamp-2">
+                Accès Total (IA, Docker, Banques, Sécurité, Ciné)
               </div>
-              <div className="mt-4 flex items-center gap-1.5 text-[11px] font-semibold text-indigo-400">
+              <div className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-indigo-400">
                 <Shield className="w-3.5 h-3.5" />
-                <span>Espace Administrateur</span>
+                <span>Administrateur</span>
               </div>
             </motion.button>
 
@@ -68,20 +68,41 @@ export function ProfileModal() {
               whileHover={{ scale: 1.03, y: -4 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => selectProfile('claire')}
-              className="p-6 rounded-3xl bg-zinc-900/80 hover:bg-zinc-900 border border-zinc-800 hover:border-pink-500/50 transition-all text-left flex flex-col items-center sm:items-start group shadow-2xl relative overflow-hidden"
+              className="p-5 rounded-3xl bg-zinc-900/80 hover:bg-zinc-900 border border-zinc-800 hover:border-pink-500/50 transition-all text-left flex flex-col items-center sm:items-start group shadow-2xl relative overflow-hidden"
             >
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-4xl shadow-lg shadow-pink-500/20 group-hover:scale-105 transition-transform mb-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-3xl shadow-lg shadow-pink-500/20 group-hover:scale-105 transition-transform mb-3">
                 👩‍🏫
               </div>
-              <div className="text-xl font-bold text-white group-hover:text-pink-300 transition-colors">
+              <div className="text-lg font-bold text-white group-hover:text-pink-300 transition-colors">
                 Maman (Claire)
               </div>
-              <div className="text-xs text-zinc-400 mt-1">
-                Espace dédié : Boîte à outils, correcteur copies collège, PDF & Excel
+              <div className="text-xs text-zinc-400 mt-1 line-clamp-2">
+                Boîte à outils collège, correcteur copies, PDF & Excel
               </div>
-              <div className="mt-4 flex items-center gap-1.5 text-[11px] font-semibold text-pink-400">
+              <div className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-pink-400">
                 <User className="w-3.5 h-3.5" />
-                <span>Espace Épuré & Outils</span>
+                <span>Outils Collège</span>
+              </div>
+            </motion.button>
+
+            {/* Profil Invité */}
+            <motion.button
+              whileHover={{ scale: 1.03, y: -4 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => selectProfile('invite')}
+              className="p-5 rounded-3xl bg-zinc-900/80 hover:bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 transition-all text-left flex flex-col items-center sm:items-start group shadow-2xl relative overflow-hidden"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-3xl shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform mb-3">
+                🎉
+              </div>
+              <div className="text-lg font-bold text-white group-hover:text-amber-300 transition-colors">
+                Invité
+              </div>
+              <div className="text-xs text-zinc-400 mt-1 line-clamp-2">
+                Accès restreint : Cinémathèque, Quiz & Infos météo
+              </div>
+              <div className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-amber-400">
+                <span>🍿 Espace Médias & Météo</span>
               </div>
             </motion.button>
           </div>

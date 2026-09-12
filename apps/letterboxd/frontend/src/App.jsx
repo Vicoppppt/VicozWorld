@@ -1,6 +1,6 @@
 import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
-import { ProfileProvider } from "./context/ProfileContext";
+import { ProfileProvider, useProfile } from "./context/ProfileContext";
 import { ProfileModal } from "./components/ProfileModal";
 import { Home } from "./pages/Home";
 import { Cinematheque } from "./pages/Cinematheque";
@@ -14,6 +14,14 @@ import { Actualites } from "./pages/Actualites";
 import { Meteo } from "./pages/Meteo";
 import { Securite } from "./pages/Securite";
 
+function PrivateRoute({ children }) {
+  const { isGuest } = useProfile();
+  if (isGuest) {
+    return <Navigate to="/cinematheque" replace />;
+  }
+  return children;
+}
+
 function App() {
   return (
     <ProfileProvider>
@@ -22,16 +30,19 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/actualites" element={<Actualites />} />
-            <Route path="/meteo" element={<Meteo />} />
             <Route path="/cinematheque" element={<Cinematheque />} />
-            <Route path="/energie" element={<Energie />} />
-            <Route path="/banque" element={<Banque />} />
+            <Route path="/meteo" element={<Meteo />} />
             <Route path="/quiz" element={<Quiz />} />
-            <Route path="/genealogie" element={<Genealogie />} />
-            <Route path="/notes" element={<Notes />} />
-            <Route path="/portfolio" element={<Portfolio />} />
-            <Route path="/securite" element={<Securite />} />
+
+            {/* Routes strictement privées (Inaccessibles aux Invités) */}
+            <Route path="/banque" element={<PrivateRoute><Banque /></PrivateRoute>} />
+            <Route path="/energie" element={<PrivateRoute><Energie /></PrivateRoute>} />
+            <Route path="/notes" element={<PrivateRoute><Notes /></PrivateRoute>} />
+            <Route path="/genealogie" element={<PrivateRoute><Genealogie /></PrivateRoute>} />
+            <Route path="/securite" element={<PrivateRoute><Securite /></PrivateRoute>} />
+            <Route path="/actualites" element={<PrivateRoute><Actualites /></PrivateRoute>} />
+            <Route path="/portfolio" element={<PrivateRoute><Portfolio /></PrivateRoute>} />
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>
