@@ -53,7 +53,19 @@ export function Home() {
   const [hubData, setHubData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [battery, setBattery] = useState(null);
+  const [bankBalances, setBankBalances] = useState(null);
+
+  const fetchBankBalances = async () => {
+    try {
+      const res = await fetch('/api/balances');
+      if (res.ok) {
+        const data = await res.json();
+        setBankBalances(data);
+      }
+    } catch (e) {
+      console.warn('Erreur récupération soldes bancaires:', e);
+    }
+  };
 
   const fetchBattery = async () => {
     try {
@@ -92,9 +104,12 @@ export function Home() {
   useEffect(() => {
     fetchHubData(false);
     fetchBattery();
+    if (!isMaman) {
+      fetchBankBalances();
+    }
     const timer = setInterval(fetchBattery, 30000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isMaman]);
 
   const renderWeatherIcon = (iconName, className = "w-6 h-6") => {
     switch (iconName) {
@@ -129,6 +144,15 @@ export function Home() {
   }).format(new Date());
 
   const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+
+  const formatCurrency = (amount, currency = "EUR") => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount || 0);
+  };
 
   const {
     greeting = "Bonjour Victor",
@@ -449,7 +473,7 @@ export function Home() {
             </Link>
           </motion.div>
 
-          {/* WIDGET 5 : MAISON & DOMOTIQUE (EN COURS DE DÉVELOPPEMENT) */}
+          {/* WIDGET 5 : BANQUE & FINANCES (SOLDE GLOBAL BANCAIRE) */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -460,58 +484,59 @@ export function Home() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-400 border border-emerald-500/20">
-                    <HomeIcon className="w-5 h-5" />
+                    <Landmark className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-zinc-100">Maison & Domotique</h3>
-                    <span className="text-[11px] text-zinc-500">Statut du domicile</span>
+                    <h3 className="text-sm font-bold text-zinc-100">Solde Global Bancaire</h3>
+                    <span className="text-[11px] text-zinc-500">
+                      {bankBalances?.accounts?.length ? `${bankBalances.accounts.length} compte${bankBalances.accounts.length > 1 ? 's' : ''} connecté${bankBalances.accounts.length > 1 ? 's' : ''}` : 'Synchronisation Woob'}
+                    </span>
                   </div>
                 </div>
-                <span className="text-[9px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">
-                  En développement
+                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  En direct
                 </span>
               </div>
 
-              {/* Aperçu de la maison */}
-              <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-                <div className="p-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800/80 flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <div>
-                    <div className="text-[10px] text-zinc-500 font-bold">Portes</div>
-                    <div className="text-zinc-200 font-semibold">Verrouillées</div>
-                  </div>
+              {/* Solde total avec centimes */}
+              <div className="pt-2">
+                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Patrimoine total</span>
+                <div className="text-3xl font-black text-zinc-100 tracking-tight mt-0.5">
+                  {bankBalances ? formatCurrency(bankBalances.total) : "—"}
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800/80 flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4 text-amber-400 shrink-0" />
-                  <div>
-                    <div className="text-[10px] text-zinc-500 font-bold">Lumières</div>
-                    <div className="text-zinc-200 font-semibold">{domotique?.lights_on_count ?? 2} allumées</div>
+                {bankBalances?.accounts && bankBalances.accounts.length > 0 ? (
+                  <div className="mt-3 space-y-1.5">
+                    {bankBalances.accounts.slice(0, 2).map((acc) => (
+                      <div key={acc.id} className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800/80 text-xs">
+                        <span className="text-zinc-300 font-medium truncate max-w-[150px]">{acc.label}</span>
+                        <span className={`font-bold ${acc.balance >= 0 ? 'text-zinc-100' : 'text-rose-400'}`}>
+                          {formatCurrency(acc.balance, acc.currency)}
+                        </span>
+                      </div>
+                    ))}
+                    {bankBalances.accounts.length > 2 && (
+                      <p className="text-[11px] text-zinc-500 text-right pt-0.5">
+                        + {bankBalances.accounts.length - 2} autre{bankBalances.accounts.length - 2 > 1 ? 's' : ''} compte{bankBalances.accounts.length - 2 > 1 ? 's' : ''}
+                      </p>
+                    )}
                   </div>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800/80 flex items-center gap-2">
-                  <Thermometer className="w-4 h-4 text-cyan-400 shrink-0" />
-                  <div>
-                    <div className="text-[10px] text-zinc-500 font-bold">Intérieur</div>
-                    <div className="text-zinc-200 font-semibold">{domotique?.inside_temp ?? 21.4}°C</div>
-                  </div>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800/80 flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <div>
-                    <div className="text-[10px] text-zinc-500 font-bold">Alarme</div>
-                    <div className="text-zinc-200 font-semibold">Armée</div>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-xs text-zinc-500 mt-2">
+                    {bankBalances ? "Aucun compte bancaire détecté." : "Récupération des soldes..."}
+                  </p>
+                )}
               </div>
             </div>
 
-            <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-500">
-              <span className="text-[11px]">Bientôt connecté à Home Assistant</span>
-              <span className="text-[10px] font-bold text-amber-500/80 uppercase">Preview</span>
-            </div>
+            <Link
+              to="/banque"
+              className="flex items-center justify-between text-xs font-semibold text-emerald-400 group-hover:text-emerald-300 pt-3 border-t border-zinc-800/80 transition-colors"
+            >
+              <span>Accéder à mes comptes & simulateur</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </motion.div>
 
         </div>
@@ -652,88 +677,20 @@ export function Home() {
       </div>
       )}
 
-      {/* 🚀 SERVICES & ACCÈS SYSTÈME (Accessible par Victor) */}
+      {/* Raccourcis Rapides vers les autres modules (Quick Dock) - Uniquement pour Victor */}
       {!isMaman && (
         <div className="space-y-4 pt-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                <Server className="w-4 h-4" />
-              </div>
-              <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-300">
-                Services & Serveur Docker
-              </h2>
-            </div>
-            <span className="text-[11px] text-zinc-500 font-medium">Conteneurs Locaux</span>
+            <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+              <span>Autres Espaces & Outils</span>
+            </h2>
+            <span className="text-[11px] text-zinc-500 font-medium">Accès direct</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* CasaOS Dashboard */}
-            <a
-              href={`http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:80`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-5 rounded-3xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-blue-500/40 transition-all flex items-center justify-between group shadow-lg"
-            >
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20 group-hover:scale-105 transition-transform text-2xl">
-                  🏠
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-zinc-100 group-hover:text-blue-400 transition-colors">
-                      CasaOS Dashboard
-                    </h3>
-                    <span className="text-[10px] text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-full">Port 80</span>
-                  </div>
-                  <p className="text-xs text-zinc-400 mt-1">
-                    Gestion du serveur, stockage, fichiers et conteneurs Docker.
-                  </p>
-                </div>
-              </div>
-              <ExternalLink className="w-4 h-4 text-zinc-500 group-hover:text-blue-400 transition-colors shrink-0 ml-2" />
-            </a>
-
-            {/* Gmail Assistant IA */}
-            <a
-              href={`http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:8501`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-5 rounded-3xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-red-500/40 transition-all flex items-center justify-between group shadow-lg"
-            >
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-2xl bg-red-500/10 text-red-400 border border-red-500/20 group-hover:scale-105 transition-transform text-2xl">
-                  📧
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-zinc-100 group-hover:text-red-400 transition-colors">
-                      Gmail Assistant IA
-                    </h3>
-                    <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">Port 8501</span>
-                  </div>
-                  <p className="text-xs text-zinc-400 mt-1">
-                    Nettoyage intelligent de boîte mail, tri et classification automatique Gemini.
-                  </p>
-                </div>
-              </div>
-              <ExternalLink className="w-4 h-4 text-zinc-500 group-hover:text-red-400 transition-colors shrink-0 ml-2" />
-            </a>
-          </div>
-        </div>
-      )}
-
-      {/* Raccourcis Rapides vers les autres modules (Quick Dock) - Uniquement pour Victor */}
-      {!isMaman && (
-        <div className="space-y-4 pt-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-            <span>Autres Espaces & Outils</span>
-          </h2>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
             <Link
               to="/banque"
-              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-emerald-500/30 transition-all flex items-center gap-3 group"
+              className="p-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-emerald-500/30 transition-all flex items-center gap-3 group"
             >
               <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:scale-110 transition-transform">
                 <Landmark className="w-4 h-4" />
@@ -746,7 +703,7 @@ export function Home() {
 
             <Link
               to="/genealogie"
-              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-indigo-500/30 transition-all flex items-center gap-3 group"
+              className="p-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-indigo-500/30 transition-all flex items-center gap-3 group"
             >
               <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:scale-110 transition-transform">
                 <Network className="w-4 h-4" />
@@ -759,7 +716,7 @@ export function Home() {
 
             <Link
               to="/notes"
-              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-amber-500/30 transition-all flex items-center gap-3 group"
+              className="p-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-amber-500/30 transition-all flex items-center gap-3 group"
             >
               <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 group-hover:scale-110 transition-transform">
                 <FileText className="w-4 h-4" />
@@ -770,9 +727,27 @@ export function Home() {
               </div>
             </Link>
 
+            <a
+              href={`http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:8501`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-red-500/30 transition-all flex items-center gap-3 group"
+            >
+              <div className="p-2 rounded-xl bg-red-500/10 text-red-400 group-hover:scale-110 transition-transform">
+                <Mail className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-zinc-200 group-hover:text-red-400 transition-colors flex items-center gap-1">
+                  <span>Gmail IA</span>
+                  <ExternalLink className="w-2.5 h-2.5 text-zinc-500" />
+                </div>
+                <div className="text-[10px] text-zinc-500">Tri de boîte mail</div>
+              </div>
+            </a>
+
             <Link
               to="/portfolio"
-              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-sky-500/30 transition-all flex items-center gap-3 group"
+              className="p-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-sky-500/30 transition-all flex items-center gap-3 group"
             >
               <div className="p-2 rounded-xl bg-sky-500/10 text-sky-400 group-hover:scale-110 transition-transform">
                 <Briefcase className="w-4 h-4" />
@@ -785,7 +760,7 @@ export function Home() {
 
             <Link
               to="/quiz"
-              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-pink-500/30 transition-all flex items-center gap-3 group"
+              className="p-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-pink-500/30 transition-all flex items-center gap-3 group"
             >
               <div className="p-2 rounded-xl bg-pink-500/10 text-pink-400 group-hover:scale-110 transition-transform">
                 <Gamepad2 className="w-4 h-4" />
@@ -795,6 +770,24 @@ export function Home() {
                 <div className="text-[10px] text-zinc-500">Défis Cinéma</div>
               </div>
             </Link>
+
+            <a
+              href={`http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:80`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-blue-500/30 transition-all flex items-center gap-3 group"
+            >
+              <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 group-hover:scale-110 transition-transform">
+                <Server className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-zinc-200 group-hover:text-blue-400 transition-colors flex items-center gap-1">
+                  <span>CasaOS</span>
+                  <ExternalLink className="w-2.5 h-2.5 text-zinc-500" />
+                </div>
+                <div className="text-[10px] text-zinc-500">Serveur & Fichiers</div>
+              </div>
+            </a>
           </div>
         </div>
       )}
