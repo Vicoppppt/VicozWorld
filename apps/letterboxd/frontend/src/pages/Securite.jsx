@@ -94,14 +94,23 @@ export function Securite() {
         throw new Error(data.detail || "Échec de génération du certificat.");
       }
 
-      toast.success(`Badge créé pour ${data.name} !`);
+      if (data.email_sent) {
+        toast.success(`Badge créé et envoyé par email à ${email} !`);
+      } else if (email.trim() && data.email_error) {
+        toast.error(`Email non envoyé: ${data.email_error}`, { duration: 6000 });
+      } else {
+        toast.success(`Badge créé pour ${data.name} !`);
+      }
+
       setLastGenerated({
         name: data.name,
         download_url: data.download_url,
         password: password.trim(),
-        email_sent: data.email_sent
+        email_sent: data.email_sent,
+        email_error: data.email_error
       });
       setDeviceName('');
+      setEmail('');
       await fetchCerts();
     } catch (err) {
       toast.error(err.message);
@@ -254,11 +263,16 @@ export function Securite() {
                 <p className="text-xs text-zinc-300">
                   Mot de passe : <code className="bg-black/40 px-2 py-0.5 rounded text-emerald-400 font-mono">{lastGenerated.password}</code>
                 </p>
-                {lastGenerated.email_sent && (
+                {lastGenerated.email_sent ? (
                   <p className="text-xs text-emerald-400 flex items-center gap-1.5">
                     <Mail className="w-3.5 h-3.5" /> Envoyé par email en pièce jointe !
                   </p>
-                )}
+                ) : lastGenerated.email_error ? (
+                  <p className="text-xs text-amber-400 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                    Notice email : {lastGenerated.email_error}
+                  </p>
+                ) : null}
                 <a
                   href={lastGenerated.download_url}
                   download={`${lastGenerated.name}.p12`}

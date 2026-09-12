@@ -432,32 +432,42 @@ def generate_certificate(payload: CertCreateRequest):
 
     # 3. Envoi par email optionnel
     email_sent = False
+    email_error = None
     if email:
-        sender = os.getenv("GMAIL_EMAIL", "")
-        sender_password = os.getenv("GMAIL_PASSWORD", "")
+        sender = os.getenv("GMAIL_EMAIL") or os.getenv("GMAIL_USER")
+        sender_password = os.getenv("GMAIL_PASSWORD") or os.getenv("GMAIL_APP_PASSWORD")
         if sender and sender_password:
+            sender = sender.strip()
+            # Nettoyer les espaces si copié depuis Google (format abcd efgh ijkl mnop)
+            sender_password = sender_password.replace(" ", "").strip()
             try:
                 import smtplib
                 from email.message import EmailMessage
                 msg = EmailMessage()
-                msg['Subject'] = f"🔒 Votre Certificat de Sécurité VicozWorld ({device})"
+                msg['Subject'] = f"🔒 Votre Badge de Sécurité VicozWorld ({device})"
                 msg['From'] = sender
                 msg['To'] = email
                 msg.set_content(f"""Bonjour,\n\nVoici votre certificat de sécurité personnel pour vous connecter à VicozWorld.\n\n📱 Appareil : {device}\n🔑 Mot de passe de déverrouillage : {password}\n\nPour l'installer :\n1. Téléchargez le fichier joint ({device}.p12).\n2. Cliquez dessus pour lancer l'installation sur votre appareil.\n3. Entrez le mot de passe indiqué ci-dessus.\n\nUne fois installé, vous pourrez accéder en toute sécurité à https://vw.vicopetit.dedyn.io/ !\n""")
                 with open(dev_p12, 'rb') as f:
                     msg.add_attachment(f.read(), maintype='application', subtype='x-pkcs12', filename=f"{device}.p12")
-                with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+                with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=15) as server:
                     server.login(sender, sender_password)
                     server.send_message(msg)
                 email_sent = True
+                logger.info(f"Email avec certificat {device}.p12 envoyé avec succès à {email}")
             except Exception as e:
+                email_error = str(e)
                 logger.error(f"Erreur envoi email certificat: {e}")
+        else:
+            email_error = "Identifiants GMAIL_EMAIL / GMAIL_PASSWORD non trouvés dans l'environnement."
+            logger.warning(email_error)
 
     return {
         "success": True,
         "name": device,
         "download_url": f"/api/admin/certs/download/{device}",
         "email_sent": email_sent,
+        "email_error": email_error,
         "message": f"Certificat client pour {device} généré avec succès !"
     }
 
