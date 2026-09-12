@@ -368,65 +368,28 @@ export function Securite() {
   const isVicozWorld = selectedProxy.id === 'vw';
 
   const npmSnippet = isVicozWorld
-    ? `# ==============================================================================
-# VicozWorld mTLS - Authentification Matérielle + Accès Invité + Assets Frontend
-# ==============================================================================
-
-# 1. Vérification cryptographique des certificats clients matériels
+    ? `# Configuration VicozWorld (mTLS strict + Pass Invité OTP 2 min) :
 ssl_client_certificate /data/custom_ssl/ca.crt;
 ssl_verify_client optional;
 
-# 2. Logique de contrôle d'accès
-set $block_access 0;
+# Contrôle d'accès : Certificat valide, Pass Invité OTP, ou Cookie de session
+set $auth_ok 0;
+if ($ssl_client_verify = "SUCCESS") { set $auth_ok 1; }
+if ($arg_guest ~ "^[0-9]{6}$") { set $auth_ok 1; }
+if ($http_cookie ~* "vw_guest=|vicoz_guest_session=allowed") { set $auth_ok 1; }
 
-# Par défaut : si aucun certificat client valide n'est présenté, marquer pour blocage
-if ($ssl_client_verify != "SUCCESS") {
-    set $block_access 1;
-}
+# Autoriser les ressources graphiques, scripts et polices (évite 403 sur index.css/js)
+if ($request_uri ~* "^/assets/") { set $auth_ok 1; }
+if ($request_uri ~* "\\.(css|js|svg|png|jpg|jpeg|ico|woff2?|json)$") { set $auth_ok 1; }
 
-# EXCEPTION 1 : Accès Invité avec code OTP à 6 chiffres (?guest=XXXXXX)
-if ($arg_guest ~ "^[0-9]{6}$") {
-    set $block_access 0;
-}
+# Blocage des requêtes non authentifiées
+if ($auth_ok = 0) { return 403 "Acces refuse : Certificat client ou Code Invite requis."; }
 
-# EXCEPTION 2 : Accès Invité avec cookie de session actif
-if ($http_cookie ~* "vw_guest=|vicoz_guest_session=allowed") {
-    set $block_access 0;
-}
-
-# EXCEPTION 3 : Ressources statiques du frontend (CSS, JS, Fonts, Images)
-if ($request_uri ~* "^/assets/") {
-    set $block_access 0;
-}
-if ($request_uri ~* "\\.(css|js|svg|png|jpg|jpeg|ico|woff2?|json)$") {
-    set $block_access 0;
-}
-
-# EXCEPTION 4 : Endpoint de santé Docker / Healthcheck
-if ($request_uri ~* "^/api/health") {
-    set $block_access 0;
-}
-
-# Blocage des accès non autorisés
-if ($block_access = 1) {
-    return 403 "Acces refuse : Certificat client ou Code Invite requis.\\n";
-}
-
-# 3. Transmission des données d'identité du certificat mTLS au backend FastAPI
-location /api/ {
-    proxy_set_header X-Client-Cert-Status $ssl_client_verify;
-    proxy_set_header X-Client-Cert-DN $ssl_client_s_dn;
-    proxy_set_header X-Client-Cert-CN $ssl_client_s_dn_cn;
-    proxy_set_header X-Client-Cert-Serial $ssl_client_serial;
-
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_http_version 1.1;
-
-    proxy_pass $forward_scheme://$server:$port;
-}`
+# Transmission des en-têtes mTLS au frontend & backend
+proxy_set_header X-Client-Cert-Status $ssl_client_verify;
+proxy_set_header X-Client-Cert-DN $ssl_client_s_dn;
+proxy_set_header X-Client-Cert-CN $ssl_client_s_dn_cn;
+proxy_set_header X-Client-Cert-Serial $ssl_client_serial;`
     : `# Dans Nginx Proxy Manager > Éditer ${selectedProxy.domain} > Onglet "Advanced" :
 ssl_client_certificate /data/custom_ssl/ca.crt;
 ssl_verify_client on;`;
