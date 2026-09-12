@@ -54,6 +54,7 @@ export function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [bankBalances, setBankBalances] = useState(null);
+  const [battery, setBattery] = useState(null);
 
   const fetchBankBalances = async () => {
     try {
@@ -203,6 +204,29 @@ export function Home() {
         </div>
 
         <div className="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+          {battery && battery.percent !== undefined && (
+            <div 
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
+                battery.percent <= 20
+                  ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                  : battery.percent <= 40
+                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                  : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+              }`}
+              title={`Batterie du serveur : ${battery.percent}% - ${battery.plugged ? 'Branché sur secteur' : 'Sur batterie'}`}
+            >
+              {battery.plugged ? (
+                <BatteryCharging className="w-4 h-4 animate-pulse text-emerald-400" />
+              ) : (
+                <Battery className={`w-4 h-4 ${battery.percent <= 20 ? 'text-rose-400' : 'text-emerald-400'}`} />
+              )}
+              <div className="flex flex-col text-left leading-tight">
+                <span className="font-bold text-zinc-100">{battery.percent}%</span>
+                <span className="text-[9px] text-zinc-400">{battery.plugged ? 'Secteur' : 'Serveur'}</span>
+              </div>
+            </div>
+          )}
+
           {!isMaman && (
             <button
               onClick={() => fetchHubData(true)}
