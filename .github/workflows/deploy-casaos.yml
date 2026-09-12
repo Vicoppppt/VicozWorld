@@ -26,6 +26,20 @@ jobs:
           # 2. Se positionner dans le dossier officiel de l'application
           cd /DATA/AppData/VicozWorld
 
+          # 2.5 Sauvegarde de sécurité pré-déploiement de la base SQLite et de la config Woob
+          if [ -f "/DATA/AppData/VicozWorld/data/letterboxd/app.db" ]; then
+            echo "💾 Création d'un snapshot de sauvegarde SQLite avant mise à jour..."
+            mkdir -p /DATA/AppData/VicozWorld/data/backups
+            cp "/DATA/AppData/VicozWorld/data/letterboxd/app.db" "/DATA/AppData/VicozWorld/data/backups/pre_deploy_$(date +%Y%m%d_%H%M%S).db"
+            ls -t /DATA/AppData/VicozWorld/data/backups/pre_deploy_*.db 2>/dev/null | tail -n +11 | xargs -r rm -f
+          fi
+
+          if [ -d "/DATA/AppData/VicozWorld/data/letterboxd/woob-config" ]; then
+            mkdir -p /DATA/AppData/VicozWorld/data/backups
+            tar -czf "/DATA/AppData/VicozWorld/data/backups/woob_config_$(date +%Y%m%d_%H%M%S).tar.gz" -C /DATA/AppData/VicozWorld/data/letterboxd woob-config 2>/dev/null || true
+            ls -t /DATA/AppData/VicozWorld/data/backups/woob_config_*.tar.gz 2>/dev/null | tail -n +11 | xargs -r rm -f
+          fi
+
           # 3. Mettre à jour le code vers le dernier commit de main
           echo "⬇️  Récupération du dernier code depuis GitHub..."
           git fetch origin main
@@ -39,6 +53,16 @@ jobs:
           # 5. Reconstruire et relancer tous les services
           echo "🐳 Construction et démarrage des conteneurs via Docker Compose..."
           docker compose up -d --build --remove-orphans
+
+          # 5.5 Vérification de santé du backend
+          echo "🏥 Vérification de la disponibilité des services..."
+          for i in {1..15}; do
+            if docker exec letterboxd-backend curl -s http://localhost:8000/api/health >/dev/null 2>&1; then
+              echo "✅ Backend opérationnel et base de données connectée !"
+              break
+            fi
+            sleep 2
+          done
 
           # 6. Nettoyer les images inutilisées pour économiser l'espace disque
           echo "🧹 Nettoyage des anciennes images Docker..."

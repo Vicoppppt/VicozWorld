@@ -31,16 +31,73 @@ app = FastAPI(title="Letterboxd Local API", description="Micro-service local ave
 # Config DB SQLite
 DB_DIR = os.getenv("DATA_DIR", os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(DB_DIR, "app.db")
+BACKUP_DIR = os.path.join(DB_DIR, "backups")
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30.0)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA busy_timeout = 30000")
     return conn
+
+def secure_woob_permissions():
+    """Sécurise les permissions des fichiers Woob pour protéger les identifiants bancaires."""
+    possible_paths = [
+        os.path.expanduser("~/.config/woob"),
+        os.path.join(DB_DIR, "woob-config")
+    ]
+    for p in possible_paths:
+        if os.path.exists(p):
+            try:
+                os.chmod(p, 0o700)
+                backends_file = os.path.join(p, "backends")
+                if os.path.exists(backends_file):
+                    os.chmod(backends_file, 0o600)
+            except Exception as e:
+                logger.debug(f"Permissions non modifiables sur {p}: {e}")
+
+def create_db_backup(tag: str = "auto") -> Optional[str]:
+    """Effectue un snapshot à chaud (hot backup) transactionnel de la base SQLite."""
+    try:
+        if not os.path.exists(DB_PATH):
+            return None
+        os.makedirs(BACKUP_DIR, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_filename = f"app_{tag}_{timestamp}.db"
+        backup_filepath = os.path.join(BACKUP_DIR, backup_filename)
+        
+        source_conn = sqlite3.connect(DB_PATH, timeout=30.0)
+        dest_conn = sqlite3.connect(backup_filepath)
+        with dest_conn:
+            source_conn.backup(dest_conn)
+        dest_conn.close()
+        source_conn.close()
+        
+        # Rotation automatique : garder les 10 dernières sauvegardes
+        backups = sorted(
+            [os.path.join(BACKUP_DIR, f) for f in os.listdir(BACKUP_DIR) if f.endswith(".db")],
+            key=os.path.getmtime
+        )
+        while len(backups) > 10:
+            oldest = backups.pop(0)
+            try:
+                os.remove(oldest)
+                logger.info(f"Ancienne sauvegarde supprimée : {oldest}")
+            except Exception as e:
+                logger.warning(f"Impossible de supprimer {oldest}: {e}")
+                
+        logger.info(f"Sauvegarde SQLite créée avec succès : {backup_filename}")
+        return backup_filename
+    except Exception as e:
+        logger.error(f"Échec de la sauvegarde SQLite : {e}")
+        return None
 
 def init_db():
     os.makedirs(DB_DIR, exist_ok=True)
     conn = get_db()
     cursor = conn.cursor()
+    cursor.execute("PRAGMA journal_mode=WAL;")
+    cursor.execute("PRAGMA synchronous=NORMAL;")
+    cursor.execute("PRAGMA busy_timeout=30000;")
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS medias (
             id TEXT PRIMARY KEY,
@@ -94,10 +151,12 @@ def init_db():
         )
     """)
     # Insertion par défaut des paramètres s'ils n'existent pas
+    default_enedis_pdl = os.getenv("ENEDIS_PDL", "01139218434363")
+    default_enedis_token = os.getenv("ENEDIS_TOKEN", "6yAJ9dvdgamG8djiG3sMkoBHqQY0LoZ57eXkYtikVLc=")
     cursor.execute("""
         INSERT OR IGNORE INTO electricity_settings (id, pdl, token, kwh_price, subscription_price, target_monthly_budget)
-        VALUES (1, '01139218434363', '6yAJ9dvdgamG8djiG3sMkoBHqQY0LoZ57eXkYtikVLc=', 0.2516, 12.50, 60.00)
-    """)
+        VALUES (1, ?, ?, 0.2516, 12.50, 60.00)
+    """, (default_enedis_pdl, default_enedis_token))
     default_gemini = os.getenv("GEMINI_API_KEY", "")
     cursor.execute("""
         INSERT OR IGNORE INTO weather_settings (id, gemini_api_key, default_city, default_lat, default_lon)
@@ -105,6 +164,12 @@ def init_db():
     """, (default_gemini,))
     conn.commit()
     conn.close()
+
+    secure_woob_permissions()
+    try:
+        create_db_backup("startup")
+    except Exception as e:
+        logger.warning(f"Sauvegarde démarrage ignorée: {e}")
 
 init_db()
 
@@ -116,6 +181,51 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- ENDPOINTS HEALTH & MAINTENANCE ---
+@app.get("/api/health")
+def health_check():
+    """Vérification de santé de l'API et de la base de données SQLite."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        cursor.fetchone()
+        conn.close()
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "wal_mode": True,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Health check échoué: {e}")
+        raise HTTPException(status_code=503, detail=f"Base de données inaccessible: {str(e)}")
+
+@app.post("/api/admin/backup")
+def trigger_backup():
+    """Déclenche un snapshot de sauvegarde à chaud de la base de données."""
+    filename = create_db_backup("manual")
+    if not filename:
+        raise HTTPException(status_code=500, detail="Échec de la sauvegarde.")
+    return {"status": "ok", "backup_file": filename, "message": "Sauvegarde créée avec succès."}
+
+@app.get("/api/admin/backups")
+def list_backups():
+    """Liste les sauvegardes existantes."""
+    if not os.path.exists(BACKUP_DIR):
+        return {"backups": []}
+    files = []
+    for f in os.listdir(BACKUP_DIR):
+        if f.endswith(".db"):
+            fp = os.path.join(BACKUP_DIR, f)
+            files.append({
+                "filename": f,
+                "size_bytes": os.path.getsize(fp),
+                "modified": datetime.fromtimestamp(os.path.getmtime(fp)).isoformat()
+            })
+    files.sort(key=lambda x: x["modified"], reverse=True)
+    return {"backups": files}
 
 # --- ENDPOINTS BANQUE (WOOB) ---
 class AccountBalance(BaseModel):
@@ -395,7 +505,10 @@ def parse_firestore_value(val: dict):
 
 @app.get("/api/migrate-firebase")
 @app.post("/api/migrate-firebase")
-def migrate_from_firebase(api_key: str = "AIzaSyALd2LsLMklIs4nzhlqI_ySvfSuiSDxNa0", project_id: str = "vicozworld"):
+def migrate_from_firebase(
+    api_key: str = os.getenv("FIREBASE_API_KEY", "AIzaSyALd2LsLMklIs4nzhlqI_ySvfSuiSDxNa0"),
+    project_id: str = os.getenv("FIREBASE_PROJECT_ID", "vicozworld")
+):
     import urllib.request
     
     imported = {"medias": 0, "notes": 0, "genealogy": 0}
@@ -465,8 +578,8 @@ def get_electricity_config_db():
     if row:
         return dict(row)
     return {
-        "pdl": "01139218434363",
-        "token": "6yAJ9dvdgamG8djiG3sMkoBHqQY0LoZ57eXkYtikVLc=",
+        "pdl": os.getenv("ENEDIS_PDL", "01139218434363"),
+        "token": os.getenv("ENEDIS_TOKEN", "6yAJ9dvdgamG8djiG3sMkoBHqQY0LoZ57eXkYtikVLc="),
         "kwh_price": 0.2516,
         "subscription_price": 12.50,
         "target_monthly_budget": 60.00
