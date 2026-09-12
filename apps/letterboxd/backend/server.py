@@ -1457,7 +1457,7 @@ def get_hub_summary(force: Optional[bool] = False):
     gemini_key = cfg.get("gemini_api_key")
     
     hour = datetime.now().hour
-    greeting_prefix = "Bonsoir" if hour >= 18 else "Bonjour"
+    greeting_prefix = "Bonsoir Victor" if hour >= 18 else "Bonjour Victor"
 
     w_temp = (weather_data or {}).get("synthesis", {}).get("consensus_temp", 21)
     w_cond = (weather_data or {}).get("synthesis", {}).get("consensus_condition", "agréable")
@@ -1483,13 +1483,13 @@ Voici le point du jour :
 Rédige un message d'accueil exécutif très fluide de 2 phrases (élégant, chaleureux) et une phrase d'accroche pour le film.
 Réponds STRICTEMENT au format JSON :
 {{
-  "greeting": "{greeting_prefix} Victor",
+  "greeting": "{greeting_prefix}",
   "executive_summary": "texte de 2 phrases bien rédigées",
   "movie_pitch": "phrase d'accroche pour le film"
 }}"""
         parsed_exec = call_gemini_json_api(prompt, gemini_key)
         if parsed_exec:
-            greeting_prefix = parsed_exec.get("greeting", f"{greeting_prefix} Victor")
+            greeting_prefix = parsed_exec.get("greeting", greeting_prefix)
             executive_summary = parsed_exec.get("executive_summary", executive_summary)
             movie_pitch = parsed_exec.get("movie_pitch", movie_pitch)
 

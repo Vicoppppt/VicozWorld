@@ -171,7 +171,9 @@ export function Home() {
   const thisMonthElectricity = electricity?.this_month || {};
   const yesterdayElectricity = electricity?.yesterday || {};
 
-  const displayGreeting = isMaman ? "Bonjour Claire 👩‍🏫" : greeting;
+  const displayGreeting = isMaman
+    ? "Bonjour Claire 👩‍🏫"
+    : (greeting && greeting.includes("Victor") ? greeting : `${greeting || (new Date().getHours() >= 18 ? "Bonsoir" : "Bonjour")} Victor`);
   const batteryPercent = battery ? (battery.percentage ?? battery.percent) : null;
   const isBatteryPlugged = battery ? Boolean(battery.plugged_in ?? battery.plugged ?? false) : false;
 
@@ -184,21 +186,6 @@ export function Home() {
             <span>{capitalize(todayFormatted)}</span>
             <span>•</span>
             <span className="text-indigo-400">VicozWorld Hub</span>
-            {batteryPercent !== null && batteryPercent !== undefined && (
-              <>
-                <span>•</span>
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                  batteryPercent <= 20 
-                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' 
-                    : batteryPercent <= 40 
-                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' 
-                    : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                }`}>
-                  {isBatteryPlugged ? <BatteryCharging className="w-3 h-3 animate-pulse" /> : <Battery className="w-3 h-3" />}
-                  <span>{batteryPercent}% {isBatteryPlugged ? '(Secteur)' : 'Serveur'}</span>
-                </span>
-              </>
-            )}
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-100 tracking-tight mt-1">
             {displayGreeting}
@@ -703,84 +690,6 @@ export function Home() {
       </div>
       )}
 
-      {/* Raccourcis Rapides vers les autres modules (Quick Dock) - Uniquement pour Victor */}
-      {!isMaman && (
-        <div className="space-y-4 pt-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-              <span>Autres Espaces & Outils</span>
-            </h2>
-            <span className="text-[11px] text-zinc-500 font-medium">Accès direct</span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            <Link
-              to="/banque"
-              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-emerald-500/30 transition-all flex items-center gap-3 group"
-            >
-              <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:scale-110 transition-transform">
-                <Landmark className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-xs font-bold text-zinc-200 group-hover:text-emerald-400 transition-colors">Banque</div>
-                <div className="text-[10px] text-zinc-500">Comptes & Épargne</div>
-              </div>
-            </Link>
-
-            <Link
-              to="/genealogie"
-              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-indigo-500/30 transition-all flex items-center gap-3 group"
-            >
-              <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:scale-110 transition-transform">
-                <Network className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-xs font-bold text-zinc-200 group-hover:text-indigo-400 transition-colors">Généalogie</div>
-                <div className="text-[10px] text-zinc-500">Arbre familial</div>
-              </div>
-            </Link>
-
-            <Link
-              to="/notes"
-              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-amber-500/30 transition-all flex items-center gap-3 group"
-            >
-              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 group-hover:scale-110 transition-transform">
-                <FileText className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-xs font-bold text-zinc-200 group-hover:text-amber-400 transition-colors">Notes</div>
-                <div className="text-[10px] text-zinc-500">Carnet & Idées</div>
-              </div>
-            </Link>
-
-            <Link
-              to="/portfolio"
-              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-sky-500/30 transition-all flex items-center gap-3 group"
-            >
-              <div className="p-2 rounded-xl bg-sky-500/10 text-sky-400 group-hover:scale-110 transition-transform">
-                <Briefcase className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-xs font-bold text-zinc-200 group-hover:text-sky-400 transition-colors">Portfolio</div>
-                <div className="text-[10px] text-zinc-500">Projets & CV</div>
-              </div>
-            </Link>
-
-            <Link
-              to="/quiz"
-              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-pink-500/30 transition-all flex items-center gap-3 group"
-            >
-              <div className="p-2 rounded-xl bg-pink-500/10 text-pink-400 group-hover:scale-110 transition-transform">
-                <Gamepad2 className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-xs font-bold text-zinc-200 group-hover:text-pink-400 transition-colors">Quiz</div>
-                <div className="text-[10px] text-zinc-500">Défis Cinéma</div>
-              </div>
-            </Link>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
