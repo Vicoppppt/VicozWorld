@@ -23,7 +23,11 @@ import {
   Server,
   XCircle,
   ChevronRight,
-  Sliders
+  Sliders,
+  Plus,
+  X,
+  Shield,
+  ShieldAlert
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useProfile } from '../context/ProfileContext';
@@ -78,8 +82,13 @@ export function Securite() {
   const [guestCodeState, setGuestCodeState] = useState({ active: false, code: null, remaining_seconds: 0, guest_url: null });
   const [isGeneratingGuest, setIsGeneratingGuest] = useState(false);
 
-  // Services NPM configurables
-  const [selectedService, setSelectedService] = useState('dozzle');
+  // Proxies / Sous-domaines dynamiques
+  const [proxies, setProxies] = useState([]);
+  const [selectedProxyId, setSelectedProxyId] = useState('vw');
+  const [isAddingProxy, setIsAddingProxy] = useState(false);
+  const [newDomain, setNewDomain] = useState('');
+  const [newLabel, setNewLabel] = useState('');
+  const [isSavingProxy, setIsSavingProxy] = useState(false);
 
   const fetchCerts = async () => {
     try {
@@ -120,10 +129,26 @@ export function Securite() {
     }
   };
 
+  const fetchProxies = async () => {
+    try {
+      const res = await fetch('/api/admin/proxies');
+      if (res.ok) {
+        const data = await res.json();
+        const list = data.proxies || [];
+        setProxies(list);
+        if (!selectedProxyId && list.length > 0) {
+          setSelectedProxyId(list[0].id);
+        }
+      }
+    } catch (e) {
+      console.warn('Erreur récupération proxys:', e);
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
       setIsLoading(true);
-      await Promise.all([fetchCerts(), fetchLogs(), fetchGuestStatus()]);
+      await Promise.all([fetchCerts(), fetchLogs(), fetchGuestStatus(), fetchProxies()]);
       setIsLoading(false);
     };
     init();
@@ -249,6 +274,75 @@ export function Securite() {
     }
   };
 
+  // Gestion des proxies
+  const handleToggleProxy = async (proxyId) => {
+    try {
+      const res = await fetch(`/api/admin/proxies/${proxyId}/toggle`, { method: 'PUT' });
+      if (res.ok) {
+        toast.success("Statut de protection mis à jour !");
+        await fetchProxies();
+      } else {
+        toast.error("Erreur lors de la modification.");
+      }
+    } catch (e) {
+      toast.error("Erreur réseau.");
+    }
+  };
+
+  const handleAddProxy = async (e) => {
+    e.preventDefault();
+    if (!newDomain.trim()) {
+      toast.error("Veuillez renseigner le nom de domaine.");
+      return;
+    }
+    setIsSavingProxy(true);
+    try {
+      const res = await fetch('/api/admin/proxies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domain: newDomain.trim(),
+          label: newLabel.trim() || newDomain.trim()
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(`Hôte ${data.domain} ajouté avec succès !`);
+        setNewDomain('');
+        setNewLabel('');
+        setIsAddingProxy(false);
+        await fetchProxies();
+        setSelectedProxyId(data.id);
+      } else {
+        toast.error(data.detail || "Erreur lors de l'ajout.");
+      }
+    } catch (e) {
+      toast.error("Erreur réseau.");
+    } finally {
+      setIsSavingProxy(false);
+    }
+  };
+
+  const handleDeleteProxy = async (proxyId, domain) => {
+    if (proxyId === 'vw') {
+      toast.error("Impossible de supprimer le portail principal VicozWorld.");
+      return;
+    }
+    if (!window.confirm(`Supprimer ${domain} de la liste de gestion ?`)) return;
+    try {
+      const res = await fetch(`/api/admin/proxies/${proxyId}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success(`${domain} retiré.`);
+        await fetchProxies();
+        if (selectedProxyId === proxyId) {
+          setSelectedProxyId('vw');
+        }
+      }
+    } catch (e) {
+      toast.error("Erreur réseau.");
+    }
+  };
+
   // Sécurité renforcée : Si ce n'est pas Victor, bloquer la vue
   if (!isVictor) {
     return (
@@ -258,24 +352,40 @@ export function Securite() {
         </div>
         <h1 className="text-2xl font-bold text-white">Zone d'Administration Restreinte</h1>
         <p className="text-sm text-zinc-400">
-          Seuls les équipements certifiés de Victor ont les privilèges pour administrer les badges de sécurité et consulter les journaux d'audit.
+          Seuls les équipements certifiés de Victor ont les privilèges pour administrer les badges de sécurité, configurer les proxys et consulter les journaux d'audit.
         </p>
       </div>
     );
   }
 
-  // Snippets NPM pour les autres services
-  const NPM_SNIPPETS = {
-    dozzle: `# Dans NPM > dozzle.vicopetit.dedyn.io > Advanced :
-ssl_client_certificate /data/custom_ssl/ca.crt;
-ssl_verify_client on;`,
-    casa: `# Dans NPM > casa.vicopetit.dedyn.io > Advanced :
-ssl_client_certificate /data/custom_ssl/ca.crt;
-ssl_verify_client on;`,
-    ng: `# Dans NPM > ng.vicopetit.dedyn.io > Advanced :
-ssl_client_certificate /data/custom_ssl/ca.crt;
-ssl_verify_client on;`
+  const selectedProxy = proxies.find(p => p.id === selectedProxyId) || proxies[0] || {
+    id: 'vw',
+    domain: 'vw.vicopetit.dedyn.io',
+    label: 'VicozWorld',
+    is_protected: 1
   };
+
+  const isVicozWorld = selectedProxy.id === 'vw';
+
+  const npmSnippet = isVicozWorld
+    ? `# Configuration VicozWorld (mTLS strict + Pass Invité OTP 2 min) :
+ssl_client_certificate /data/custom_ssl/ca.crt;
+ssl_verify_client optional;
+
+set $auth_ok 0;
+if ($ssl_client_verify = "SUCCESS") { set $auth_ok 1; }
+if ($arg_guest ~ "^[0-9]{6}$") { set $auth_ok 1; }
+if ($http_cookie ~* "vw_guest=") { set $auth_ok 1; }
+
+if ($auth_ok = 0) { return 403 "Acces refuse : Certificat client ou Code Invite requis."; }
+
+proxy_set_header X-Client-Cert-Status $ssl_client_verify;
+proxy_set_header X-Client-Cert-DN $ssl_client_s_dn;
+proxy_set_header X-Client-Cert-CN $ssl_client_s_dn_cn;
+proxy_set_header X-Client-Cert-Serial $ssl_client_serial;`
+    : `# Dans Nginx Proxy Manager > Éditer ${selectedProxy.domain} > Onglet "Advanced" :
+ssl_client_certificate /data/custom_ssl/ca.crt;
+ssl_verify_client on;`;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -562,63 +672,182 @@ ssl_verify_client on;`
             )}
           </div>
 
-          {/* Gestion des autres proxys CasaOS (Dozzle, CasaOS, NPM) */}
+          {/* Gestion des Proxys & Services Nginx (Dozzle, CasaOS, Nouveaux hôtes NPM) */}
           <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6 backdrop-blur-sm shadow-xl space-y-4">
-            <div className="flex items-center gap-2">
-              <Sliders className="w-5 h-5 text-indigo-400" />
-              <h2 className="text-lg font-bold text-white">Sécurisation Multi-Services (CasaOS)</h2>
-            </div>
-            <p className="text-xs text-zinc-400">
-              Vos certificats fonctionnent pour <strong>TOUS</strong> vos sous-domaines configurés sur Nginx Proxy Manager. Vous pouvez appliquer la même sécurité mTLS à Dozzle ou CasaOS :
-            </p>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {[
-                { id: 'vw', name: 'vw.vicopetit...', desc: 'VicozWorld', status: 'Protégé 🔒', active: true },
-                { id: 'dozzle', name: 'dozzle.vicopetit...', desc: 'Logs Docker', status: 'À sécuriser', active: false },
-                { id: 'casa', name: 'casa.vicopetit...', desc: 'CasaOS', status: 'À sécuriser', active: false },
-                { id: 'ng', name: 'ng.vicopetit...', desc: 'Proxy Manager', status: 'À sécuriser', active: false }
-              ].map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => setSelectedService(s.id)}
-                  className={`p-3 rounded-xl border text-left transition-all ${
-                    selectedService === s.id 
-                      ? 'bg-zinc-800/90 border-cyan-500/50' 
-                      : 'bg-zinc-950/60 border-zinc-800 hover:border-zinc-700'
-                  }`}
-                >
-                  <div className="text-xs font-bold text-white truncate">{s.name}</div>
-                  <div className="text-[11px] text-zinc-400">{s.desc}</div>
-                  <div className={`text-[10px] font-semibold mt-1 ${s.active ? 'text-emerald-400' : 'text-amber-400'}`}>
-                    {s.status}
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {selectedService !== 'vw' && (
-              <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-zinc-300 font-medium">Règle NPM pour <code className="text-cyan-400">{selectedService}.vicopetit.dedyn.io</code> :</span>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(NPM_SNIPPETS[selectedService]);
-                      toast.success("Règle NPM copiée !");
-                    }}
-                    className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-semibold"
-                  >
-                    <Copy className="w-3 h-3" /> Copier le bloc
-                  </button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Sliders className="w-5 h-5 text-indigo-400" />
+                <div>
+                  <h2 className="text-lg font-bold text-white">Gestion Multi-Proxys & Hôtes Nginx</h2>
+                  <p className="text-xs text-zinc-400">
+                    Gérez et appliquez la restriction mTLS à vos sous-domaines configurés sur Nginx Proxy Manager.
+                  </p>
                 </div>
-                <pre className="text-[11px] font-mono bg-black/50 p-2.5 rounded-lg text-zinc-400 overflow-x-auto">
-                  {NPM_SNIPPETS[selectedService]}
-                </pre>
-                <p className="text-[11px] text-zinc-500">
-                  👉 Ouvrez NPM ➔ Éditez <strong>{selectedService}.vicopetit.dedyn.io</strong> ➔ Onglet <strong>Advanced</strong> ➔ Collez ce bloc ➔ Sauvegardez. Le service sera immédiatement réservé à vos appareils !
-                </p>
               </div>
-            )}
+
+              <button
+                onClick={() => setIsAddingProxy(!isAddingProxy)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600/20 border border-indigo-500/30 hover:bg-indigo-600/30 text-indigo-300 text-xs font-semibold transition-colors self-start sm:self-auto"
+              >
+                {isAddingProxy ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                {isAddingProxy ? 'Fermer' : 'Ajouter un hôte NPM'}
+              </button>
+            </div>
+
+            {/* Formulaire d'ajout rapide d'un hôte créé sur NPM */}
+            <AnimatePresence>
+              {isAddingProxy && (
+                <motion.form
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  onSubmit={handleAddProxy}
+                  className="p-4 rounded-xl bg-zinc-950 border border-indigo-500/30 space-y-3 overflow-hidden"
+                >
+                  <div className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
+                    <Server className="w-3.5 h-3.5" /> Enregistrer un nouveau Proxy Host Nginx
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] text-zinc-400 mb-1">
+                        Sous-domaine ou URL <span className="text-rose-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="ex: vaultwarden.vicopetit.dedyn.io"
+                        value={newDomain}
+                        onChange={(e) => setNewDomain(e.target.value)}
+                        className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-zinc-400 mb-1">
+                        Nom du service (libellé affiché)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="ex: Vaultwarden, Portainer, Plex"
+                        value={newLabel}
+                        onChange={(e) => setNewLabel(e.target.value)}
+                        className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingProxy(false)}
+                      className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSavingProxy}
+                      className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-indigo-600/20"
+                    >
+                      {isSavingProxy ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                      Enregistrer dans VicozWorld
+                    </button>
+                  </div>
+                </motion.form>
+              )}
+            </AnimatePresence>
+
+            {/* Grille des sous-domaines configurés */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+              {proxies.map(p => {
+                const isSelected = selectedProxyId === p.id;
+                const isProt = p.is_protected === 1;
+
+                return (
+                  <div
+                    key={p.id}
+                    onClick={() => setSelectedProxyId(p.id)}
+                    className={`p-3.5 rounded-xl border text-left cursor-pointer transition-all flex flex-col justify-between space-y-2 relative ${
+                      isSelected 
+                        ? 'bg-zinc-800/90 border-cyan-500 shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-500/30' 
+                        : 'bg-zinc-950/60 border-zinc-800 hover:border-zinc-700'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-1">
+                        <span className="text-xs font-bold text-white truncate max-w-[130px]" title={p.domain}>
+                          {p.label || p.domain}
+                        </span>
+                        {p.id !== 'vw' && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteProxy(p.id, p.domain);
+                            }}
+                            className="p-1 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded"
+                            title="Supprimer ce service"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-zinc-400 truncate mt-0.5" title={p.domain}>
+                        {p.domain}
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between">
+                      <span className={`text-[10px] font-semibold flex items-center gap-1 ${isProt ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        {isProt ? <Shield className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
+                        {isProt ? 'Protégé 🔒' : 'À sécuriser ⚠️'}
+                      </span>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleProxy(p.id);
+                        }}
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors ${
+                          isProt
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-amber-500/20 hover:border-amber-500/40 hover:text-amber-300'
+                            : 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-emerald-500/20 hover:border-emerald-500/40 hover:text-emerald-300'
+                        }`}
+                        title={isProt ? "Passer en accès libre" : "Activer le statut protégé"}
+                      >
+                        {isProt ? 'Désactiver' : 'Activer'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Snippet dynamique pour le service sélectionné */}
+            <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <span className="text-zinc-300 font-medium">
+                  Règle NPM pour <code className="text-cyan-400 font-semibold">{selectedProxy.domain}</code> :
+                </span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(npmSnippet);
+                    toast.success("Règle NPM copiée dans le presse-papier !");
+                  }}
+                  className="flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 font-semibold self-start sm:self-auto"
+                >
+                  <Copy className="w-3.5 h-3.5" /> Copier le bloc
+                </button>
+              </div>
+
+              <pre className="text-[11px] font-mono bg-black/60 p-3 rounded-lg text-zinc-300 overflow-x-auto border border-zinc-800/80 leading-relaxed">
+                {npmSnippet}
+              </pre>
+
+              <p className="text-[11px] text-zinc-400">
+                👉 Ouvrez <strong>Nginx Proxy Manager</strong> ➔ Éditez <strong>{selectedProxy.domain}</strong> ➔ Onglet <strong>Advanced</strong> ➔ Collez ce bloc ➔ Sauvegardez.
+                {isVicozWorld 
+                  ? " Ce bloc active mTLS sur VicozWorld et transmet les identités aux journaux d'audit." 
+                  : " Seuls les équipements physiques possédant un badge (.p12) installé pourront ouvrir ce service !"}
+              </p>
+            </div>
           </div>
 
           {/* Journal d'Audit des Connexions avec COULEURS PAR APPAREIL */}

@@ -166,6 +166,23 @@ def init_db():
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS managed_proxies (
+            id TEXT PRIMARY KEY,
+            domain TEXT NOT NULL,
+            label TEXT NOT NULL,
+            is_protected INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        INSERT OR IGNORE INTO managed_proxies (id, domain, label, is_protected)
+        VALUES 
+        ('vw', 'vw.vicopetit.dedyn.io', 'VicozWorld', 1),
+        ('dozzle', 'dozzle.vicopetit.dedyn.io', 'Logs Docker', 0),
+        ('casa', 'casa.vicopetit.dedyn.io', 'CasaOS', 0),
+        ('ng', 'ng.vicopetit.dedyn.io', 'Proxy Manager', 0)
+    """)
     # Insertion par défaut des paramètres s'ils n'existent pas
     default_enedis_pdl = os.getenv("ENEDIS_PDL", "01139218434363")
     default_enedis_token = os.getenv("ENEDIS_TOKEN", "6yAJ9dvdgamG8djiG3sMkoBHqQY0LoZ57eXkYtikVLc=")
@@ -602,6 +619,65 @@ def delete_certificate(device_name: str, request: Request):
         shutil.rmtree(device_dir, ignore_errors=True)
         return {"success": True, "message": f"Certificat {device} supprimé."}
     raise HTTPException(status_code=404, detail="Appareil introuvable.")
+
+# --- ENDPOINTS GESTION DES PROXYS & SÉCURITÉ MULTI-SERVICES ---
+class ProxyCreateRequest(BaseModel):
+    domain: str
+    label: str
+
+@app.get("/api/admin/proxies")
+def list_proxies(request: Request):
+    """Liste tous les sous-domaines et proxys gérés avec leur état de protection."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, domain, label, is_protected, created_at FROM managed_proxies ORDER BY created_at ASC")
+    rows = cursor.fetchall()
+    conn.close()
+    return {"proxies": [dict(r) for r in rows]}
+
+@app.post("/api/admin/proxies")
+def add_proxy(payload: ProxyCreateRequest, request: Request):
+    """Ajoute un nouveau sous-domaine/proxy à la liste de surveillance."""
+    verify_victor_admin(request)
+    domain = payload.domain.strip().lower().replace("https://", "").replace("http://", "").rstrip("/")
+    label = payload.label.strip() or domain
+    if not domain:
+        raise HTTPException(status_code=400, detail="Nom de domaine requis.")
+    proxy_id = domain.replace(".", "-")
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO managed_proxies (id, domain, label, is_protected)
+        VALUES (?, ?, ?, 0)
+        ON CONFLICT(id) DO UPDATE SET domain=excluded.domain, label=excluded.label
+    """, (proxy_id, domain, label))
+    conn.commit()
+    conn.close()
+    return {"success": True, "id": proxy_id, "domain": domain, "label": label}
+
+@app.put("/api/admin/proxies/{proxy_id}/toggle")
+def toggle_proxy(proxy_id: str, request: Request):
+    """Bascule l'état protégé / non protégé d'un proxy."""
+    verify_victor_admin(request)
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE managed_proxies SET is_protected = CASE WHEN is_protected = 1 THEN 0 ELSE 1 END WHERE id = ?", (proxy_id,))
+    conn.commit()
+    conn.close()
+    return {"success": True}
+
+@app.delete("/api/admin/proxies/{proxy_id}")
+def delete_proxy(proxy_id: str, request: Request):
+    """Supprime un proxy de la liste de surveillance."""
+    verify_victor_admin(request)
+    if proxy_id == "vw":
+        raise HTTPException(status_code=400, detail="Impossible de supprimer VicozWorld.")
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM managed_proxies WHERE id = ?", (proxy_id,))
+    conn.commit()
+    conn.close()
+    return {"success": True}
 
 # --- ENDPOINTS BANQUE (WOOB) ---
 class AccountBalance(BaseModel):
