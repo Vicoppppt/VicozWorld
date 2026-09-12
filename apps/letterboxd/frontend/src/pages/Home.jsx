@@ -30,7 +30,20 @@ import {
   AlertTriangle,
   Star,
   Flame,
-  Radio
+  Radio,
+  Battery,
+  BatteryCharging,
+  Wrench,
+  PenTool,
+  FileSpreadsheet,
+  Layers,
+  Mail,
+  Server,
+  ExternalLink,
+  User,
+  Check,
+  SlidersHorizontal,
+  GraduationCap
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -38,6 +51,28 @@ export function Home() {
   const [hubData, setHubData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [battery, setBattery] = useState(null);
+  const [activeProfile, setActiveProfile] = useState(() => {
+    return localStorage.getItem('vicoz_active_profile') || 'victor';
+  });
+
+  const fetchBattery = async () => {
+    try {
+      const res = await fetch('/api/hub/battery');
+      if (res.ok) {
+        const data = await res.json();
+        setBattery(data);
+      }
+    } catch (e) {
+      console.warn('Erreur récupération batterie:', e);
+    }
+  };
+
+  const switchProfile = (profile) => {
+    setActiveProfile(profile);
+    localStorage.setItem('vicoz_active_profile', profile);
+    toast.success(`Profil activé : ${profile === 'claire' ? 'Maman (Claire)' : 'Victor'}`);
+  };
 
   const fetchHubData = async (force = false) => {
     if (force) setIsRefreshing(true);
@@ -58,6 +93,9 @@ export function Home() {
 
   useEffect(() => {
     fetchHubData(false);
+    fetchBattery();
+    const timer = setInterval(fetchBattery, 30000);
+    return () => clearInterval(timer);
   }, []);
 
   const renderWeatherIcon = (iconName, className = "w-6 h-6") => {
@@ -110,29 +148,76 @@ export function Home() {
   const thisMonthElectricity = electricity?.this_month || {};
   const yesterdayElectricity = electricity?.yesterday || {};
 
+  const isMaman = activeProfile === 'claire';
+  const displayGreeting = isMaman ? "Bonjour Claire 👩‍🏫" : greeting;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
-      {/* Header & Date */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header, Profils & Batterie */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
             <span>{capitalize(todayFormatted)}</span>
             <span>•</span>
-            <span className="text-cyan-400">VicozWorld Hub</span>
+            <span className="text-indigo-400">VicozWorld Hub</span>
+            {battery && battery.percent !== undefined && (
+              <>
+                <span>•</span>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                  battery.percent <= 20 
+                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' 
+                    : battery.percent <= 40 
+                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' 
+                    : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                }`}>
+                  {battery.plugged ? <BatteryCharging className="w-3 h-3 animate-pulse" /> : <Battery className="w-3 h-3" />}
+                  <span>{battery.percent}% {battery.plugged ? '(Secteur)' : 'Serveur'}</span>
+                </span>
+              </>
+            )}
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-100 tracking-tight mt-1">
-            {greeting}
+            {displayGreeting}
           </h1>
         </div>
 
-        <button
-          onClick={() => fetchHubData(true)}
-          disabled={isRefreshing || isLoading}
-          className="flex items-center gap-2 px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-2xl text-xs font-semibold text-zinc-200 transition-all shadow-md self-start sm:self-auto disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 text-cyan-400 ${isRefreshing ? 'animate-spin' : ''}`} />
-          <span>{isRefreshing ? 'Actualisation IA...' : 'Actualiser le Hub'}</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+          {/* Sélecteur de Profils Compact */}
+          <div className="flex items-center bg-zinc-900/80 p-1 rounded-2xl border border-zinc-800 shadow-sm">
+            <button
+              onClick={() => switchProfile('victor')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                !isMaman 
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' 
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              <span>🚀</span>
+              <span>Victor</span>
+            </button>
+            <button
+              onClick={() => switchProfile('claire')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                isMaman 
+                  ? 'bg-pink-600 text-white shadow-md shadow-pink-600/30' 
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              <span>👩‍🏫</span>
+              <span>Maman</span>
+            </button>
+          </div>
+
+          <button
+            onClick={() => fetchHubData(true)}
+            disabled={isRefreshing || isLoading}
+            className="flex items-center gap-2 px-3.5 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-2xl text-xs font-semibold text-zinc-200 transition-all shadow-md disabled:opacity-50"
+            title="Actualiser le résumé Gemini"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Génération...' : 'Actualiser'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Briefing Exécutif Personnel (Gemini 2.5 Flash) */}
@@ -455,38 +540,246 @@ export function Home() {
 
       </div>
 
+      {/* 🛠️ BOÎTE À OUTILS WEB & IA (MIGRÉS DU HUB) */}
+      <div className="space-y-4 pt-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+              <Wrench className="w-4 h-4" />
+            </div>
+            <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-300">
+              Boîte à Outils & Utilitaires Web
+            </h2>
+          </div>
+          <span className="text-[11px] text-zinc-500 font-medium">100% Locaux & Navigateur</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Correcteur de rédactions IA */}
+          <a
+            href="/tools/correcteur_redaction.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-5 rounded-3xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-indigo-500/40 transition-all flex flex-col justify-between space-y-4 group shadow-lg"
+          >
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 group-hover:scale-105 transition-transform">
+                  <PenTool className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-cyan-400" /> Gemini IA
+                </span>
+              </div>
+              <h3 className="text-sm font-bold text-zinc-100 group-hover:text-indigo-300 transition-colors">
+                Correcteur Rédactions
+              </h3>
+              <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                Évalue les copies collège selon critères précis, barème, grille et avis pédagogique.
+              </p>
+            </div>
+            <div className="flex items-center justify-between text-xs font-semibold text-indigo-400 pt-2 border-t border-zinc-800/80">
+              <span>Corriger une copie</span>
+              <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </a>
+
+          {/* OCR & Extraction de texte */}
+          <a
+            href="/tools/extracteur_texte.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-5 rounded-3xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-purple-500/40 transition-all flex flex-col justify-between space-y-4 group shadow-lg"
+          >
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="p-2.5 rounded-2xl bg-purple-500/10 text-purple-400 border border-purple-500/20 group-hover:scale-105 transition-transform">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
+                  OCR Local
+                </span>
+              </div>
+              <h3 className="text-sm font-bold text-zinc-100 group-hover:text-purple-300 transition-colors">
+                OCR & Extraction Texte
+              </h3>
+              <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                Extrait le texte des PDF et photos (ou collage Ctrl+V) et nettoie accents et coupures.
+              </p>
+            </div>
+            <div className="flex items-center justify-between text-xs font-semibold text-purple-400 pt-2 border-t border-zinc-800/80">
+              <span>Extraire du texte</span>
+              <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </a>
+
+          {/* Éditeur & Compresseur PDF */}
+          <a
+            href="/tools/editeur_pdf.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-5 rounded-3xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-amber-500/40 transition-all flex flex-col justify-between space-y-4 group shadow-lg"
+          >
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 group-hover:scale-105 transition-transform">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                  100% Client
+                </span>
+              </div>
+              <h3 className="text-sm font-bold text-zinc-100 group-hover:text-amber-300 transition-colors">
+                Éditeur & Fusion PDF
+              </h3>
+              <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                Pivotez, réorganisez, supprimez des pages, fusionnez et compressez vos fichiers PDF en toute sécurité.
+              </p>
+            </div>
+            <div className="flex items-center justify-between text-xs font-semibold text-amber-400 pt-2 border-t border-zinc-800/80">
+              <span>Modifier un PDF</span>
+              <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </a>
+
+          {/* Convertisseur PDF vers Excel */}
+          <a
+            href="/tools/convertisseur_excel.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-5 rounded-3xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-4 group shadow-lg"
+          >
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:scale-105 transition-transform">
+                  <FileSpreadsheet className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  Pronote & Tableaux
+                </span>
+              </div>
+              <h3 className="text-sm font-bold text-zinc-100 group-hover:text-emerald-300 transition-colors">
+                PDF ➔ Tableur Excel
+              </h3>
+              <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                Convertit instantanément grilles d'élèves et tableaux PDF en feuilles de calcul Excel (.xlsx).
+              </p>
+            </div>
+            <div className="flex items-center justify-between text-xs font-semibold text-emerald-400 pt-2 border-t border-zinc-800/80">
+              <span>Convertir en XLSX</span>
+              <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </a>
+        </div>
+      </div>
+
+      {/* 🚀 SERVICES & ACCÈS SYSTÈME (Accessible par Victor) */}
+      {!isMaman && (
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                <Server className="w-4 h-4" />
+              </div>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-300">
+                Services & Serveur Docker
+              </h2>
+            </div>
+            <span className="text-[11px] text-zinc-500 font-medium">Conteneurs Locaux</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* CasaOS Dashboard */}
+            <a
+              href={`http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:80`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-5 rounded-3xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-blue-500/40 transition-all flex items-center justify-between group shadow-lg"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20 group-hover:scale-105 transition-transform text-2xl">
+                  🏠
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-zinc-100 group-hover:text-blue-400 transition-colors">
+                      CasaOS Dashboard
+                    </h3>
+                    <span className="text-[10px] text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-full">Port 80</span>
+                  </div>
+                  <p className="text-xs text-zinc-400 mt-1">
+                    Gestion du serveur, stockage, fichiers et conteneurs Docker.
+                  </p>
+                </div>
+              </div>
+              <ExternalLink className="w-4 h-4 text-zinc-500 group-hover:text-blue-400 transition-colors shrink-0 ml-2" />
+            </a>
+
+            {/* Gmail Assistant IA */}
+            <a
+              href={`http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:8501`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-5 rounded-3xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-red-500/40 transition-all flex items-center justify-between group shadow-lg"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-2xl bg-red-500/10 text-red-400 border border-red-500/20 group-hover:scale-105 transition-transform text-2xl">
+                  📧
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-zinc-100 group-hover:text-red-400 transition-colors">
+                      Gmail Assistant IA
+                    </h3>
+                    <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">Port 8501</span>
+                  </div>
+                  <p className="text-xs text-zinc-400 mt-1">
+                    Nettoyage intelligent de boîte mail, tri et classification automatique Gemini.
+                  </p>
+                </div>
+              </div>
+              <ExternalLink className="w-4 h-4 text-zinc-500 group-hover:text-red-400 transition-colors shrink-0 ml-2" />
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* Raccourcis Rapides vers les autres modules (Quick Dock) */}
       <div className="space-y-4 pt-4">
         <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-          <span>Autres Espaces & Outils</span>
+          <span>{isMaman ? "Espaces Recommandés" : "Autres Espaces & Outils"}</span>
         </h2>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          <Link
-            to="/banque"
-            className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-emerald-500/30 transition-all flex items-center gap-3 group"
-          >
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:scale-110 transition-transform">
-              <Landmark className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="text-xs font-bold text-zinc-200 group-hover:text-emerald-400 transition-colors">Banque</div>
-              <div className="text-[10px] text-zinc-500">Comptes & Épargne</div>
-            </div>
-          </Link>
+          {!isMaman && (
+            <Link
+              to="/banque"
+              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-emerald-500/30 transition-all flex items-center gap-3 group"
+            >
+              <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:scale-110 transition-transform">
+                <Landmark className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-zinc-200 group-hover:text-emerald-400 transition-colors">Banque</div>
+                <div className="text-[10px] text-zinc-500">Comptes & Épargne</div>
+              </div>
+            </Link>
+          )}
 
-          <Link
-            to="/genealogie"
-            className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-indigo-500/30 transition-all flex items-center gap-3 group"
-          >
-            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:scale-110 transition-transform">
-              <Network className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="text-xs font-bold text-zinc-200 group-hover:text-indigo-400 transition-colors">Généalogie</div>
-              <div className="text-[10px] text-zinc-500">Arbre familial</div>
-            </div>
-          </Link>
+          {!isMaman && (
+            <Link
+              to="/genealogie"
+              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-indigo-500/30 transition-all flex items-center gap-3 group"
+            >
+              <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:scale-110 transition-transform">
+                <Network className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-zinc-200 group-hover:text-indigo-400 transition-colors">Généalogie</div>
+                <div className="text-[10px] text-zinc-500">Arbre familial</div>
+              </div>
+            </Link>
+          )}
 
           <Link
             to="/notes"
@@ -501,18 +794,20 @@ export function Home() {
             </div>
           </Link>
 
-          <Link
-            to="/portfolio"
-            className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-sky-500/30 transition-all flex items-center gap-3 group"
-          >
-            <div className="p-2 rounded-xl bg-sky-500/10 text-sky-400 group-hover:scale-110 transition-transform">
-              <Briefcase className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="text-xs font-bold text-zinc-200 group-hover:text-sky-400 transition-colors">Portfolio</div>
-              <div className="text-[10px] text-zinc-500">Projets & CV</div>
-            </div>
-          </Link>
+          {!isMaman && (
+            <Link
+              to="/portfolio"
+              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-sky-500/30 transition-all flex items-center gap-3 group"
+            >
+              <div className="p-2 rounded-xl bg-sky-500/10 text-sky-400 group-hover:scale-110 transition-transform">
+                <Briefcase className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-zinc-200 group-hover:text-sky-400 transition-colors">Portfolio</div>
+                <div className="text-[10px] text-zinc-500">Projets & CV</div>
+              </div>
+            </Link>
+          )}
 
           <Link
             to="/quiz"
@@ -526,6 +821,21 @@ export function Home() {
               <div className="text-[10px] text-zinc-500">Défis Cinéma</div>
             </div>
           </Link>
+
+          {isMaman && (
+            <Link
+              to="/cinematheque"
+              className="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/60 border border-zinc-800/80 hover:border-purple-500/30 transition-all flex items-center gap-3 group"
+            >
+              <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform">
+                <Film className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-zinc-200 group-hover:text-purple-400 transition-colors">Cinémathèque</div>
+                <div className="text-[10px] text-zinc-500">Films & Séries</div>
+              </div>
+            </Link>
+          )}
         </div>
       </div>
     </div>

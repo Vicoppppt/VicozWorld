@@ -95,7 +95,7 @@ x-casaos:
     - amd64
     - arm64
     - arm
-  main: hub
+  main: letterboxd-frontend
   author: Victor
   category: Personal
   description:
@@ -111,5 +111,5 @@ x-casaos:
     en_us: "VicozWorld"
     fr_fr: "VicozWorld"
   index: /
-  port_map: "8085"
+  port_map: "3000"
   scheme: http

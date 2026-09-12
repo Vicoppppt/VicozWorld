@@ -38,10 +38,10 @@ Cette suite regroupe l'ensemble des applications personnelles et outils auto-hé
 
 | Service | Port | Technologie | Description |
 | :--- | :--- | :--- | :--- |
-| **`hub`** | **`8085`** | Nginx | Portail central d'accueil & Outils (Correcteur de Rédactions IA, Éditeur PDF, OCR Texte, Tableur Excel) |
-| **`letterboxd-frontend`** | **`3000`** | React / Nginx | Interface Mon Letterboxd |
-| **`letterboxd-backend`** | **`8000`** | FastAPI | API backend Letterboxd & Banque |
-| **`gmail-assistant`** | **`8501`** | Streamlit | Assistant IA de tri et classification Gmail |
+| **`vicozworld-hub`** (`letterboxd-frontend`) | **`3000`** | React 19 / Vite / Nginx | **Hub Central Unifié VicozWorld** (Tableau de bord IA, Météo, Linky, Cinéma, Outils Web & Profils) |
+| **`letterboxd-backend`** | **`8000`** | FastAPI / SQLite / Woob | API backend VicozWorld, synchronisation bancaire & batterie système |
+| **`gmail-assistant`** | **`8501`** | Streamlit / Gemini IA | Assistant IA de tri et classification automatique Gmail |
+| **`hub`** *(optionnel / legacy)* | **`8085`** | Nginx | Ancien portail d'accueil statique |
 
 ---
 
@@ -59,9 +59,9 @@ docker compose up -d --build
 ```
 
 ### 3. Accès aux applications
-- **Portail d'accueil** : [http://localhost:8085](http://localhost:8085)
-- **Mon Letterboxd** : [http://localhost:3000](http://localhost:3000)
+- **Hub Central VicozWorld (Portail Unifié)** : [http://localhost:3000](http://localhost:3000)
 - **Assistant Gmail IA** : [http://localhost:8501](http://localhost:8501)
+- **CasaOS Dashboard** : [http://localhost](http://localhost)
 
 ---
 

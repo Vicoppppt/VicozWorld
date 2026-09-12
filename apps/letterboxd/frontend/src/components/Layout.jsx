@@ -13,7 +13,12 @@ import {
   CloudSun,
   ChevronDown,
   LayoutGrid,
-  ExternalLink
+  ExternalLink,
+  Wrench,
+  PenTool,
+  FileSpreadsheet,
+  Layers,
+  Sparkles
 } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
@@ -33,6 +38,13 @@ export function Layout({ children }) {
     { name: "Énergie & EDF", desc: "Suivi Tempo & consommation", path: "/energie", icon: Zap },
     { name: "Carnet de Notes", desc: "Notes & pense-bêtes Markdown", path: "/notes", icon: FileText },
     { name: "Généalogie", desc: "Arbre généalogique & GEDCOM", path: "/genealogie", icon: Network },
+  ];
+
+  const toolsItems = [
+    { name: "Correcteur Rédactions", desc: "IA Gemini & Barème Français", href: "/tools/correcteur_redaction.html", icon: PenTool },
+    { name: "OCR & Extraction", desc: "PDF & Images vers Texte", href: "/tools/extracteur_texte.html", icon: FileText },
+    { name: "Éditeur & Fusion PDF", desc: "Organiser & compresser PDF", href: "/tools/editeur_pdf.html", icon: Layers },
+    { name: "PDF ➔ Tableur Excel", desc: "Conversion XLSX Pronote", href: "/tools/convertisseur_excel.html", icon: FileSpreadsheet },
   ];
 
   const infoItems = [
@@ -188,6 +200,45 @@ export function Layout({ children }) {
                 )}
               </div>
 
+              {/* 🛠️ Boîte à Outils (Dropdown) */}
+              <div className="relative">
+                <button
+                  onClick={() => toggleMenu("tools")}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-medium transition-all ${
+                    openMenu === "tools"
+                      ? "bg-zinc-800 text-white shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/40"
+                  }`}
+                >
+                  <Wrench className="w-4 h-4 text-cyan-400" />
+                  <span>Outils Web</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openMenu === "tools" ? "rotate-180" : ""}`} />
+                </button>
+
+                {openMenu === "tools" && (
+                  <div className="absolute top-full left-0 mt-2 w-72 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                    {toolsItems.map((item) => (
+                      <a
+                        key={item.name}
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-start gap-3 p-2.5 rounded-xl text-zinc-300 hover:bg-zinc-800/50 hover:text-white transition-all group"
+                      >
+                        <item.icon className="w-4 h-4 text-cyan-400 mt-0.5 group-hover:scale-110 transition-transform" />
+                        <div className="flex-1">
+                          <div className="text-xs font-semibold flex items-center justify-between">
+                            <span>{item.name}</span>
+                            <ExternalLink className="w-3 h-3 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                          <div className="text-[11px] text-zinc-400">{item.desc}</div>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* 📰 Infos & Météo (Dropdown) */}
               <div className="relative">
                 <button
@@ -228,16 +279,12 @@ export function Layout({ children }) {
 
             </div>
 
-            {/* Hub Central Shortcut Button */}
+            {/* Quick Status / Brand Badge */}
             <div className="flex items-center gap-2">
-              <a
-                href={hubUrl}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white text-xs font-medium transition-all shadow-sm group"
-                title="Retourner au Hub d'accueil central (Port 8085)"
-              >
-                <LayoutGrid className="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
-                <span className="hidden sm:inline">Hub Principal</span>
-              </a>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800/80 text-zinc-400 text-xs font-medium">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="hidden sm:inline">Hub Central Actif</span>
+              </div>
             </div>
 
           </div>
@@ -283,13 +330,15 @@ export function Layout({ children }) {
             <span className="text-[10px]">Perso</span>
           </Link>
 
-          <a
-            href={hubUrl}
-            className="flex flex-col items-center justify-center py-2 text-zinc-400 hover:text-indigo-300 transition-colors"
+          <Link
+            to="/actualites"
+            className={`flex flex-col items-center justify-center py-2 transition-colors ${
+              isInfoActive ? "text-amber-400 font-semibold" : "text-zinc-400"
+            }`}
           >
-            <LayoutGrid className="w-5 h-5 mb-1 text-indigo-400" />
-            <span className="text-[10px]">Hub</span>
-          </a>
+            <Newspaper className="w-5 h-5 mb-1" />
+            <span className="text-[10px]">Actualités</span>
+          </Link>
 
         </div>
       </nav>
