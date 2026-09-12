@@ -28,13 +28,15 @@ export function FilterBar({ activeType, setActiveType, activeStatus, setActiveSt
               </div>
             )}
 
-            <button
-              onClick={onAddClick}
-              className="flex items-center gap-1.5 bg-indigo-600 active:bg-indigo-500 text-white px-3 py-2 rounded-xl font-semibold text-xs transition-all shadow-md shadow-indigo-500/20 shrink-0 min-h-[40px]"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Ajouter</span>
-            </button>
+            {onAddClick && (
+              <button
+                onClick={onAddClick}
+                className="flex items-center gap-1.5 bg-indigo-600 active:bg-indigo-500 text-white px-3 py-2 rounded-xl font-semibold text-xs transition-all shadow-md shadow-indigo-500/20 shrink-0 min-h-[40px]"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Ajouter</span>
+              </button>
+            )}
           </div>
 
           {/* Row 2: Category & Status Pills (Horizontal Scroll) */}
@@ -129,13 +131,15 @@ export function FilterBar({ activeType, setActiveType, activeStatus, setActiveSt
                 <span className="text-sm font-bold text-indigo-400">{watchTime}</span>
               </div>
             )}
-            <button
-              onClick={onAddClick}
-              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 active:translate-y-0"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Ajouter</span>
-            </button>
+            {onAddClick && (
+              <button
+                onClick={onAddClick}
+                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Ajouter</span>
+              </button>
+            )}
           </div>
           
         </div>

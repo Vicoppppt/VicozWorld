@@ -9,10 +9,10 @@ import { MediaDetailsModal } from '../components/MediaDetailsModal';
 import { EditMediaModal } from '../components/EditMediaModal';
 import { PersonFilmographyModal } from '../components/PersonFilmographyModal';
 import { getMediaDetails, getTvSeason, searchPersons, getImageUrl } from '../api/tmdb';
-
-
+import { useProfile } from '../context/ProfileContext';
 
 export function Cinematheque() {
+  const { isGuest } = useProfile();
   const [mediaList, setMediaList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -179,6 +179,10 @@ export function Cinematheque() {
   }, [filteredMedia]);
 
   const handleAddMedia = async (newMedia) => {
+    if (isGuest) {
+      toast.error("Action réservée aux profils autorisés (Lecture seule en mode Invité).");
+      return;
+    }
     const exists = mediaList.some(m => 
       (newMedia.tmdbId && m.tmdbId === newMedia.tmdbId) || 
       (!newMedia.tmdbId && m.title.toLowerCase() === newMedia.title.toLowerCase() && m.type === newMedia.type)
@@ -207,6 +211,10 @@ export function Cinematheque() {
   };
 
   const handleQuickAddWatchlist = async (tmdbMedia) => {
+    if (isGuest) {
+      toast.error("Action réservée aux profils autorisés (Lecture seule en mode Invité).");
+      return;
+    }
     const exists = mediaList.some(m => m.tmdbId === tmdbMedia.id);
     if (exists) {
       toast.error("Déjà dans votre journal !");
@@ -245,6 +253,10 @@ export function Cinematheque() {
   };
 
   const handleEditMedia = async (updatedMedia) => {
+    if (isGuest) {
+      toast.error("Action réservée aux profils autorisés (Lecture seule en mode Invité).");
+      return;
+    }
     try {
       await saveMedia(updatedMedia);
       setMediaList(prev => prev.map(m => m.id === updatedMedia.id ? updatedMedia : m));
@@ -256,6 +268,10 @@ export function Cinematheque() {
   };
 
   const handleDeleteMedia = async (id) => {
+    if (isGuest) {
+      toast.error("Action réservée aux profils autorisés (Lecture seule en mode Invité).");
+      return;
+    }
     try {
       await deleteMedia(id);
       setMediaList(prev => prev.filter(m => m.id !== id));
@@ -279,7 +295,7 @@ export function Cinematheque() {
           setSearchQuery={setSearchQuery}
           count={filteredMedia.length}
           watchTime={watchTime}
-          onAddClick={() => setIsModalOpen(true)}
+          onAddClick={isGuest ? null : () => setIsModalOpen(true)}
         />
         
         {personSearchResults.length > 0 && (
@@ -321,17 +337,19 @@ export function Cinematheque() {
         <MediaGrid mediaList={filteredMedia} onMediaClick={setSelectedMedia} />
       </main>
 
-      <AddMediaModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onAdd={handleAddMedia}
-      />
+      {!isGuest && (
+        <AddMediaModal 
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onAdd={handleAddMedia}
+        />
+      )}
 
       <MediaDetailsModal
         media={selectedMedia}
         isOpen={!!selectedMedia && !isEditModalOpen}
         onClose={() => setSelectedMedia(null)}
-        onEditClick={() => setIsEditModalOpen(true)}
+        onEditClick={isGuest ? null : () => setIsEditModalOpen(true)}
         onDirectorClick={(directorName) => {
           setSelectedMedia(null);
           setSelectedPerson(directorName);
@@ -342,19 +360,21 @@ export function Cinematheque() {
           setSelectedPerson(actorName);
           setSelectedPersonRole("actor");
         }}
-        onDeleteClick={() => {
+        onDeleteClick={isGuest ? null : () => {
           if(window.confirm("Voulez-vous vraiment supprimer cette œuvre de votre journal ?")) {
             handleDeleteMedia(selectedMedia.id);
           }
         }}
       />
 
-      <EditMediaModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        media={selectedMedia}
-        onSave={handleEditMedia}
-      />
+      {!isGuest && (
+        <EditMediaModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          media={selectedMedia}
+          onSave={handleEditMedia}
+        />
+      )}
 
       <PersonFilmographyModal
         isOpen={!!selectedPerson}
@@ -365,7 +385,7 @@ export function Cinematheque() {
           setSelectedPersonRole(null);
         }}
         mediaList={mediaList}
-        onQuickAddWatchlist={handleQuickAddWatchlist}
+        onQuickAddWatchlist={isGuest ? null : handleQuickAddWatchlist}
       />
     </div>
   );
