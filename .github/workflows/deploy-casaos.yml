@@ -11,14 +11,37 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Deploy with Docker Compose
+      - name: Deploy to /DATA/AppData/VicozWorld
         run: |
-          # Stop old containers if running
-          docker stop letterboxd-frontend letterboxd-backend mon-hub-outils gmail-assistant || true
-          docker rm letterboxd-frontend letterboxd-backend mon-hub-outils gmail-assistant || true
+          set -e
+          echo "🚀 Début du déploiement dans /DATA/AppData/VicozWorld..."
           
-          # Build and launch all services
+          # 1. Vérifier si le dossier du projet existe dans AppData, sinon le cloner
+          if [ ! -d "/DATA/AppData/VicozWorld/.git" ]; then
+            echo "📂 Premier déploiement : Clonage du projet dans /DATA/AppData/VicozWorld..."
+            mkdir -p /DATA/AppData
+            git clone https://github.com/Vicoppppt/VicozWorld.git /DATA/AppData/VicozWorld
+          fi
+
+          # 2. Se positionner dans le dossier officiel de l'application
+          cd /DATA/AppData/VicozWorld
+
+          # 3. Mettre à jour le code vers le dernier commit de main
+          echo "⬇️  Récupération du dernier code depuis GitHub..."
+          git fetch origin main
+          git reset --hard origin/main
+
+          # 4. Arrêter et nettoyer les conteneurs précédents si nécessaire
+          echo "🛑 Arrêt des conteneurs existants..."
+          docker stop letterboxd-frontend letterboxd-backend mon-hub-outils gmail-assistant 2>/dev/null || true
+          docker rm letterboxd-frontend letterboxd-backend mon-hub-outils gmail-assistant 2>/dev/null || true
+
+          # 5. Reconstruire et relancer tous les services
+          echo "🐳 Construction et démarrage des conteneurs via Docker Compose..."
           docker compose up -d --build --remove-orphans
+
+          # 6. Nettoyer les images inutilisées pour économiser l'espace disque
+          echo "🧹 Nettoyage des anciennes images Docker..."
+          docker image prune -f
+
+          echo "✅ Déploiement dans /DATA/AppData/VicozWorld terminé avec succès !"
