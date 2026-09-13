@@ -69,19 +69,25 @@ def load_saved_config():
     return {}
 
 def save_config(user, password, api_key, auto_connect=True):
-    """Sauvegarde les identifiants de manière persistante."""
+    """
+    Sauvegarde la configuration de manière persistante dans config.json.
+    ⚠️ AVERTISSEMENT : Le fichier config.json est stocké EN CLAIR sur le disque.
+    Ne l'utilisez que sur un serveur de confiance (accès local uniquement).
+    Le mot de passe d'application Gmail est stocké pour la reconnexion automatique.
+    """
     import json
     try:
         data = {
             "GMAIL_USER": user,
-            "GMAIL_APP_PASSWORD": password,
+            # Le mot de passe est stocké uniquement si auto_connect est activé
+            "GMAIL_APP_PASSWORD": password if auto_connect else "",
             "GEMINI_API_KEY": api_key,
             "AUTO_CONNECT": auto_connect
         }
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        with open(".env", "w", encoding="utf-8") as f:
-            f.write(f"GMAIL_USER={user}\nGMAIL_APP_PASSWORD={password}\nGEMINI_API_KEY={api_key}\n")
+        # ⚠️ NE PAS réécrire .env automatiquement — utiliser les variables d'environnement Docker
+        # Le .env est géré manuellement via docker-compose et ne doit pas être écrasé à la volée
         return True
     except Exception as e:
         print(f"Erreur sauvegarde config : {e}")

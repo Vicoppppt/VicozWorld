@@ -28,12 +28,19 @@ services:
     container_name: letterboxd-backend
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      # 🔒 Sécurité : accès local uniquement via le reverse proxy (NPM)
+      # Le backend ne doit jamais être exposé directement sur Internet
+      - "127.0.0.1:8000:8000"
     environment:
       - DATA_DIR=/app/data
       - TZ=Europe/Paris
       - GMAIL_EMAIL=${GMAIL_EMAIL:-${GMAIL_USER:-}}
       - GMAIL_PASSWORD=${GMAIL_PASSWORD:-${GMAIL_APP_PASSWORD:-}}
+      - ENEDIS_PDL=${ENEDIS_PDL:-}
+      - ENEDIS_TOKEN=${ENEDIS_TOKEN:-}
+      - FIREBASE_API_KEY=${FIREBASE_API_KEY:-}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://vw.vicopetit.dedyn.io}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 30s
@@ -61,7 +68,8 @@ services:
     container_name: gmail-assistant
     restart: unless-stopped
     ports:
-      - "8501:8501"
+      # 🔒 Sécurité : Streamlit exposé en local uniquement — accès via NPM + mTLS ou IP locale
+      - "127.0.0.1:8501:8501"
     environment:
       - DATA_DIR=/app/data
       - TZ=Europe/Paris

@@ -127,8 +127,8 @@ def init_db():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS electricity_settings (
             id INTEGER PRIMARY KEY CHECK (id = 1),
-            pdl TEXT DEFAULT '01139218434363',
-            token TEXT DEFAULT '6yAJ9dvdgamG8djiG3sMkoBHqQY0LoZ57eXkYtikVLc=',
+            pdl TEXT DEFAULT '',
+            token TEXT DEFAULT '',
             kwh_price REAL DEFAULT 0.2516,
             subscription_price REAL DEFAULT 12.50,
             target_monthly_budget REAL DEFAULT 60.00,
@@ -184,8 +184,8 @@ def init_db():
         ('ng', 'ng.vicopetit.dedyn.io', 'Proxy Manager', 0)
     """)
     # Insertion par défaut des paramètres s'ils n'existent pas
-    default_enedis_pdl = os.getenv("ENEDIS_PDL", "01139218434363")
-    default_enedis_token = os.getenv("ENEDIS_TOKEN", "6yAJ9dvdgamG8djiG3sMkoBHqQY0LoZ57eXkYtikVLc=")
+    default_enedis_pdl = os.getenv("ENEDIS_PDL", "")
+    default_enedis_token = os.getenv("ENEDIS_TOKEN", "")
     cursor.execute("""
         INSERT OR IGNORE INTO electricity_settings (id, pdl, token, kwh_price, subscription_price, target_monthly_budget)
         VALUES (1, ?, ?, 0.2516, 12.50, 60.00)
@@ -206,12 +206,17 @@ def init_db():
 
 init_db()
 
-# Middleware CORS pour autoriser l'accès depuis le frontend
+# Middleware CORS : origines autorisées configurées via env var
+# Par défaut : domaine de production uniquement.
+# Exemple .env : ALLOWED_ORIGINS=https://vw.vicopetit.dedyn.io,http://localhost:3000
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "https://vw.vicopetit.dedyn.io")
+ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 
@@ -313,7 +318,8 @@ async def mtls_and_audit_middleware(request: Request, call_next):
             key="vicoz_guest_session",
             value="allowed",
             max_age=1800, # 30 minutes de session démo
-            httponly=False,
+            httponly=True,
+            secure=True,
             samesite="lax"
         )
     elif not is_guest and (guest_cookie or guest_param):
@@ -356,8 +362,9 @@ def generate_guest_code(request: Request):
     }
 
 @app.get("/api/admin/guest-code/status")
-def get_guest_code_status():
-    """Vérifie le code invité actif et le temps restant."""
+def get_guest_code_status(request: Request):
+    """Vérifie le code invité actif et le temps restant (réservé à Victor)."""
+    verify_victor_admin(request)
     now = time.time()
     remaining = max(0, int(current_guest_otp["expires_at"] - now))
     if remaining <= 0:
@@ -454,8 +461,9 @@ def get_device_info(request: Request):
     }
 
 @app.get("/api/admin/access-logs")
-def get_access_logs(limit: int = 50):
-    """Historique des connexions et appareils ayant accédé à l'API."""
+def get_access_logs(request: Request, limit: int = 50):
+    """Historique des connexions et appareils ayant accédé à l'API (réservé à Victor)."""
+    verify_victor_admin(request)
     try:
         conn = get_db()
         cursor = conn.cursor()
@@ -473,8 +481,9 @@ def get_access_logs(limit: int = 50):
         return {"logs": []}
 
 @app.post("/api/admin/backup")
-def trigger_backup():
-    """Déclenche un snapshot de sauvegarde à chaud de la base de données."""
+def trigger_backup(request: Request):
+    """Déclenche un snapshot de sauvegarde à chaud de la base de données (réservé à Victor)."""
+    verify_victor_admin(request)
     filename = create_db_backup("manual")
     if not filename:
         raise HTTPException(status_code=500, detail="Échec de la sauvegarde.")
@@ -547,8 +556,10 @@ def generate_certificate(payload: CertCreateRequest, request: Request):
     """Génère un nouveau certificat client mTLS (.p12) avec mot de passe et envoi email optionnel."""
     verify_victor_admin(request)
     device = payload.device_name.strip().replace(" ", "-")
-    if not device:
-        raise HTTPException(status_code=400, detail="Veuillez spécifier un nom d'appareil valide.")
+    # Sécurité : n'autoriser que les caractères alphanumériques, tirets et underscores
+    device = re.sub(r'[^a-zA-Z0-9\-_]', '', device)
+    if not device or len(device) > 64:
+        raise HTTPException(status_code=400, detail="Veuillez spécifier un nom d'appareil valide (lettres, chiffres, tirets uniquement).")
         
     password = payload.password or "VicozWorld2026!"
     email = payload.email.strip() if payload.email else None
@@ -653,10 +664,16 @@ def generate_certificate(payload: CertCreateRequest, request: Request):
 
 @app.get("/api/admin/certs/download/{device_name}")
 def download_certificate(device_name: str, request: Request):
-    """Télécharge le fichier .p12 d'un appareil."""
+    """Télécharge le fichier .p12 d'un appareil (réservé à Victor)."""
     verify_victor_admin(request)
-    device = device_name.strip().replace(" ", "-")
-    p12_path = os.path.join(CERTS_DIR, device, f"{device}.p12")
+    # Sécurité : whitelist de caractères + vérification realpath
+    device = re.sub(r'[^a-zA-Z0-9\-_]', '', device_name.strip().replace(" ", "-"))
+    if not device or len(device) > 64:
+        raise HTTPException(status_code=400, detail="Nom d'appareil invalide.")
+    p12_path = os.path.realpath(os.path.join(CERTS_DIR, device, f"{device}.p12"))
+    certs_realpath = os.path.realpath(CERTS_DIR)
+    if not p12_path.startswith(certs_realpath + os.sep):
+        raise HTTPException(status_code=400, detail="Nom d'appareil invalide — chemin non autorisé.")
     if not os.path.exists(p12_path):
         raise HTTPException(status_code=404, detail="Certificat .p12 introuvable pour cet appareil.")
     return FileResponse(
@@ -667,10 +684,16 @@ def download_certificate(device_name: str, request: Request):
 
 @app.delete("/api/admin/certs/{device_name}")
 def delete_certificate(device_name: str, request: Request):
-    """Supprime un certificat client."""
+    """Supprime un certificat client (réservé à Victor)."""
     verify_victor_admin(request)
-    device = device_name.strip().replace(" ", "-")
-    device_dir = os.path.join(CERTS_DIR, device)
+    # Sécurité : whitelist de caractères + vérification realpath
+    device = re.sub(r'[^a-zA-Z0-9\-_]', '', device_name.strip().replace(" ", "-"))
+    if not device or len(device) > 64:
+        raise HTTPException(status_code=400, detail="Nom d'appareil invalide.")
+    device_dir = os.path.realpath(os.path.join(CERTS_DIR, device))
+    certs_realpath = os.path.realpath(CERTS_DIR)
+    if not device_dir.startswith(certs_realpath + os.sep):
+        raise HTTPException(status_code=400, detail="Nom d'appareil invalide — chemin non autorisé.")
     if os.path.exists(device_dir):
         shutil.rmtree(device_dir, ignore_errors=True)
         return {"success": True, "message": f"Certificat {device} supprimé."}
@@ -683,7 +706,8 @@ class ProxyCreateRequest(BaseModel):
 
 @app.get("/api/admin/proxies")
 def list_proxies(request: Request):
-    """Liste tous les sous-domaines et proxys gérés avec leur état de protection."""
+    """Liste tous les sous-domaines et proxys gérés (réservé à Victor)."""
+    verify_victor_admin(request)
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT id, domain, label, is_protected, created_at FROM managed_proxies ORDER BY created_at ASC")
@@ -1014,9 +1038,11 @@ def parse_firestore_value(val: dict):
 @app.get("/api/migrate-firebase")
 @app.post("/api/migrate-firebase")
 def migrate_from_firebase(
-    api_key: str = os.getenv("FIREBASE_API_KEY", "AIzaSyALd2LsLMklIs4nzhlqI_ySvfSuiSDxNa0"),
-    project_id: str = os.getenv("FIREBASE_PROJECT_ID", "vicozworld")
+    api_key: str = os.getenv("FIREBASE_API_KEY", ""),
+    project_id: str = os.getenv("FIREBASE_PROJECT_ID", "")
 ):
+    if not api_key or not project_id:
+        raise HTTPException(status_code=503, detail="Variables FIREBASE_API_KEY et FIREBASE_PROJECT_ID non configurées.")
     import urllib.request
     
     imported = {"medias": 0, "notes": 0, "genealogy": 0}
@@ -1086,8 +1112,8 @@ def get_electricity_config_db():
     if row:
         return dict(row)
     return {
-        "pdl": os.getenv("ENEDIS_PDL", "01139218434363"),
-        "token": os.getenv("ENEDIS_TOKEN", "6yAJ9dvdgamG8djiG3sMkoBHqQY0LoZ57eXkYtikVLc="),
+        "pdl": os.getenv("ENEDIS_PDL", ""),
+        "token": os.getenv("ENEDIS_TOKEN", ""),
         "kwh_price": 0.2516,
         "subscription_price": 12.50,
         "target_monthly_budget": 60.00
@@ -1398,7 +1424,7 @@ NEWS_CACHE = {
 def fetch_rss_feed(source_info):
     articles = []
     try:
-        ctx = ssl._create_unverified_context()
+        ctx = ssl.create_default_context()
         req = urllib.request.Request(
             source_info["url"],
             headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
@@ -1514,9 +1540,9 @@ GEMINI_LOCK = threading.Lock()
 LAST_GEMINI_CALL_TIME = 0.0
 
 MODELS_CASCADE = [
-    "gemini-3.5-flash",
-    "gemini-flash-lite-latest",
-    "gemini-2.5-flash"
+    "gemini-2.5-flash",      # Modèle principal recommandé
+    "gemini-2.0-flash",      # Fallback stable
+    "gemini-1.5-flash"       # Fallback universel
 ]
 
 def call_gemini_json_api(prompt: str, api_key: str, max_retries: int = 1) -> Optional[dict]:
@@ -1524,7 +1550,7 @@ def call_gemini_json_api(prompt: str, api_key: str, max_retries: int = 1) -> Opt
     if not api_key:
         return None
 
-    ctx = ssl._create_unverified_context()
+    ctx = ssl.create_default_context()
     gemini_payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"response_mime_type": "application/json"}
@@ -1727,7 +1753,7 @@ def search_weather_city(q: str):
     if not q or len(q.strip()) < 2:
         return []
     try:
-        ctx = ssl._create_unverified_context()
+        ctx = ssl.create_default_context()
         encoded_q = urllib.parse.quote(q.strip()) if hasattr(urllib, 'parse') else q.strip()
         url = f"https://geocoding-api.open-meteo.com/v1/search?name={encoded_q}&count=6&language=fr&format=json"
         req = urllib.request.Request(url, headers={"User-Agent": "VicozWorldStation/1.0"})
@@ -1799,7 +1825,7 @@ def get_weather_report(lat: Optional[float] = None, lon: Optional[float] = None,
         cached_data["city"] = cur_city
         return cached_data
 
-    ctx = ssl._create_unverified_context()
+    ctx = ssl.create_default_context()
     sources_data = {}
     hourly_chart = []
     daily_forecast = []

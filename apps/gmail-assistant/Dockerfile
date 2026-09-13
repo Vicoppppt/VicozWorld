@@ -17,6 +17,11 @@ COPY . .
 
 RUN mkdir -p /app/data
 
+# 🔒 Sécurité : ne pas tourner en root dans le container
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup --no-create-home appuser
+RUN chown -R appuser:appgroup /app
+USER appuser
+
 EXPOSE 8501
 
 CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]
