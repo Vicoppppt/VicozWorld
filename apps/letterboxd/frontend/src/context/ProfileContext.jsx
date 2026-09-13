@@ -49,12 +49,16 @@ export function ProfileProvider({ children }) {
       .then(data => {
         if (data) {
           setDeviceInfo(data);
-          if (data.is_guest || data.profile_hint === 'invite' || guestCode) {
+          if (data.authenticated && !data.is_guest && data.profile_hint) {
+            // Utilisateur légitime avec badge matériel mTLS (Victor / Claire)
+            document.cookie = 'vw_guest=; path=/; max-age=0';
+            document.cookie = 'vicoz_guest_session=; path=/; max-age=0';
+            if (!saved || saved === 'invite') {
+              selectProfile(data.profile_hint);
+              return;
+            }
+          } else if (data.is_guest || data.profile_hint === 'invite' || guestCode) {
             selectProfile('invite');
-            return;
-          }
-          if (!saved && data.authenticated && data.profile_hint) {
-            selectProfile(data.profile_hint);
             return;
           }
         }

@@ -248,25 +248,33 @@ async def mtls_and_audit_middleware(request: Request, call_next):
         raw_dn = request.headers.get("x-client-cert-dn", "")
         client_cn = extract_cn(raw_dn)
         
-    # Vérification du mode invité temporaire (Code OTP 2 minutes) ou certificat Invité
+    # 1. Vérification prioritaire du certificat matériel client mTLS
+    cert_status = request.headers.get("x-client-cert-status", "").upper()
+    has_hardware_cert = bool(client_cn and client_cn not in ["Anonyme / Non vérifié", "Invité Démo"] and (cert_status == "SUCCESS" or cert_status == ""))
+
     now = time.time()
     guest_param = request.query_params.get("guest")
     guest_cookie = request.cookies.get("vicoz_guest_session")
     
     is_guest = False
-    if guest_param and current_guest_otp.get("code") and guest_param == current_guest_otp.get("code"):
+    if has_hardware_cert and client_cn:
+        cn_lower = client_cn.lower()
+        if "invité" in cn_lower or "guest" in cn_lower:
+            is_guest = True
+        else:
+            is_guest = False
+    elif guest_param and current_guest_otp.get("code") and guest_param == current_guest_otp.get("code"):
         if now < current_guest_otp.get("expires_at", 0):
             client_cn = "Invité Démo (Code OTP)"
+            is_guest = True
+        else:
+            client_cn = "Anonyme / Non vérifié"
             is_guest = True
     elif guest_cookie == "allowed":
         client_cn = "Invité Démo"
         is_guest = True
-    elif client_cn:
-        cn_lower = client_cn.lower()
-        if "invité" in cn_lower or "guest" in cn_lower:
-            is_guest = True
     else:
-        # Aucun certificat client fourni
+        client_cn = "Anonyme / Non vérifié"
         is_guest = True
             
     request.state.device_cn = client_cn or "Anonyme / Non vérifié"
@@ -308,6 +316,9 @@ async def mtls_and_audit_middleware(request: Request, call_next):
             httponly=False,
             samesite="lax"
         )
+    elif not is_guest and (guest_cookie or guest_param):
+        response.delete_cookie("vicoz_guest_session")
+        response.delete_cookie("vw_guest")
     
     # Enregistrer dans l'audit log pour les routes API significatives
     path = request.url.path
