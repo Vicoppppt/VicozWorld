@@ -17,10 +17,9 @@ COPY . .
 
 RUN mkdir -p /app/data
 
-# 🔒 Sécurité : ne pas tourner en root dans le container
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup --no-create-home appuser
-RUN chown -R appuser:appgroup /app
-USER appuser
+# NOTE sécurité : USER non-root retiré car incompatible avec les volumes montés depuis l'hôte
+# (./data/gmail appartient à root sur le serveur)
+# À réintroduire avec un entrypoint gosu si les permissions des volumes sont corrigées.
 
 EXPOSE 8501
 
