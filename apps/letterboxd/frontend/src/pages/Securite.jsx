@@ -388,7 +388,6 @@ if ($auth_ok = 0) { return 403 "Acces refuse : Certificat client ou Code Invite 
 # Transmission des en-têtes mTLS au frontend & backend
 proxy_set_header X-Client-Cert-Status $ssl_client_verify;
 proxy_set_header X-Client-Cert-DN $ssl_client_s_dn;
-proxy_set_header X-Client-Cert-CN $ssl_client_s_dn_cn;
 proxy_set_header X-Client-Cert-Serial $ssl_client_serial;`
     : `# Dans Nginx Proxy Manager > Éditer ${selectedProxy.domain} > Onglet "Advanced" :
 ssl_client_certificate /data/custom_ssl/ca.crt;
