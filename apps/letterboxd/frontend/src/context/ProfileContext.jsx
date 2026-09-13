@@ -53,10 +53,8 @@ export function ProfileProvider({ children }) {
             // Utilisateur légitime avec badge matériel mTLS (Victor / Claire)
             document.cookie = 'vw_guest=; path=/; max-age=0';
             document.cookie = 'vicoz_guest_session=; path=/; max-age=0';
-            if (!saved || saved === 'invite') {
-              selectProfile(data.profile_hint);
-              return;
-            }
+            selectProfile(data.profile_hint);
+            return;
           } else if (data.is_guest || data.profile_hint === 'invite' || guestCode) {
             selectProfile('invite');
             return;
