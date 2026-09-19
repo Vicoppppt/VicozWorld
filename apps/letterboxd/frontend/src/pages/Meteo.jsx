@@ -654,18 +654,28 @@ export function Meteo() {
 
               <form onSubmit={handleSaveConfig} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-300 mb-1">
+                  <label className="block text-xs font-medium text-zinc-300 mb-2">
                     Clé API Gemini (pour la synthèse IA multi-modèles)
                   </label>
-                  <input
-                    type="text"
-                    required
-                    value={config.gemini_api_key}
-                    onChange={(e) => setConfig({ ...config, gemini_api_key: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-zinc-950 border border-zinc-700 rounded-xl text-xs text-zinc-100 focus:outline-none focus:border-cyan-500 transition-colors font-mono"
-                    placeholder="Votre clé Gemini..."
-                  />
-                  <span className="text-[10px] text-zinc-500">Utilise Gemini 2.5 Flash pour croiser les modèles météo</span>
+                  <div className="flex items-center gap-2">
+                    {config.gemini_api_key && config.gemini_api_key.length > 5 ? (
+                      <div className="flex items-center gap-2 px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs font-medium w-full">
+                        <div className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </div>
+                        Clé configurée via CasaOS et active
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-medium w-full">
+                        <div className="h-2 w-2 rounded-full bg-red-500"></div>
+                        Clé non configurée (À définir dans CasaOS)
+                      </div>
+                    )}
+                  </div>
+                  <span className="block mt-2 text-[10px] text-zinc-500">
+                    Utilisée par VicozWorld pour la météo, l'actualité et tous les assistants IA. Modification requise via les paramètres de l'application dans CasaOS.
+                  </span>
                 </div>
 
                 <div>
