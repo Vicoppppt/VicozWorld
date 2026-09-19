@@ -19,6 +19,7 @@ import xml.etree.ElementTree as ET
 from email.utils import parsedate_to_datetime
 from datetime import datetime, timedelta, date
 from typing import Any, Optional, List, Dict
+from cryptography.fernet import Fernet, InvalidToken
 
 try:
     from woob.core import Woob
@@ -38,11 +39,34 @@ DB_PATH = os.path.join(DB_DIR, "app.db")
 BACKUP_DIR = os.path.join(DB_DIR, "backups")
 CERTS_DIR = os.getenv("CERTS_DIR", os.path.join(DB_DIR, "certs"))
 
+# Initialisation du chiffrement
+ENCRYPTION_KEY = os.getenv("DB_ENCRYPTION_KEY", "").strip()
+cipher = Fernet(ENCRYPTION_KEY) if ENCRYPTION_KEY else None
+
+def encrypt_value(value: str) -> str:
+    """Chiffre une valeur si la clé maître est configurée."""
+    if not cipher or not value:
+        return value
+    if value.startswith("gAAAAA"):  # Déjà chiffré
+        return value
+    return cipher.encrypt(value.encode()).decode()
+
+def decrypt_value(value: str) -> str:
+    """Déchiffre une valeur si la clé maître est configurée."""
+    if not cipher or not value or not value.startswith("gAAAAA"):
+        return value
+    try:
+        return cipher.decrypt(value.encode()).decode()
+    except InvalidToken:
+        logger.error("Impossible de déchiffrer la valeur : clé maître invalide ou token corrompu.")
+        return ""
+
 def get_db():
     conn = sqlite3.connect(DB_PATH, timeout=30.0)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA busy_timeout = 30000")
     return conn
+
 
 def secure_woob_permissions():
     """Sécurise les permissions des fichiers Woob pour protéger les identifiants bancaires."""
@@ -190,18 +214,44 @@ def init_db():
         ('casa', 'casa.vicopetit.dedyn.io', 'CasaOS', 0),
         ('ng', 'ng.vicopetit.dedyn.io', 'Proxy Manager', 0)
     """)
-    # Insertion par défaut des paramètres s'ils n'existent pas
-    default_enedis_pdl = os.getenv("ENEDIS_PDL", "")
-    default_enedis_token = os.getenv("ENEDIS_TOKEN", "")
+    default_enedis_pdl = encrypt_value(os.getenv("ENEDIS_PDL", ""))
+    default_enedis_token = encrypt_value(os.getenv("ENEDIS_TOKEN", ""))
     cursor.execute("""
         INSERT OR IGNORE INTO electricity_settings (id, pdl, token, kwh_price, subscription_price, target_monthly_budget)
         VALUES (1, ?, ?, 0.2516, 12.50, 60.00)
     """, (default_enedis_pdl, default_enedis_token))
-    default_gemini = os.getenv("GEMINI_API_KEY", "")
+    
+    default_gemini = encrypt_value(os.getenv("GEMINI_API_KEY", ""))
     cursor.execute("""
         INSERT OR IGNORE INTO weather_settings (id, gemini_api_key, default_city, default_lat, default_lon)
         VALUES (1, ?, 'Paris', 48.8566, 2.3522)
     """, (default_gemini,))
+    
+    # Auto-migration : chiffrer les clés existantes en clair si la clé maître est dispo
+    if cipher:
+        cursor.execute("SELECT pdl, token FROM electricity_settings WHERE id = 1")
+        elec_row = cursor.fetchone()
+        if elec_row:
+            pdl = elec_row["pdl"]
+            token = elec_row["token"]
+            updated = False
+            if pdl and not pdl.startswith("gAAAAA"):
+                pdl = encrypt_value(pdl)
+                updated = True
+            if token and not token.startswith("gAAAAA"):
+                token = encrypt_value(token)
+                updated = True
+            if updated:
+                cursor.execute("UPDATE electricity_settings SET pdl = ?, token = ? WHERE id = 1", (pdl, token))
+                
+        cursor.execute("SELECT gemini_api_key FROM weather_settings WHERE id = 1")
+        weather_row = cursor.fetchone()
+        if weather_row:
+            gemini_key = weather_row["gemini_api_key"]
+            if gemini_key and not gemini_key.startswith("gAAAAA"):
+                gemini_key = encrypt_value(gemini_key)
+                cursor.execute("UPDATE weather_settings SET gemini_api_key = ? WHERE id = 1", (gemini_key,))
+                
     conn.commit()
     conn.close()
 
@@ -1098,7 +1148,10 @@ def get_electricity_config_db():
     row = cursor.fetchone()
     conn.close()
     if row:
-        return dict(row)
+        d = dict(row)
+        d["pdl"] = decrypt_value(d["pdl"])
+        d["token"] = decrypt_value(d["token"])
+        return d
     return {
         "pdl": os.getenv("ENEDIS_PDL", ""),
         "token": os.getenv("ENEDIS_TOKEN", ""),
@@ -1171,6 +1224,9 @@ def get_electricity_config():
 def save_electricity_config(config: ElectricityConfig):
     conn = get_db()
     cursor = conn.cursor()
+    enc_pdl = encrypt_value(config.pdl)
+    enc_token = encrypt_value(config.token)
+    
     cursor.execute("""
         INSERT INTO electricity_settings (id, pdl, token, kwh_price, subscription_price, target_monthly_budget, updated_at)
         VALUES (1, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -1181,7 +1237,7 @@ def save_electricity_config(config: ElectricityConfig):
             subscription_price = excluded.subscription_price,
             target_monthly_budget = excluded.target_monthly_budget,
             updated_at = CURRENT_TIMESTAMP
-    """, (config.pdl, config.token, config.kwh_price, config.subscription_price, config.target_monthly_budget))
+    """, (enc_pdl, enc_token, config.kwh_price, config.subscription_price, config.target_monthly_budget))
     conn.commit()
     conn.close()
 
@@ -1702,6 +1758,7 @@ def get_weather_config_db():
     conn.close()
     if row:
         cfg = dict(row)
+        cfg["gemini_api_key"] = decrypt_value(cfg["gemini_api_key"])
         if not cfg.get("gemini_api_key"):
             cfg["gemini_api_key"] = os.getenv("GEMINI_API_KEY", "")
         return cfg
@@ -1722,6 +1779,8 @@ def get_weather_config():
 def save_weather_config(config: WeatherConfigModel):
     conn = get_db()
     cursor = conn.cursor()
+    enc_key = encrypt_value(config.gemini_api_key)
+    
     cursor.execute("""
         INSERT INTO weather_settings (id, gemini_api_key, default_city, default_lat, default_lon, updated_at)
         VALUES (1, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -1731,7 +1790,7 @@ def save_weather_config(config: WeatherConfigModel):
             default_lat = excluded.default_lat,
             default_lon = excluded.default_lon,
             updated_at = CURRENT_TIMESTAMP
-    """, (config.gemini_api_key, config.default_city, config.default_lat, config.default_lon))
+    """, (enc_key, config.default_city, config.default_lat, config.default_lon))
     conn.commit()
     conn.close()
     return {"success": True}
