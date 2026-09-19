@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gamepad2, Timer, Trophy, ArrowRight, RotateCcw, Clapperboard, Users, Sparkles, Check, X } from 'lucide-react';
-import { db } from '../api/firebase';
-import { collection, getDocs } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 
 // Helper pour mélanger un tableau
@@ -40,8 +38,9 @@ export function Quiz() {
   useEffect(() => {
     const fetchMedias = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "medias"));
-        const data = querySnapshot.docs.map(doc => doc.data());
+        const res = await fetch('/api/medias');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
         // On ne garde que les terminés et ceux qui ont des données utiles
         const finishedMedias = data.filter(m => m.status === "Terminé" && (m.type === "Film" || m.type === "Série"));
         setMedias(finishedMedias);
@@ -54,6 +53,7 @@ export function Quiz() {
     };
     fetchMedias();
   }, []);
+
 
   // Timer
   useEffect(() => {

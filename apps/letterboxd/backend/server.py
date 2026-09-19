@@ -304,7 +304,6 @@ async def mtls_and_audit_middleware(request: Request, call_next):
             "/api/hub/permissions",
             "/api/hub/urls",
             "/api/hub/battery",
-            "/api/migrate-firebase"
         ]
         if any(path.startswith(prefix) for prefix in forbidden_prefixes):
             return JSONResponse(
@@ -852,23 +851,12 @@ def get_medias():
     cursor = conn.cursor()
     cursor.execute("SELECT data FROM medias")
     rows = cursor.fetchall()
-    
-    if len(rows) == 0:
-        try:
-            conn.close()
-            migrate_from_firebase()
-            conn = get_db()
-            cursor = conn.cursor()
-            cursor.execute("SELECT data FROM medias")
-            rows = cursor.fetchall()
-        except Exception as e:
-            logger.warning(f"Auto migration failed: {e}")
-            
     conn.close()
     
     medias = [json.loads(row["data"]) for row in rows]
     medias.sort(key=lambda x: x.get("loggedAt", ""), reverse=True)
     return medias
+
 
 @app.put("/api/medias/{media_id}")
 def save_media(media_id: str, payload: dict[str, Any]):
@@ -987,23 +975,12 @@ def get_notes():
     cursor = conn.cursor()
     cursor.execute("SELECT data FROM notes")
     rows = cursor.fetchall()
-    
-    if len(rows) == 0:
-        try:
-            conn.close()
-            migrate_from_firebase()
-            conn = get_db()
-            cursor = conn.cursor()
-            cursor.execute("SELECT data FROM notes")
-            rows = cursor.fetchall()
-        except Exception as e:
-            logger.warning(f"Auto migration failed: {e}")
-            
     conn.close()
     
     notes = [json.loads(row["data"]) for row in rows]
     notes.sort(key=lambda x: x.get("updatedAt", ""), reverse=True)
     return notes
+
 
 @app.put("/api/notes/{note_id}")
 def save_note(note_id: str, payload: dict[str, Any]):
@@ -1034,22 +1011,11 @@ def get_genealogy_members():
     cursor = conn.cursor()
     cursor.execute("SELECT data FROM genealogy")
     rows = cursor.fetchall()
-    
-    if len(rows) == 0:
-        try:
-            conn.close()
-            migrate_from_firebase()
-            conn = get_db()
-            cursor = conn.cursor()
-            cursor.execute("SELECT data FROM genealogy")
-            rows = cursor.fetchall()
-        except Exception as e:
-            logger.warning(f"Auto migration failed: {e}")
-            
     conn.close()
     
     members = [json.loads(row["data"]) for row in rows]
     return members
+
 
 @app.put("/api/genealogy/{member_id}")
 def save_genealogy_member(member_id: str, payload: dict[str, Any]):
@@ -1109,83 +1075,6 @@ def clear_genealogy():
 
 
 
-# --- ENDPOINT MIGRATION FIREBASE ---
-def parse_firestore_value(val: dict):
-    if "stringValue" in val:
-        return val["stringValue"]
-    if "integerValue" in val:
-        return int(val["integerValue"])
-    if "doubleValue" in val:
-        return float(val["doubleValue"])
-    if "booleanValue" in val:
-        return val["booleanValue"]
-    if "arrayValue" in val:
-        values = val["arrayValue"].get("values", [])
-        return [parse_firestore_value(v) for v in values]
-    if "mapValue" in val:
-        fields = val["mapValue"].get("fields", {})
-        return {k: parse_firestore_value(v) for k, v in fields.items()}
-    if "nullValue" in val:
-        return None
-    return None
-
-@app.get("/api/migrate-firebase")
-@app.post("/api/migrate-firebase")
-def migrate_from_firebase(
-    api_key: str = os.getenv("FIREBASE_API_KEY", ""),
-    project_id: str = os.getenv("FIREBASE_PROJECT_ID", "")
-):
-    if not api_key or not project_id:
-        raise HTTPException(status_code=503, detail="Variables FIREBASE_API_KEY et FIREBASE_PROJECT_ID non configurées.")
-    import urllib.request
-    
-    imported = {"medias": 0, "notes": 0, "genealogy": 0}
-    
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    for collection_name in ["medias", "notes", "genealogy"]:
-        page_token = None
-        while True:
-            url = f"https://firestore.googleapis.com/v1/projects/{project_id}/databases/(default)/documents/{collection_name}?key={api_key}&pageSize=300"
-            if page_token:
-                url += f"&pageToken={page_token}"
-            try:
-                req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-                with urllib.request.urlopen(req) as resp:
-                    data = json.loads(resp.read().decode())
-                    
-                documents = data.get("documents", [])
-                for doc in documents:
-                    doc_name = doc.get("name", "")
-                    doc_id = doc_name.split("/")[-1]
-                    fields = doc.get("fields", {})
-                    item = {k: parse_firestore_value(v) for k, v in fields.items()}
-                    if "id" not in item:
-                        item["id"] = doc_id
-                    
-                    data_str = json.dumps(item)
-                    cursor.execute(f"""
-                        INSERT INTO {collection_name} (id, data, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
-                        ON CONFLICT(id) DO UPDATE SET data=excluded.data, updated_at=CURRENT_TIMESTAMP
-                    """, (doc_id, data_str))
-                    imported[collection_name] += 1
-                
-                page_token = data.get("nextPageToken")
-                if not page_token:
-                    break
-            except Exception as e:
-                logger.error(f"Erreur migration {collection_name}: {e}")
-                break
-            
-    conn.commit()
-    conn.close()
-    
-    return {
-        "success": True,
-        "message": f"Migration réussie ! {imported['medias']} médias, {imported['notes']} notes et {imported['genealogy']} personnes généalogie importés.",
-        "imported": imported
-    }
 
 
 # --- ENDPOINTS ÉLECTRICITÉ (ENEDIS / MYELECTRICALDATA) ---

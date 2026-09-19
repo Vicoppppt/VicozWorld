@@ -14,7 +14,8 @@ function stripHtml(html) {
   return html.replace(/<[^>]*>?/gm, "").trim();
 }
 
-const GOOGLE_BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY || "AIzaSyA5tl9yNcVeQdDlHUV0OYtE-dfCoX_OEFo";
+const GOOGLE_BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY || "";
+
 
 // Magazines de référence culture urbaine / rap / foot / société avec numéros d'éditions exhaustifs
 const CURATED_MAGAZINES = [

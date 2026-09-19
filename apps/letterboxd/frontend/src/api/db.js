@@ -1,7 +1,5 @@
-import { db } from './firebase';
-import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
-
 const API_BASE = '/api';
+
 
 const LOCAL_MEDIAS_KEY = 'vicoz_medias';
 const LOCAL_NOTES_KEY = 'vicoz_notes';
@@ -20,17 +18,6 @@ export async function fetchLibraryItems() {
       }
     }
   } catch {}
-
-  try {
-    const snapshot = await getDocs(collection(db, "library"));
-    if (!snapshot.empty) {
-      const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-      data.sort((a, b) => new Date(b.addedAt || b.createdAt || 0) - new Date(a.addedAt || a.createdAt || 0));
-      return data;
-    }
-  } catch (e) {
-    console.warn("Firebase library fetch failed", e);
-  }
   const local = localStorage.getItem(LOCAL_LIBRARY_KEY);
   return local ? JSON.parse(local) : [];
 }
@@ -43,19 +30,13 @@ export async function saveLibraryItem(item) {
       body: JSON.stringify(item),
     });
     if (res.ok) return await res.json();
-  } catch {
-    try {
-      await setDoc(doc(db, "library", String(item.id)), item);
-    } catch (e) {
-      console.warn("Firebase library save failed", e);
-    }
-    const local = localStorage.getItem(LOCAL_LIBRARY_KEY);
-    let items = local ? JSON.parse(local) : [];
-    const idx = items.findIndex(m => String(m.id) === String(item.id));
-    if (idx >= 0) items[idx] = item;
-    else items.push(item);
-    localStorage.setItem(LOCAL_LIBRARY_KEY, JSON.stringify(items));
-  }
+  } catch {}
+  const local = localStorage.getItem(LOCAL_LIBRARY_KEY);
+  let items = local ? JSON.parse(local) : [];
+  const idx = items.findIndex(m => String(m.id) === String(item.id));
+  if (idx >= 0) items[idx] = item;
+  else items.push(item);
+  localStorage.setItem(LOCAL_LIBRARY_KEY, JSON.stringify(items));
   return { success: true, id: item.id };
 }
 
@@ -63,15 +44,11 @@ export async function deleteLibraryItem(id) {
   try {
     const res = await fetch(`${API_BASE}/library/${id}`, { method: 'DELETE' });
     if (res.ok) return await res.json();
-  } catch {
-    try {
-      await deleteDoc(doc(db, "library", String(id)));
-    } catch (e) {}
-    const local = localStorage.getItem(LOCAL_LIBRARY_KEY);
-    if (local) {
-      let items = JSON.parse(local).filter(m => String(m.id) !== String(id));
-      localStorage.setItem(LOCAL_LIBRARY_KEY, JSON.stringify(items));
-    }
+  } catch {}
+  const local = localStorage.getItem(LOCAL_LIBRARY_KEY);
+  if (local) {
+    let items = JSON.parse(local).filter(m => String(m.id) !== String(id));
+    localStorage.setItem(LOCAL_LIBRARY_KEY, JSON.stringify(items));
   }
   return { success: true, id };
 }
@@ -88,17 +65,6 @@ export async function fetchMedias() {
       }
     }
   } catch {}
-
-  try {
-    const snapshot = await getDocs(collection(db, "medias"));
-    if (!snapshot.empty) {
-      const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-      data.sort((a, b) => new Date(b.loggedAt) - new Date(a.loggedAt));
-      return data;
-    }
-  } catch (e) {
-    console.warn("Firebase fetch failed", e);
-  }
   const local = localStorage.getItem(LOCAL_MEDIAS_KEY);
   return local ? JSON.parse(local) : [];
 }
@@ -111,19 +77,13 @@ export async function saveMedia(media) {
       body: JSON.stringify(media),
     });
     if (res.ok) return await res.json();
-  } catch {
-    try {
-      await setDoc(doc(db, "medias", String(media.id)), media);
-    } catch (e) {
-      console.warn("Firebase save failed", e);
-    }
-    const local = localStorage.getItem(LOCAL_MEDIAS_KEY);
-    let medias = local ? JSON.parse(local) : [];
-    const idx = medias.findIndex(m => String(m.id) === String(media.id));
-    if (idx >= 0) medias[idx] = media;
-    else medias.push(media);
-    localStorage.setItem(LOCAL_MEDIAS_KEY, JSON.stringify(medias));
-  }
+  } catch {}
+  const local = localStorage.getItem(LOCAL_MEDIAS_KEY);
+  let medias = local ? JSON.parse(local) : [];
+  const idx = medias.findIndex(m => String(m.id) === String(media.id));
+  if (idx >= 0) medias[idx] = media;
+  else medias.push(media);
+  localStorage.setItem(LOCAL_MEDIAS_KEY, JSON.stringify(medias));
   return { success: true, id: media.id };
 }
 
@@ -131,18 +91,15 @@ export async function deleteMedia(id) {
   try {
     const res = await fetch(`${API_BASE}/medias/${id}`, { method: 'DELETE' });
     if (res.ok) return await res.json();
-  } catch {
-    try {
-      await deleteDoc(doc(db, "medias", String(id)));
-    } catch (e) {}
-    const local = localStorage.getItem(LOCAL_MEDIAS_KEY);
-    if (local) {
-      let medias = JSON.parse(local).filter(m => String(m.id) !== String(id));
-      localStorage.setItem(LOCAL_MEDIAS_KEY, JSON.stringify(medias));
-    }
+  } catch {}
+  const local = localStorage.getItem(LOCAL_MEDIAS_KEY);
+  if (local) {
+    let medias = JSON.parse(local).filter(m => String(m.id) !== String(id));
+    localStorage.setItem(LOCAL_MEDIAS_KEY, JSON.stringify(medias));
   }
   return { success: true, id };
 }
+
 
 // --- NOTES ---
 export async function fetchNotes() {
@@ -156,17 +113,6 @@ export async function fetchNotes() {
       }
     }
   } catch {}
-
-  try {
-    const snapshot = await getDocs(collection(db, "notes"));
-    if (!snapshot.empty) {
-      const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-      data.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-      return data;
-    }
-  } catch (e) {
-    console.warn("Firebase fetch failed", e);
-  }
   const local = localStorage.getItem(LOCAL_NOTES_KEY);
   return local ? JSON.parse(local) : [];
 }
@@ -179,17 +125,13 @@ export async function saveNote(note) {
       body: JSON.stringify(note),
     });
     if (res.ok) return await res.json();
-  } catch {
-    try {
-      await setDoc(doc(db, "notes", String(note.id)), note);
-    } catch (e) {}
-    const local = localStorage.getItem(LOCAL_NOTES_KEY);
-    let notes = local ? JSON.parse(local) : [];
-    const idx = notes.findIndex(n => String(n.id) === String(note.id));
-    if (idx >= 0) notes[idx] = note;
-    else notes.push(note);
-    localStorage.setItem(LOCAL_NOTES_KEY, JSON.stringify(notes));
-  }
+  } catch {}
+  const local = localStorage.getItem(LOCAL_NOTES_KEY);
+  let notes = local ? JSON.parse(local) : [];
+  const idx = notes.findIndex(n => String(n.id) === String(note.id));
+  if (idx >= 0) notes[idx] = note;
+  else notes.push(note);
+  localStorage.setItem(LOCAL_NOTES_KEY, JSON.stringify(notes));
   return { success: true, id: note.id };
 }
 
@@ -197,15 +139,11 @@ export async function deleteNote(id) {
   try {
     const res = await fetch(`${API_BASE}/notes/${id}`, { method: 'DELETE' });
     if (res.ok) return await res.json();
-  } catch {
-    try {
-      await deleteDoc(doc(db, "notes", String(id)));
-    } catch (e) {}
-    const local = localStorage.getItem(LOCAL_NOTES_KEY);
-    if (local) {
-      let notes = JSON.parse(local).filter(n => String(n.id) !== String(id));
-      localStorage.setItem(LOCAL_NOTES_KEY, JSON.stringify(notes));
-    }
+  } catch {}
+  const local = localStorage.getItem(LOCAL_NOTES_KEY);
+  if (local) {
+    let notes = JSON.parse(local).filter(n => String(n.id) !== String(id));
+    localStorage.setItem(LOCAL_NOTES_KEY, JSON.stringify(notes));
   }
   return { success: true, id };
 }
@@ -234,14 +172,6 @@ export async function fetchFamilyMembers() {
     }
     return [];
   } catch {
-    try {
-      const snapshot = await getDocs(collection(db, "genealogy"));
-      if (!snapshot.empty) {
-        const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-        localStorage.setItem(LOCAL_GENEALOGY_KEY, JSON.stringify(data));
-        return data;
-      }
-    } catch (e) {}
     const local = localStorage.getItem(LOCAL_GENEALOGY_KEY);
     return local ? JSON.parse(local) : [];
   }
@@ -263,11 +193,7 @@ export async function saveFamilyMember(member) {
       body: JSON.stringify(member),
     });
     if (res.ok) return await res.json();
-  } catch {
-    try {
-      await setDoc(doc(db, "genealogy", String(member.id)), member);
-    } catch (e) {}
-  }
+  } catch {}
   return { success: true, id: member.id };
 }
 
@@ -289,11 +215,7 @@ export async function deleteFamilyMember(id) {
   try {
     const res = await fetch(`${API_BASE}/genealogy/${id}`, { method: 'DELETE' });
     if (res.ok) return await res.json();
-  } catch {
-    try {
-      await deleteDoc(doc(db, "genealogy", String(id)));
-    } catch (e) {}
-  }
+  } catch {}
   return { success: true, id };
 }
 
@@ -306,19 +228,7 @@ export async function bulkSaveFamilyMembers(members, replace = false) {
       body: JSON.stringify({ members, replace }),
     });
     if (res.ok) return await res.json();
-  } catch {
-    try {
-      if (replace) {
-        const snapshot = await getDocs(collection(db, "genealogy"));
-        for (const docSnap of snapshot.docs) {
-          await deleteDoc(doc(db, "genealogy", docSnap.id));
-        }
-      }
-      for (const member of members) {
-        await setDoc(doc(db, "genealogy", String(member.id)), member);
-      }
-    } catch (e) {}
-  }
+  } catch {}
   return { success: true, count: members.length };
 }
 
@@ -327,13 +237,8 @@ export async function clearFamilyTree() {
     const res = await fetch(`${API_BASE}/genealogy`, { method: 'DELETE' });
     if (res.ok) return await res.json();
   } catch {
-    try {
-      const snapshot = await getDocs(collection(db, "genealogy"));
-      for (const docSnap of snapshot.docs) {
-        await deleteDoc(doc(db, "genealogy", docSnap.id));
-      }
-    } catch (e) {}
     localStorage.removeItem(LOCAL_GENEALOGY_KEY);
   }
   return { success: true };
 }
+
