@@ -125,6 +125,13 @@ def init_db():
         )
     """)
     cursor.execute("""
+        CREATE TABLE IF NOT EXISTS library_items (
+            id TEXT PRIMARY KEY,
+            data TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS electricity_settings (
             id INTEGER PRIMARY KEY CHECK (id = 1),
             pdl TEXT DEFAULT '',
@@ -304,11 +311,11 @@ async def mtls_and_audit_middleware(request: Request, call_next):
                 status_code=403,
                 content={"detail": "Accès refusé : les données personnelles et outils sont inaccessibles en mode invité."}
             )
-        # Interdire modification de la cinémathèque en mode invité
-        if path.startswith("/api/medias") and request.method in ["POST", "PUT", "DELETE"]:
+        # Interdire modification de la cinémathèque et bibliothèque en mode invité
+        if (path.startswith("/api/medias") or path.startswith("/api/library")) and request.method in ["POST", "PUT", "DELETE"]:
             return JSONResponse(
                 status_code=403,
-                content={"detail": "Accès refusé : la cinémathèque est en lecture seule pour les invités."}
+                content={"detail": "Accès refusé : la collection est en lecture seule pour les invités."}
             )
     
     response = await call_next(request)
@@ -884,6 +891,46 @@ def delete_media(media_id: str):
     conn.commit()
     conn.close()
     return {"success": True, "id": media_id}
+
+
+# --- ENDPOINTS BIBLIOTHÈQUE MULTI-MÉDIAS (Livres, Mangas, CDs, Vinyles, Bluray/4K, Magazines) ---
+@app.get("/api/library")
+def get_library_items():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT data FROM library_items ORDER BY updated_at DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    items = []
+    for r in rows:
+        try:
+            items.append(json.loads(r["data"]))
+        except Exception:
+            pass
+    items.sort(key=lambda x: x.get("addedAt", x.get("updatedAt", "")), reverse=True)
+    return items
+
+@app.put("/api/library/{item_id}")
+def save_library_item(item_id: str, payload: dict[str, Any]):
+    conn = get_db()
+    cursor = conn.cursor()
+    data_str = json.dumps(payload)
+    cursor.execute("""
+        INSERT INTO library_items (id, data, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(id) DO UPDATE SET data=excluded.data, updated_at=CURRENT_TIMESTAMP
+    """, (item_id, data_str))
+    conn.commit()
+    conn.close()
+    return {"success": True, "id": item_id}
+
+@app.delete("/api/library/{item_id}")
+def delete_library_item(item_id: str):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM library_items WHERE id = ?", (item_id,))
+    conn.commit()
+    conn.close()
+    return {"success": True, "id": item_id}
 
 
 # --- ENDPOINTS NOTES ---

@@ -20,7 +20,9 @@ import {
   Layers,
   Sparkles,
   Mail,
-  ShieldCheck
+  ShieldCheck,
+  BookOpen,
+  Library
 } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import { useProfile } from "../context/ProfileContext";
@@ -33,6 +35,7 @@ export function Layout({ children }) {
 
   const mediaItems = [
     { name: "Cinémathèque", desc: "Films, séries & watchlist TMDB", path: "/cinematheque", icon: Film },
+    { name: "Ma Bibliothèque", desc: "Livres, mangas, CDs, vinyles & bluray", path: "/bibliotheque", icon: Library },
     { name: "Quiz Cinéma", desc: "Défiez vos connaissances ciné", path: "/quiz", icon: Gamepad2 },
     { name: "Portfolio", desc: "Projets & réalisations", path: "/portfolio", icon: Briefcase },
   ];
@@ -67,6 +70,7 @@ export function Layout({ children }) {
   const PAGE_NAMES = {
     "/": "Accueil",
     "/cinematheque": "Cinémathèque",
+    "/bibliotheque": "Ma Bibliothèque",
     "/quiz": "Quiz Cinéma",
     "/portfolio": "Portfolio",
     "/banque": "Banque & Finances",
@@ -175,6 +179,18 @@ export function Layout({ children }) {
                 >
                   <Film className="w-4 h-4 text-pink-400" />
                   Cinémathèque
+                </Link>
+
+                <Link
+                  to="/bibliotheque"
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-sm font-medium transition-all ${
+                    location.pathname === "/bibliotheque"
+                      ? "bg-zinc-800 text-white shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/40"
+                  }`}
+                >
+                  <Library className="w-4 h-4 text-indigo-400" />
+                  Bibliothèque
                 </Link>
 
                 <Link

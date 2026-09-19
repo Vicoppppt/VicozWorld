@@ -1024,6 +1024,26 @@
             </div>
           </a>
 
+          <a href="#" onclick="this.href='http://' + window.location.hostname + ':3000/#/bibliotheque'" class="app-card" data-app-id="bibliotheque" data-title="Ma Bibliothèque Livres Mangas CDs Vinyles Bluray 4K Magazines">
+            <div class="card-top">
+              <div class="app-icon" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));">
+                📚
+              </div>
+              <div class="app-info">
+                <div class="app-name">
+                  Ma Bibliothèque
+                  <span class="app-badge badge-blue">Collection</span>
+                </div>
+                <span style="font-size: 0.75rem; color: #818cf8;">Livres, Vinyles, CDs, 4K & Mangas</span>
+              </div>
+            </div>
+            <div class="app-desc">Votre collection physique complète avec pochettes HD automatiques, gestion des prêts et fiches détaillées.</div>
+            <div class="card-footer">
+              <span style="color: #10b981;">● En ligne (:3000)</span>
+              <span class="action">Parcourir ➔</span>
+            </div>
+          </a>
+
           <a href="#" onclick="this.href='http://' + window.location.hostname + ':3000/#/quiz'" class="app-card" data-app-id="quiz" data-title="Quiz Cinéma Jeux Culture">
             <div class="card-top">
               <div class="app-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.2));">
@@ -1366,6 +1386,7 @@
     // Modules configuration metadata & URLs
     const AVAILABLE_MODULES = [
       { id: "cinematheque", name: "🎬 Cinémathèque & Médias", defaultMaman: true, category: "Cinéma & Médias", defaultUrl: () => 'http://' + window.location.hostname + ':3000/#/cinematheque' },
+      { id: "bibliotheque", name: "📚 Ma Bibliothèque (Livres, CDs, Vinyles)", defaultMaman: true, category: "Cinéma & Médias", defaultUrl: () => 'http://' + window.location.hostname + ':3000/#/bibliotheque' },
       { id: "quiz", name: "🎮 Quiz Cinéma", defaultMaman: true, category: "Cinéma & Médias", defaultUrl: () => 'http://' + window.location.hostname + ':3000/#/quiz' },
       { id: "extracteur_texte", name: "📑 OCR & Extraction Texte", defaultMaman: true, category: "Productivité & Outils IA", defaultUrl: () => '/tools/extracteur_texte.html' },
       { id: "correcteur_redaction", name: "✍️ Correcteur Rédactions IA", defaultMaman: true, category: "Productivité & Outils IA", defaultUrl: () => '/tools/correcteur_redaction.html' },

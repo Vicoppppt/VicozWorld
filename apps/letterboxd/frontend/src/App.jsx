@@ -13,6 +13,7 @@ import { Energie } from "./pages/Energie";
 import { Actualites } from "./pages/Actualites";
 import { Meteo } from "./pages/Meteo";
 import { Securite } from "./pages/Securite";
+import { Bibliotheque } from "./pages/Bibliotheque";
 
 function PrivateRoute({ children }) {
   const { isGuest } = useProfile();
@@ -31,6 +32,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/cinematheque" element={<Cinematheque />} />
+            <Route path="/bibliotheque" element={<Bibliotheque />} />
             <Route path="/meteo" element={<Meteo />} />
             <Route path="/quiz" element={<Quiz />} />
 

@@ -6,6 +6,75 @@ const API_BASE = '/api';
 const LOCAL_MEDIAS_KEY = 'vicoz_medias';
 const LOCAL_NOTES_KEY = 'vicoz_notes';
 const LOCAL_GENEALOGY_KEY = 'vicoz_genealogy_members';
+const LOCAL_LIBRARY_KEY = 'vicoz_library_items';
+
+// --- BIBLIOTHÈQUE MULTI-MÉDIAS (Livres, Mangas, CDs, Vinyles, Bluray/4K, Magazines) ---
+export async function fetchLibraryItems() {
+  try {
+    const res = await fetch(`${API_BASE}/library`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        localStorage.setItem(LOCAL_LIBRARY_KEY, JSON.stringify(data));
+        return data;
+      }
+    }
+  } catch {}
+
+  try {
+    const snapshot = await getDocs(collection(db, "library"));
+    if (!snapshot.empty) {
+      const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      data.sort((a, b) => new Date(b.addedAt || b.createdAt || 0) - new Date(a.addedAt || a.createdAt || 0));
+      return data;
+    }
+  } catch (e) {
+    console.warn("Firebase library fetch failed", e);
+  }
+  const local = localStorage.getItem(LOCAL_LIBRARY_KEY);
+  return local ? JSON.parse(local) : [];
+}
+
+export async function saveLibraryItem(item) {
+  try {
+    const res = await fetch(`${API_BASE}/library/${item.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item),
+    });
+    if (res.ok) return await res.json();
+  } catch {
+    try {
+      await setDoc(doc(db, "library", String(item.id)), item);
+    } catch (e) {
+      console.warn("Firebase library save failed", e);
+    }
+    const local = localStorage.getItem(LOCAL_LIBRARY_KEY);
+    let items = local ? JSON.parse(local) : [];
+    const idx = items.findIndex(m => String(m.id) === String(item.id));
+    if (idx >= 0) items[idx] = item;
+    else items.push(item);
+    localStorage.setItem(LOCAL_LIBRARY_KEY, JSON.stringify(items));
+  }
+  return { success: true, id: item.id };
+}
+
+export async function deleteLibraryItem(id) {
+  try {
+    const res = await fetch(`${API_BASE}/library/${id}`, { method: 'DELETE' });
+    if (res.ok) return await res.json();
+  } catch {
+    try {
+      await deleteDoc(doc(db, "library", String(id)));
+    } catch (e) {}
+    const local = localStorage.getItem(LOCAL_LIBRARY_KEY);
+    if (local) {
+      let items = JSON.parse(local).filter(m => String(m.id) !== String(id));
+      localStorage.setItem(LOCAL_LIBRARY_KEY, JSON.stringify(items));
+    }
+  }
+  return { success: true, id };
+}
 
 // --- MÉDIAS ---
 export async function fetchMedias() {
