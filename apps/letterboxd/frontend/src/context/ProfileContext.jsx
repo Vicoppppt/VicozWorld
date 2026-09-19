@@ -34,8 +34,8 @@ export function ProfileProvider({ children }) {
     }
 
     if (guestCode) {
-      document.cookie = `vw_guest=${guestCode}; path=/; max-age=1800; SameSite=Lax`;
-      document.cookie = `vicoz_guest_session=allowed; path=/; max-age=1800; SameSite=Lax`;
+      // Les cookies de session invité sont désormais gérés exclusivement
+      // par le backend (Set-Cookie avec HttpOnly et Secure).
       selectProfile('invite');
     }
 

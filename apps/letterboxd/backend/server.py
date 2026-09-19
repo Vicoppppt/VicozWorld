@@ -244,9 +244,11 @@ current_guest_otp = {
 }
 
 def verify_victor_admin(request: Request):
-    """Vérifie que la requête provient bien d'un appareil officiel de Victor."""
+    """Vérifie que la requête provient bien d'un appareil officiel de Victor avec un certificat valide."""
     device_cn = getattr(request.state, "device_cn", "")
-    if not device_cn or "victor" not in device_cn.lower():
+    is_guest = getattr(request.state, "is_guest", True)
+    
+    if is_guest or not device_cn or "victor" not in device_cn.lower():
         raise HTTPException(
             status_code=403, 
             detail="Accès interdit : Cette fonction d'administration est strictement réservée à Victor."
@@ -262,7 +264,8 @@ async def mtls_and_audit_middleware(request: Request, call_next):
         
     # 1. Vérification prioritaire du certificat matériel client mTLS
     cert_status = request.headers.get("x-client-cert-status", "").upper()
-    has_hardware_cert = bool(client_cn and client_cn not in ["Anonyme / Non vérifié", "Invité Démo"] and (cert_status == "SUCCESS" or cert_status == ""))
+    # SÉCURITÉ FIX: Exiger strictement SUCCESS. Un statut vide "" signifie pas de certificat vérifié par le reverse proxy.
+    has_hardware_cert = bool(client_cn and client_cn not in ["Anonyme / Non vérifié", "Invité Démo"] and cert_status == "SUCCESS")
 
     now = time.time()
     guest_param = request.query_params.get("guest")
@@ -496,8 +499,10 @@ def trigger_backup(request: Request):
     return {"status": "ok", "backup_file": filename, "message": "Sauvegarde créée avec succès."}
 
 @app.get("/api/admin/backups")
-def list_backups():
+def list_backups(request: Request):
     """Liste les sauvegardes existantes."""
+    verify_victor_admin(request)
+
     if not os.path.exists(BACKUP_DIR):
         return {"backups": []}
     files = []
