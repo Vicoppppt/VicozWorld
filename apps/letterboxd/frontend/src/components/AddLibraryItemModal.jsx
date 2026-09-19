@@ -339,13 +339,24 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
                         className="group flex gap-3 p-3 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-indigo-500/50 hover:bg-zinc-800/40 cursor-pointer transition-all hover:scale-[1.01] shadow-sm"
                       >
                         {item.cover ? (
-                          <img
-                            src={item.cover}
-                            alt={item.title}
-                            className={`w-14 h-20 object-cover rounded-xl bg-zinc-900 border border-zinc-800 shrink-0 ${
-                              item.category === "CD" || item.category === "Vinyle" ? "aspect-square h-14" : ""
-                            }`}
-                          />
+                          <>
+                            <img
+                              src={item.cover}
+                              alt={item.title}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                if (e.currentTarget.nextElementSibling) {
+                                  e.currentTarget.nextElementSibling.classList.remove('hidden');
+                                }
+                              }}
+                              className={`w-14 h-20 object-cover rounded-xl bg-zinc-900 border border-zinc-800 shrink-0 ${
+                                item.category === "CD" || item.category === "Vinyle" ? "aspect-square h-14" : ""
+                              }`}
+                            />
+                            <div className="hidden w-14 h-20 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 shrink-0">
+                              <ImageIcon className="w-6 h-6" />
+                            </div>
+                          </>
                         ) : (
                           <div className="w-14 h-20 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 shrink-0">
                             <ImageIcon className="w-6 h-6" />
@@ -398,13 +409,25 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
               <div className="flex flex-col sm:flex-row gap-5 p-4 rounded-3xl bg-zinc-950/80 border border-zinc-800">
                 <div className="relative shrink-0 mx-auto sm:mx-0">
                   {formData.cover ? (
-                    <img
-                      src={formData.cover}
-                      alt={formData.title}
-                      className={`w-28 h-36 object-cover rounded-2xl shadow-xl border border-zinc-700 ${
-                        formData.category === "CD" || formData.category === "Vinyle" ? "h-28 aspect-square" : ""
-                      }`}
-                    />
+                    <>
+                      <img
+                        src={formData.cover}
+                        alt={formData.title}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          if (e.currentTarget.nextElementSibling) {
+                            e.currentTarget.nextElementSibling.classList.remove('hidden');
+                          }
+                        }}
+                        className={`w-28 h-36 object-cover rounded-2xl shadow-xl border border-zinc-700 ${
+                          formData.category === "CD" || formData.category === "Vinyle" ? "h-28 aspect-square" : ""
+                        }`}
+                      />
+                      <div className="hidden w-28 h-36 rounded-2xl bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center text-zinc-600 gap-1">
+                        <ImageIcon className="w-7 h-7" />
+                        <span className="text-[10px]">Sans image</span>
+                      </div>
+                    </>
                   ) : (
                     <div className="w-28 h-36 rounded-2xl bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center text-zinc-600 gap-1">
                       <ImageIcon className="w-7 h-7" />

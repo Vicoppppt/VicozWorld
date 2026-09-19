@@ -329,22 +329,34 @@ export function Bibliotheque() {
                 {/* Image Pochette */}
                 <div className={`${isSquare ? "aspect-square" : "aspect-[2/3]"} relative bg-zinc-950 overflow-hidden`}>
                   {item.cover ? (
-                    <img
-                      src={item.cover}
-                      alt={item.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
+                    <>
+                      <img
+                        src={item.cover}
+                        alt={item.title}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          if (e.currentTarget.nextElementSibling) {
+                            e.currentTarget.nextElementSibling.classList.remove('hidden');
+                          }
+                        }}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="hidden w-full h-full flex flex-col items-center justify-center text-zinc-500 bg-zinc-950 p-3 text-center">
+                        <ImageIcon className="w-7 h-7 opacity-40 mb-1" />
+                        <span className="text-[10px] font-semibold text-zinc-400 line-clamp-2">{item.title}</span>
+                        <span className="text-[9px] text-zinc-600 uppercase tracking-wider mt-0.5">{item.category}</span>
+                      </div>
+                    </>
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-zinc-600 bg-zinc-950">
-                      <ImageIcon className="w-8 h-8 opacity-40 mb-1" />
-                      <span className="text-[10px] text-zinc-500">{item.category}</span>
+                    <div className="w-full h-full flex flex-col items-center justify-center text-zinc-600 bg-zinc-950 p-3 text-center">
+                      <ImageIcon className="w-7 h-7 opacity-40 mb-1" />
+                      <span className="text-[10px] font-semibold text-zinc-400 line-clamp-2">{item.title}</span>
+                      <span className="text-[9px] text-zinc-600 uppercase tracking-wider mt-0.5">{item.category}</span>
                     </div>
                   )}
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent opacity-80" />
-
                   {/* Badge Catégorie */}
-                  <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-black/70 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-zinc-200 border border-white/10">
+                  <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-black/75 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-zinc-200 border border-white/10 shadow-sm">
                     {item.category}
                   </div>
 
@@ -358,27 +370,29 @@ export function Bibliotheque() {
                       {item.status}
                     </div>
                   )}
+                </div>
 
-                  {/* Titre et détails en bas de la carte */}
-                  <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-zinc-950 via-zinc-950/90 to-transparent">
-                    <h3 className="font-bold text-zinc-100 text-sm leading-snug line-clamp-2 group-hover:text-indigo-300 transition-colors">
+                {/* Titre et détails EN DESSOUS (Image 100% visible et non tronquée) */}
+                <div className="p-3 bg-zinc-900 flex-1 flex flex-col justify-between border-t border-zinc-800/80">
+                  <div>
+                    <h3 className="font-bold text-zinc-100 text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-indigo-300 transition-colors">
                       {item.title}
                     </h3>
                     
                     {item.creator && (
-                      <p className="text-xs text-zinc-400 truncate mt-0.5 font-medium">
+                      <p className="text-xs text-zinc-400 truncate mt-1 font-medium">
                         {item.creator}
                       </p>
                     )}
+                  </div>
 
-                    <div className="flex items-center justify-between mt-2 pt-1 border-t border-zinc-800/60 text-[10px] text-zinc-400 font-semibold">
-                      <span className="truncate max-w-[90px]">{item.format || item.year || ""}</span>
-                      {Number(item.rating) > 0 && (
-                        <div className="flex items-center gap-0.5">
-                          <StarRating rating={item.rating} readonly size="w-3 h-3" />
-                        </div>
-                      )}
-                    </div>
+                  <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-zinc-800/60 text-[10px] text-zinc-400 font-semibold">
+                    <span className="truncate max-w-[90px]">{item.format || item.year || ""}</span>
+                    {Number(item.rating) > 0 && (
+                      <div className="flex items-center gap-0.5">
+                        <StarRating rating={item.rating} readonly size="w-3 h-3" />
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
