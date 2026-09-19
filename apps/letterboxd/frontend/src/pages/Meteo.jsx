@@ -169,22 +169,36 @@ export function Meteo() {
 
   const handleSaveConfig = async (e) => {
     e.preventDefault();
-    const toastId = toast.loading("Enregistrement de la configuration...");
+    const toastId = toast.loading("Recherche de la ville et enregistrement...");
     try {
+      let finalConfig = { ...config };
+      
+      // Auto-géocodage de la ville saisie
+      const searchRes = await fetch(`/api/weather/search?q=${encodeURIComponent(config.default_city)}`);
+      if (searchRes.ok) {
+        const results = await searchRes.json();
+        if (results && results.length > 0) {
+          finalConfig.default_lat = results[0].latitude;
+          finalConfig.default_lon = results[0].longitude;
+          finalConfig.default_city = results[0].name;
+        }
+      }
+
       const res = await fetch('/api/weather/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config)
+        body: JSON.stringify(finalConfig)
       });
       if (res.ok) {
         toast.success("Paramètres enregistrés !", { id: toastId });
+        setConfig(finalConfig);
         setIsSettingsOpen(false);
-        fetchWeather(config.default_lat, config.default_lon, config.default_city, true);
+        fetchWeather(finalConfig.default_lat, finalConfig.default_lon, finalConfig.default_city, true);
       } else {
-        toast.error("Erreur lors de la sauvegarde", { id: toastId });
+        toast.error("Erreur serveur", { id: toastId });
       }
     } catch (err) {
-      toast.error("Échec de la communication", { id: toastId });
+      toast.error("Erreur lors de l'enregistrement", { id: toastId });
     }
   };
 
@@ -654,31 +668,6 @@ export function Meteo() {
 
               <form onSubmit={handleSaveConfig} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-300 mb-2">
-                    Clé API Gemini (pour la synthèse IA multi-modèles)
-                  </label>
-                  <div className="flex items-center gap-2">
-                    {config.gemini_api_key && config.gemini_api_key.length > 5 ? (
-                      <div className="flex items-center gap-2 px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs font-medium w-full">
-                        <div className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </div>
-                        Clé configurée via CasaOS et active
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-medium w-full">
-                        <div className="h-2 w-2 rounded-full bg-red-500"></div>
-                        Clé non configurée (À définir dans CasaOS)
-                      </div>
-                    )}
-                  </div>
-                  <span className="block mt-2 text-[10px] text-zinc-500">
-                    Utilisée par VicozWorld pour la météo, l'actualité et tous les assistants IA. Modification requise via les paramètres de l'application dans CasaOS.
-                  </span>
-                </div>
-
-                <div>
                   <label className="block text-xs font-medium text-zinc-300 mb-1">
                     Ville par défaut
                   </label>
@@ -689,35 +678,6 @@ export function Meteo() {
                     onChange={(e) => setConfig({ ...config, default_city: e.target.value })}
                     className="w-full px-3.5 py-2 bg-zinc-950 border border-zinc-700 rounded-xl text-sm text-zinc-100 focus:outline-none focus:border-cyan-500 transition-colors"
                   />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-300 mb-1">
-                      Latitude par défaut
-                    </label>
-                    <input
-                      type="number"
-                      step="0.0001"
-                      required
-                      value={config.default_lat}
-                      onChange={(e) => setConfig({ ...config, default_lat: parseFloat(e.target.value) })}
-                      className="w-full px-3.5 py-2 bg-zinc-950 border border-zinc-700 rounded-xl text-sm text-zinc-100 focus:outline-none focus:border-cyan-500 transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-300 mb-1">
-                      Longitude par défaut
-                    </label>
-                    <input
-                      type="number"
-                      step="0.0001"
-                      required
-                      value={config.default_lon}
-                      onChange={(e) => setConfig({ ...config, default_lon: parseFloat(e.target.value) })}
-                      className="w-full px-3.5 py-2 bg-zinc-950 border border-zinc-700 rounded-xl text-sm text-zinc-100 focus:outline-none focus:border-cyan-500 transition-colors"
-                    />
-                  </div>
                 </div>
 
                 <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-800">

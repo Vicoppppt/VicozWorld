@@ -221,6 +221,29 @@ export function Home() {
               </div>
             )}
 
+            {/* Indicateur Clé Gemini (seulement sur l'accueil) */}
+            <div 
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
+                hubData?.has_gemini_key
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                  : 'bg-red-500/10 text-red-400 border-red-500/30'
+              }`}
+              title={hubData?.has_gemini_key ? 'Clé Gemini configurée et active' : 'Clé Gemini manquante dans CasaOS'}
+            >
+              {hubData?.has_gemini_key ? (
+                <div className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </div>
+              ) : (
+                <div className="h-3 w-3 rounded-full bg-red-500"></div>
+              )}
+              <div className="flex flex-col text-left leading-tight">
+                <span className="font-bold">{hubData?.has_gemini_key ? 'Gemini IA' : 'Gemini Off'}</span>
+                <span className="text-[9px] opacity-80">{hubData?.has_gemini_key ? 'Connecté' : 'Clé requise'}</span>
+              </div>
+            </div>
+
             <button
               onClick={() => fetchHubData(true)}
               disabled={isRefreshing || isLoading}

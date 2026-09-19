@@ -2238,6 +2238,7 @@ Réponds STRICTEMENT au format JSON :
         "electricity": electricity_stats,
         "movie_pick": movie_pick,
         "domotique": domotique_data,
+        "has_gemini_key": bool(gemini_key),
         "generated_at": current_time
     }
 
