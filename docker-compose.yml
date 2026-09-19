@@ -39,6 +39,7 @@ services:
       - ENEDIS_PDL=${ENEDIS_PDL:-}
       - ENEDIS_TOKEN=${ENEDIS_TOKEN:-}
       - DB_ENCRYPTION_KEY=${DB_ENCRYPTION_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://vw.vicopetit.dedyn.io}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
