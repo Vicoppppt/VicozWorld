@@ -333,6 +333,7 @@ export function Home() {
               <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1.5 shadow-sm">
                 <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
                 Briefing Exécutif du Jour
+              </span>
             </div>
           </div>
 
