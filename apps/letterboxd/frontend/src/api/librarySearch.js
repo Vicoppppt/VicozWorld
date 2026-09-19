@@ -17,13 +17,23 @@ function stripHtml(html) {
 const GOOGLE_BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY || "AIzaSyA5tl9yNcVeQdDlHUV0OYtE-dfCoX_OEFo";
 
 /**
- * Recherche de Livres ou Magazines via Google Books API avec fallback immédiat sur Open Library (anti-erreur 429)
+ * Recherche de Livres ou Magazines via Apple Books API (Source n°1 Ultra-HD sans quota), avec fallback Google Books et Open Library
  */
 export async function searchBooksAndMagazines(query, type = "Livre") {
   if (!query || !query.trim()) return [];
   const q = query.trim();
 
-  // 1. Essai Google Books
+  // 1. Source n°1 : Apple Books (Rapide, sans quota, couvertures HD magnifiques, descriptions complètes)
+  try {
+    const appleResults = await searchAppleBooks(q, type);
+    if (appleResults && appleResults.length > 0) {
+      return appleResults;
+    }
+  } catch (err) {
+    console.warn("Erreur Apple Books :", err);
+  }
+
+  // 2. Source n°2 : Google Books (si disponible)
   try {
     const isMag = type === "Magazine";
     const printType = isMag ? "&printType=magazines" : "&printType=books";
@@ -31,31 +41,58 @@ export async function searchBooksAndMagazines(query, type = "Livre") {
     const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}${printType}&maxResults=10&langRestrict=fr${keyParam}`;
     
     const res = await fetch(url);
-    if (res.status === 429) {
-      console.warn("Google Books Rate Limit (429) atteint, bascule automatique sur Open Library...");
-      return await searchOpenLibraryBooks(q, type);
-    }
-    if (!res.ok) throw new Error(`Google Books HTTP ${res.status}`);
-    const data = await res.json();
-    if (data.items && Array.isArray(data.items) && data.items.length > 0) {
-      return parseGoogleBooksItems(data.items, type);
-    }
-    
-    // Essai Google Books sans restriction de langue
-    const fallbackUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}${printType}&maxResults=10${keyParam}`;
-    const fallbackRes = await fetch(fallbackUrl);
-    if (fallbackRes.ok) {
-      const fallbackData = await fallbackRes.json();
-      if (fallbackData.items && fallbackData.items.length > 0) {
-        return parseGoogleBooksItems(fallbackData.items, type);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.items && Array.isArray(data.items) && data.items.length > 0) {
+        return parseGoogleBooksItems(data.items, type);
       }
     }
   } catch (err) {
-    console.warn("Erreur Google Books (tentative Open Library) :", err);
+    console.warn("Google Books indisponible :", err);
   }
 
-  // 2. Fallback robuste et illimité : Open Library
+  // 3. Source n°3 : Open Library (Fallback libre)
   return await searchOpenLibraryBooks(q, type);
+}
+
+/**
+ * Recherche sur Apple Books / iTunes Ebooks (Haute résolution, 0 quota)
+ */
+async function searchAppleBooks(query, defaultCategory) {
+  try {
+    const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=ebook&limit=12&country=FR`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!data.results || !Array.isArray(data.results) || data.results.length === 0) return [];
+
+    return data.results.map(book => {
+      let cover = book.artworkUrl100 || book.artworkUrl60 || "";
+      if (cover) {
+        cover = cover.replace(/\/\d+x\d+bb\.jpg$/i, '/1000x1000bb.jpg');
+      }
+
+      const year = book.releaseDate ? book.releaseDate.substring(0, 4) : "";
+      const description = stripHtml(book.description || "");
+
+      return {
+        id: `apple_${book.trackId}`,
+        title: book.trackName || book.trackCensoredName || "Livre",
+        creator: book.artistName || "Auteur inconnu",
+        year: year,
+        releaseDate: book.releaseDate ? book.releaseDate.substring(0, 10) : "",
+        cover: cover,
+        category: defaultCategory,
+        format: defaultCategory === "Magazine" ? "Revue / Mensuel" : "Livre / Broché",
+        publisher: "",
+        description: description,
+        source: "Apple Books"
+      };
+    });
+  } catch (err) {
+    console.warn("Erreur Apple Books :", err);
+    return [];
+  }
 }
 
 /**
