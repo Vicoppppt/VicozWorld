@@ -76,29 +76,25 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
     }
   }, [isOpen]);
 
-  // Déclencheur de recherche avec debounce
-  useEffect(() => {
-    if (!isOpen || step !== 1) return;
+  // Exécution explicite de la recherche (sur Entrée ou clic sur Rechercher)
+  const handlePerformSearch = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
     if (!searchQuery || searchQuery.trim().length < 2) {
-      setSearchResults([]);
-      setIsSearching(false);
+      toast("Veuillez taper au moins 2 caractères", { icon: "ℹ️" });
       return;
     }
 
-    const timer = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const results = await searchLibraryUniversal(searchQuery, selectedCategory);
-        setSearchResults(results);
-      } catch (e) {
-        console.warn("Erreur recherche :", e);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 600);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery, selectedCategory, step, isOpen]);
+    setIsSearching(true);
+    try {
+      const results = await searchLibraryUniversal(searchQuery.trim(), selectedCategory);
+      setSearchResults(results);
+    } catch (err) {
+      console.warn("Erreur recherche :", err);
+      toast.error("Erreur lors de la recherche");
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -230,27 +226,43 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
                 </div>
               </div>
 
-              {/* Champ de recherche avec icône de chargement */}
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
-                <input
-                  type="text"
-                  autoFocus
-                  placeholder={`Rechercher un ${selectedCategory.toLowerCase()} (ex: ${
-                    selectedCategory === "Livre" ? "1984, Dune, Harry Potter..." :
-                    selectedCategory === "CD" || selectedCategory === "Vinyle" ? "Daft Punk Discovery, Pink Floyd, Orelsan..." :
-                    selectedCategory === "Manga" ? "One Piece, Berserk, Jujutsu Kaisen..." :
-                    selectedCategory === "Blu-ray / 4K" ? "Inception, Oppenheimer, Matrix..." :
-                    selectedCategory === "Magazine" ? "Science & Vie, So Foot, Rolling Stone..." : "Titre..."
-                  })`}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3.5 bg-zinc-950 border border-zinc-800 rounded-2xl text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-inner"
-                />
-                {isSearching && (
-                  <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 animate-spin" />
-                )}
-              </div>
+              {/* Formulaire de recherche déclenché sur Entrée ou clic */}
+              <form onSubmit={handlePerformSearch} className="relative flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder={`Rechercher un ${selectedCategory.toLowerCase()} (ex: ${
+                      selectedCategory === "Livre" ? "1984, Dune, Harry Potter..." :
+                      selectedCategory === "CD" || selectedCategory === "Vinyle" ? "Daft Punk Discovery, Pink Floyd, Orelsan..." :
+                      selectedCategory === "Manga" ? "One Piece, Berserk, Jujutsu Kaisen..." :
+                      selectedCategory === "Blu-ray / 4K" ? "Inception, Oppenheimer, Matrix..." :
+                      selectedCategory === "Magazine" ? "Science & Vie, So Foot, Rolling Stone..." : "Titre..."
+                    })`}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-950 border border-zinc-800 rounded-2xl text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-inner"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSearching || !searchQuery.trim()}
+                  className="px-5 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-600/30 flex items-center gap-2 transition-all shrink-0"
+                >
+                  {isSearching ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Recherche...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4" />
+                      <span>Rechercher</span>
+                    </>
+                  )}
+                </button>
+              </form>
 
               {/* RÉSULTATS AUTOMATIQUES */}
               <div className="space-y-3">
