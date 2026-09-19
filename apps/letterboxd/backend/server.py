@@ -1566,10 +1566,108 @@ MODELS_CASCADE = [
     "gemini-1.5-pro"        # Fallback haute capacité
 ]
 
-def call_gemini_json_api(prompt: str, api_key: str, max_retries: int = 1) -> Optional[dict]:
+AI_CONFIG_FILE = os.path.join(DB_DIR, "gemini_service_models.json")
+
+DEFAULT_AI_SERVICE_CONFIG = {
+    "meteo": "gemini-1.5-flash",
+    "news": "gemini-1.5-flash",
+    "hub_briefing": "gemini-1.5-flash",
+    "gmail_assistant": "gemini-1.5-flash",
+    "tools_text": "gemini-1.5-pro"
+}
+
+def get_ai_service_config() -> dict:
+    if os.path.exists(AI_CONFIG_FILE):
+        try:
+            with open(AI_CONFIG_FILE, "r", encoding="utf-8") as f:
+                saved = json.load(f)
+                res = DEFAULT_AI_SERVICE_CONFIG.copy()
+                res.update(saved)
+                return res
+        except Exception as e:
+            logger.warning(f"Erreur lecture {AI_CONFIG_FILE}: {e}")
+    return DEFAULT_AI_SERVICE_CONFIG.copy()
+
+def save_ai_service_config(cfg: dict):
+    try:
+        with open(AI_CONFIG_FILE, "w", encoding="utf-8") as f:
+            json.dump(cfg, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        logger.error(f"Erreur écriture {AI_CONFIG_FILE}: {e}")
+        return False
+
+@app.get("/api/ai/models")
+def get_available_gemini_models():
+    """Découvre dynamiquement les modèles supportés par la clé Google Gemini de l'utilisateur."""
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        return {"models": [
+            {"id": "gemini-1.5-flash", "displayName": "Gemini 1.5 Flash (Défaut)", "description": "Modèle universel ultra rapide et gratuit"},
+            {"id": "gemini-2.0-flash", "displayName": "Gemini 2.0 Flash", "description": "Modèle nouvelle génération"},
+            {"id": "gemini-1.5-pro", "displayName": "Gemini 1.5 Pro", "description": "Raisonnement avancé et documents longs"}
+        ]}
+
+    ctx = ssl.create_default_context()
+    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "VicozWorld/1.0"})
+        with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            raw_models = data.get("models", [])
+            valid_models = []
+            for m in raw_models:
+                methods = m.get("supportedGenerationMethods", [])
+                if "generateContent" in methods:
+                    m_id = m.get("name", "").replace("models/", "")
+                    # Ignorer les modèles de vision pure ou embeddings non adaptés au texte
+                    if "embedding" in m_id.lower() or "aqa" in m_id.lower() or "imagen" in m_id.lower():
+                        continue
+                    valid_models.append({
+                        "id": m_id,
+                        "displayName": m.get("displayName", m_id),
+                        "description": m.get("description", "")
+                    })
+            if valid_models:
+                return {"models": valid_models}
+    except Exception as e:
+        logger.warning(f"Erreur récupération modèles Gemini via API: {e}")
+
+    # Fallback si l'API Google ne répond pas
+    return {"models": [
+        {"id": "gemini-1.5-flash", "displayName": "Gemini 1.5 Flash", "description": "Modèle universel stable"},
+        {"id": "gemini-2.0-flash", "displayName": "Gemini 2.0 Flash", "description": "Modèle nouvelle génération"},
+        {"id": "gemini-1.5-pro", "displayName": "Gemini 1.5 Pro", "description": "Haute capacité"}
+    ]}
+
+class AIServiceConfigRequest(BaseModel):
+    meteo: Optional[str] = "gemini-1.5-flash"
+    news: Optional[str] = "gemini-1.5-flash"
+    hub_briefing: Optional[str] = "gemini-1.5-flash"
+    gmail_assistant: Optional[str] = "gemini-1.5-flash"
+    tools_text: Optional[str] = "gemini-1.5-pro"
+
+@app.get("/api/ai/config")
+def get_ai_config_endpoint():
+    return get_ai_service_config()
+
+@app.post("/api/ai/config")
+def set_ai_config_endpoint(req: AIServiceConfigRequest):
+    cfg = req.dict()
+    save_ai_service_config(cfg)
+    return {"status": "ok", "config": cfg}
+
+def call_gemini_json_api(prompt: str, api_key: str, preferred_model: Optional[str] = None, max_retries: int = 1) -> Optional[dict]:
     global LAST_GEMINI_CALL_TIME
     if not api_key:
         return None
+
+    cascade = list(MODELS_CASCADE)
+    if preferred_model:
+        # Placer le modèle préféré choisi par l'utilisateur en tête de cascade
+        if preferred_model in cascade:
+            cascade.remove(preferred_model)
+        cascade.insert(0, preferred_model)
 
     ctx = ssl.create_default_context()
     gemini_payload = {
@@ -1585,8 +1683,7 @@ def call_gemini_json_api(prompt: str, api_key: str, max_retries: int = 1) -> Opt
         if elapsed < 1.0:
             time.sleep(1.0 - elapsed)
 
-        # Cascade automatique entre les modèles Google disponibles pour éviter le quota 429
-        for model_name in MODELS_CASCADE:
+        for model_name in cascade:
             gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
             for attempt in range(max_retries + 1):
                 try:
@@ -1610,7 +1707,6 @@ def call_gemini_json_api(prompt: str, api_key: str, max_retries: int = 1) -> Opt
                 except urllib.error.HTTPError as e:
                     logger.warning(f"Modèle {model_name} HTTPError {e.code} -> tentative {attempt+1}/{max_retries+1}")
                     if e.code in (429, 404, 503):
-                        # Quota atteint ou indisponible sur ce modèle précis, basculer sur le modèle suivant
                         break
                 except Exception as e:
                     logger.warning(f"Modèle {model_name} exception: {e}")
@@ -1686,12 +1782,14 @@ Réponds STRICTEMENT avec ce format JSON :
   ]
 }}"""
 
-    parsed_briefing = call_gemini_json_api(prompt, gemini_key)
+    ai_cfg = get_ai_service_config()
+    model_choice = ai_cfg.get("news", "gemini-1.5-flash")
+    parsed_briefing = call_gemini_json_api(prompt, gemini_key, preferred_model=model_choice)
     if parsed_briefing:
         result = {
             "success": True,
             "generated_at": current_time,
-            "ai_model": "Gemini 2.5 Flash",
+            "ai_model": model_choice,
             "briefing": parsed_briefing
         }
         BRIEFING_CACHE["timestamp"] = current_time
@@ -1991,6 +2089,8 @@ def get_weather_report(lat: Optional[float] = None, lon: Optional[float] = None,
 
     # 4. Synthèse intelligente par GEMINI 2.5 FLASH
     if gemini_key and sources_data:
+        ai_cfg = get_ai_service_config()
+        model_choice = ai_cfg.get("meteo", "gemini-1.5-flash")
         gemini_prompt = f"""Tu es le météorologue expert IA de la station météo VicozWorld.
 Voici les données météo en direct extraites de 3 modèles météo professionnels pour la ville de {cur_city}:
 {json.dumps(sources_data, ensure_ascii=False, indent=2)}
@@ -2007,11 +2107,11 @@ Fais une analyse croisée de haute fiabilité. Réponds STRICTEMENT au format JS
   "outfit_advice": "string",
   "activities_advice": "string"
 }}"""
-        parsed_gemini = call_gemini_json_api(gemini_prompt, gemini_key)
+        parsed_gemini = call_gemini_json_api(gemini_prompt, gemini_key, preferred_model=model_choice)
         if parsed_gemini:
             consensus_synthesis.update(parsed_gemini)
             consensus_synthesis["ai_generated"] = True
-            consensus_synthesis["ai_model"] = "Gemini 2.5 Flash"
+            consensus_synthesis["ai_model"] = model_choice
         else:
             consensus_synthesis["ai_generated"] = False
     else:
@@ -2193,6 +2293,8 @@ def get_hub_summary(request: Request, force: Optional[bool] = False):
 
     # Si la synthèse IA météo ou actualités a déjà tourné, on compose un message direct et rapide pour éviter de surcharger le quota Gemini
     if gemini_key and force:
+        ai_cfg = get_ai_service_config()
+        model_choice = ai_cfg.get("hub_briefing", "gemini-1.5-flash")
         prompt = f"""Tu es l'assistant personnel intelligent de VicozWorld.
 Voici le point du jour :
 - Météo : {w_temp}°C, {w_cond}
@@ -2207,7 +2309,7 @@ Réponds STRICTEMENT au format JSON :
   "executive_summary": "texte de 2 phrases bien rédigées",
   "movie_pitch": "phrase d'accroche pour le film"
 }}"""
-        parsed_exec = call_gemini_json_api(prompt, gemini_key)
+        parsed_exec = call_gemini_json_api(prompt, gemini_key, preferred_model=model_choice)
         if parsed_exec:
             greeting_prefix = parsed_exec.get("greeting", greeting_prefix)
             executive_summary = parsed_exec.get("executive_summary", executive_summary)

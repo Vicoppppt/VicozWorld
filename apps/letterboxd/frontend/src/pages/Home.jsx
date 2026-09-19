@@ -43,7 +43,8 @@ import {
   User,
   Check,
   SlidersHorizontal,
-  GraduationCap
+  GraduationCap,
+  X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useProfile } from '../context/ProfileContext';
@@ -55,6 +56,62 @@ export function Home() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [bankBalances, setBankBalances] = useState(null);
   const [battery, setBattery] = useState(null);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [aiModels, setAiModels] = useState([]);
+  const [aiConfig, setAiConfig] = useState({
+    meteo: "gemini-1.5-flash",
+    news: "gemini-1.5-flash",
+    hub_briefing: "gemini-1.5-flash",
+    gmail_assistant: "gemini-1.5-flash",
+    tools_text: "gemini-1.5-pro"
+  });
+  const [isLoadingAiModels, setIsLoadingAiModels] = useState(false);
+  const [isSavingAiConfig, setIsSavingAiConfig] = useState(false);
+
+  const fetchAiData = async () => {
+    setIsLoadingAiModels(true);
+    try {
+      const [modelsRes, configRes] = await Promise.all([
+        fetch('/api/ai/models'),
+        fetch('/api/ai/config')
+      ]);
+      if (modelsRes.ok) {
+        const data = await modelsRes.json();
+        setAiModels(data.models || []);
+      }
+      if (configRes.ok) {
+        const data = await configRes.json();
+        setAiConfig(data);
+      }
+    } catch (err) {
+      console.error("Erreur chargement modèles IA:", err);
+    } finally {
+      setIsLoadingAiModels(false);
+    }
+  };
+
+  const handleSaveAiConfig = async (e) => {
+    e.preventDefault();
+    setIsSavingAiConfig(true);
+    const toastId = toast.loading("Enregistrement des modèles...");
+    try {
+      const res = await fetch('/api/ai/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(aiConfig)
+      });
+      if (res.ok) {
+        toast.success("Modèles Gemini configurés avec succès !", { id: toastId });
+        setIsAiModalOpen(false);
+      } else {
+        toast.error("Erreur lors de l'enregistrement", { id: toastId });
+      }
+    } catch (err) {
+      toast.error("Erreur réseau", { id: toastId });
+    } finally {
+      setIsSavingAiConfig(false);
+    }
+  };
 
   const fetchBankBalances = async () => {
     try {
@@ -221,14 +278,18 @@ export function Home() {
               </div>
             )}
 
-            {/* Indicateur Clé Gemini (seulement sur l'accueil) */}
-            <div 
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
+            {/* Indicateur Clé Gemini cliquable pour configurer les modèles */}
+            <button
+              onClick={() => {
+                setIsAiModalOpen(true);
+                fetchAiData();
+              }}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all hover:scale-105 cursor-pointer ${
                 hubData?.has_gemini_key
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                  : 'bg-red-500/10 text-red-400 border-red-500/30'
+                  ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                  : 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/30'
               }`}
-              title={hubData?.has_gemini_key ? 'Clé Gemini configurée et active' : 'Clé Gemini manquante dans CasaOS'}
+              title="Cliquer pour configurer les modèles Gemini par service"
             >
               {hubData?.has_gemini_key ? (
                 <div className="relative flex h-3 w-3">
@@ -239,10 +300,13 @@ export function Home() {
                 <div className="h-3 w-3 rounded-full bg-red-500"></div>
               )}
               <div className="flex flex-col text-left leading-tight">
-                <span className="font-bold">{hubData?.has_gemini_key ? 'Gemini IA' : 'Gemini Off'}</span>
-                <span className="text-[9px] opacity-80">{hubData?.has_gemini_key ? 'Connecté' : 'Clé requise'}</span>
+                <div className="flex items-center gap-1">
+                  <span className="font-bold">{hubData?.has_gemini_key ? 'Gemini IA' : 'Gemini Off'}</span>
+                  <SlidersHorizontal className="w-3 h-3 opacity-60" />
+                </div>
+                <span className="text-[9px] opacity-80">{hubData?.has_gemini_key ? 'Gérer les modèles' : 'Clé requise'}</span>
               </div>
-            </div>
+            </button>
 
             <button
               onClick={() => fetchHubData(true)}
@@ -873,6 +937,174 @@ export function Home() {
         </div>
       </div>
       )}
+
+      {/* Modal Configuration des Modèles Gemini par Service */}
+      <AnimatePresence>
+        {isAiModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl text-cyan-400">
+                    <Sparkles className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-zinc-100">Attribution des Modèles Gemini</h3>
+                    <p className="text-xs text-zinc-400">Personnalisez le modèle IA pour chaque service de VicozWorld</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsAiModalOpen(false)}
+                  className="p-1.5 rounded-xl text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {isLoadingAiModels ? (
+                <div className="py-12 flex flex-col items-center justify-center text-zinc-400 gap-3">
+                  <RefreshCw className="w-6 h-6 animate-spin text-cyan-400" />
+                  <span className="text-xs">Interrogation de votre clé Google AI Studio...</span>
+                </div>
+              ) : (
+                <form onSubmit={handleSaveAiConfig} className="space-y-4">
+                  {/* Service 1: Météo */}
+                  <div className="bg-zinc-950/60 p-3.5 rounded-2xl border border-zinc-800/80 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
+                        <CloudSun className="w-4 h-4 text-cyan-400" />
+                        Synthèse Météo multi-modèles
+                      </label>
+                      <span className="text-[10px] text-zinc-500">Recommandé : Flash</span>
+                    </div>
+                    <select
+                      value={aiConfig.meteo}
+                      onChange={(e) => setAiConfig({ ...aiConfig, meteo: e.target.value })}
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-zinc-100 font-medium focus:outline-none focus:border-cyan-500"
+                    >
+                      {aiModels.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.displayName} ({m.id})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Service 2: Actualités */}
+                  <div className="bg-zinc-950/60 p-3.5 rounded-2xl border border-zinc-800/80 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
+                        <Newspaper className="w-4 h-4 text-sky-400" />
+                        Revue de Presse & Analyse de l'Actu
+                      </label>
+                      <span className="text-[10px] text-zinc-500">Recommandé : Flash / Pro</span>
+                    </div>
+                    <select
+                      value={aiConfig.news}
+                      onChange={(e) => setAiConfig({ ...aiConfig, news: e.target.value })}
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-zinc-100 font-medium focus:outline-none focus:border-cyan-500"
+                    >
+                      {aiModels.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.displayName} ({m.id})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Service 3: Briefing Hub */}
+                  <div className="bg-zinc-950/60 p-3.5 rounded-2xl border border-zinc-800/80 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4 text-indigo-400" />
+                        Briefing Exécutif du Hub d'accueil
+                      </label>
+                      <span className="text-[10px] text-zinc-500">Recommandé : Flash / Pro</span>
+                    </div>
+                    <select
+                      value={aiConfig.hub_briefing}
+                      onChange={(e) => setAiConfig({ ...aiConfig, hub_briefing: e.target.value })}
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-zinc-100 font-medium focus:outline-none focus:border-cyan-500"
+                    >
+                      {aiModels.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.displayName} ({m.id})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Service 4: Gmail Assistant */}
+                  <div className="bg-zinc-950/60 p-3.5 rounded-2xl border border-zinc-800/80 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
+                        <Mail className="w-4 h-4 text-rose-400" />
+                        Assistant Gmail & Tri des e-mails
+                      </label>
+                      <span className="text-[10px] text-zinc-500">Recommandé : Flash</span>
+                    </div>
+                    <select
+                      value={aiConfig.gmail_assistant}
+                      onChange={(e) => setAiConfig({ ...aiConfig, gmail_assistant: e.target.value })}
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-zinc-100 font-medium focus:outline-none focus:border-cyan-500"
+                    >
+                      {aiModels.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.displayName} ({m.id})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Service 5: Outils Bureautiques & Extraction */}
+                  <div className="bg-zinc-950/60 p-3.5 rounded-2xl border border-zinc-800/80 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
+                        <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                        Outils Bureautiques (Pronote, OCR, Correcteur)
+                      </label>
+                      <span className="text-[10px] text-zinc-500">Recommandé : Pro / Modèle lourd</span>
+                    </div>
+                    <select
+                      value={aiConfig.tools_text}
+                      onChange={(e) => setAiConfig({ ...aiConfig, tools_text: e.target.value })}
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-zinc-100 font-medium focus:outline-none focus:border-cyan-500"
+                    >
+                      {aiModels.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.displayName} ({m.id})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-800">
+                    <button
+                      type="button"
+                      onClick={() => setIsAiModalOpen(false)}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSavingAiConfig}
+                      className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-cyan-500/20 transition-all disabled:opacity-50"
+                    >
+                      {isSavingAiConfig ? 'Enregistrement...' : 'Enregistrer les choix'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

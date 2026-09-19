@@ -34,22 +34,30 @@ Ne rajoute AUCUN texte autour du JSON.
 """
 
 
+def get_configured_gemini_model() -> str:
+    """Tente de lire la configuration partagée VicozWorld depuis le backend."""
+    try:
+        import urllib.request
+        with urllib.request.urlopen("http://backend:8000/api/ai/config", timeout=2) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            return data.get("gmail_assistant", "gemini-1.5-flash")
+    except Exception:
+        pass
+    return "gemini-1.5-flash"
+
+
 def analyze_emails_with_ai(emails: List[Dict[str, Any]], api_key: str) -> Dict[str, Dict[str, str]]:
     """
     Analyse une liste d'e-mails grâce à l'Agent IA Gemini.
-    
-    Args:
-        emails: Liste de dicts [{'uid': '...', 'sender': '...', 'subject': '...', 'date': '...'}]
-        api_key: Clé API Google Gemini
-        
-    Returns:
-        Dict indexé par uid : {'uid': {'recommendation': 'INUTILE', 'reasoning': '...'}}
+    Retourne un dict indexé par l'UID avec {recommendation, reasoning}.
     """
     if not api_key:
-        raise ValueError("Clé API Gemini requise.")
+        raise ValueError("Clé API Google Gemini introuvable.")
 
     if not emails:
         return {}
+
+    chosen_model = get_configured_gemini_model()
 
     # Import dynamique pour éviter les problèmes de mise en cache du module
     try:
@@ -75,7 +83,7 @@ def analyze_emails_with_ai(emails: List[Dict[str, Any]], api_key: str) -> Dict[s
         client = genai.Client(api_key=api_key)
         try:
             response = client.models.generate_content(
-                model="gemini-1.5-flash",
+                model=chosen_model,
                 contents=f"{SYSTEM_PROMPT}\n\n{prompt_user}",
                 config=types.GenerateContentConfig(
                     temperature=0.1,
@@ -90,7 +98,7 @@ def analyze_emails_with_ai(emails: List[Dict[str, Any]], api_key: str) -> Dict[s
         import urllib.request
         import urllib.parse
         
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{chosen_model}:generateContent?key={api_key}"
         headers = {"Content-Type": "application/json"}
         body = {
             "contents": [{"parts": [{"text": f"{SYSTEM_PROMPT}\n\n{prompt_user}"}]}],
@@ -189,11 +197,13 @@ Ne rajoute AUCUN texte autour du JSON.
 
     prompt_user = f"Voici la liste des e-mails à catégoriser :\n{json.dumps(emails_payload, ensure_ascii=False, indent=2)}"
 
+    chosen_model = get_configured_gemini_model()
+
     if use_genai_sdk:
         client = genai.Client(api_key=api_key)
         try:
             response = client.models.generate_content(
-                model="gemini-1.5-flash",
+                model=chosen_model,
                 contents=f"{system_prompt_categorize}\n\n{prompt_user}",
                 config=types.GenerateContentConfig(
                     temperature=0.1,
@@ -205,7 +215,7 @@ Ne rajoute AUCUN texte autour du JSON.
             raise RuntimeError(f"Erreur lors de l'appel Gemini : {e}")
     else:
         import urllib.request
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{chosen_model}:generateContent?key={api_key}"
         headers = {"Content-Type": "application/json"}
         body = {
             "contents": [{"parts": [{"text": f"{system_prompt_categorize}\n\n{prompt_user}"}]}],
