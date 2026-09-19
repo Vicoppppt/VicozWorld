@@ -221,11 +221,10 @@ def init_db():
         VALUES (1, ?, ?, 0.2516, 12.50, 60.00)
     """, (default_enedis_pdl, default_enedis_token))
     
-    default_gemini = encrypt_value(os.getenv("GEMINI_API_KEY", ""))
     cursor.execute("""
         INSERT OR IGNORE INTO weather_settings (id, gemini_api_key, default_city, default_lat, default_lon)
-        VALUES (1, ?, 'Paris', 48.8566, 2.3522)
-    """, (default_gemini,))
+        VALUES (1, '', 'Paris', 48.8566, 2.3522)
+    """)
     
     # Auto-migration : chiffrer les clés existantes en clair si la clé maître est dispo
     if cipher:
@@ -244,13 +243,7 @@ def init_db():
             if updated:
                 cursor.execute("UPDATE electricity_settings SET pdl = ?, token = ? WHERE id = 1", (pdl, token))
                 
-        cursor.execute("SELECT gemini_api_key FROM weather_settings WHERE id = 1")
-        weather_row = cursor.fetchone()
-        if weather_row:
-            gemini_key = weather_row["gemini_api_key"]
-            if gemini_key and not gemini_key.startswith("gAAAAA"):
-                gemini_key = encrypt_value(gemini_key)
-                cursor.execute("UPDATE weather_settings SET gemini_api_key = ? WHERE id = 1", (gemini_key,))
+        cursor.execute("UPDATE weather_settings SET gemini_api_key = '' WHERE id = 1")
                 
     conn.commit()
     conn.close()
@@ -1753,17 +1746,20 @@ class WeatherConfigModel(BaseModel):
 def get_weather_config_db():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT gemini_api_key, default_city, default_lat, default_lon FROM weather_settings WHERE id = 1")
+    cursor.execute("SELECT default_city, default_lat, default_lon FROM weather_settings WHERE id = 1")
     row = cursor.fetchone()
     conn.close()
+    
+    # La clé Gemini est désormais strictement gérée via les variables d'environnement CasaOS
+    # pour centraliser la configuration entre tous les conteneurs.
+    gemini_key = os.getenv("GEMINI_API_KEY", "")
+    
     if row:
         cfg = dict(row)
-        cfg["gemini_api_key"] = decrypt_value(cfg["gemini_api_key"])
-        if not cfg.get("gemini_api_key"):
-            cfg["gemini_api_key"] = os.getenv("GEMINI_API_KEY", "")
+        cfg["gemini_api_key"] = gemini_key
         return cfg
     return {
-        "gemini_api_key": os.getenv("GEMINI_API_KEY", ""),
+        "gemini_api_key": gemini_key,
         "default_city": "Paris",
         "default_lat": 48.8566,
         "default_lon": 2.3522
@@ -1779,18 +1775,17 @@ def get_weather_config():
 def save_weather_config(config: WeatherConfigModel):
     conn = get_db()
     cursor = conn.cursor()
-    enc_key = encrypt_value(config.gemini_api_key)
     
+    # On n'écrase plus la clé Gemini en base, elle vit uniquement dans l'environnement CasaOS.
     cursor.execute("""
         INSERT INTO weather_settings (id, gemini_api_key, default_city, default_lat, default_lon, updated_at)
-        VALUES (1, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        VALUES (1, '', ?, ?, ?, CURRENT_TIMESTAMP)
         ON CONFLICT(id) DO UPDATE SET
-            gemini_api_key = excluded.gemini_api_key,
             default_city = excluded.default_city,
             default_lat = excluded.default_lat,
             default_lon = excluded.default_lon,
             updated_at = CURRENT_TIMESTAMP
-    """, (enc_key, config.default_city, config.default_lat, config.default_lon))
+    """, (config.default_city, config.default_lat, config.default_lon))
     conn.commit()
     conn.close()
     return {"success": True}
