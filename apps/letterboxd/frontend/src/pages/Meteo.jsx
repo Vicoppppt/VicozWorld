@@ -241,7 +241,7 @@ export function Meteo() {
               Station Météo Multi-Sources & IA
             </h1>
             <p className="text-sm text-zinc-400">
-              Agrégation de Météo-France, MET Norway et Global Ensemble compilée par Gemini 2.5 Flash
+              Synthèse intelligente multi-modèles (Météo-France, MET Norway)
             </p>
           </div>
         </div>
@@ -271,7 +271,7 @@ export function Meteo() {
             className="flex items-center gap-2 px-3.5 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-xl text-xs font-medium text-cyan-300 transition-colors"
           >
             <Settings2 className="w-4 h-4" />
-            <span>Clé Gemini & Ville</span>
+            <span>Ville par défaut</span>
           </button>
         </div>
       </div>
@@ -352,7 +352,7 @@ export function Meteo() {
                     {synthesis?.ai_generated ? (
                       <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
                         <Sparkles className="w-3 h-3 animate-pulse" />
-                        IA Gemini 2.5 Flash
+                        Synthèse IA
                       </span>
                     ) : (
                       <span className="text-xs font-medium text-zinc-400 bg-zinc-800/80 px-2.5 py-0.5 rounded-full border border-zinc-700/50">
@@ -656,7 +656,7 @@ export function Meteo() {
                   <div className="p-2 bg-cyan-500/10 text-cyan-400 rounded-xl">
                     <Settings2 className="w-5 h-5" />
                   </div>
-                  <h3 className="text-lg font-bold text-zinc-100">Paramètres Météo & Clé Gemini</h3>
+                  <h3 className="text-lg font-bold text-zinc-100">Ville par défaut</h3>
                 </div>
                 <button
                   onClick={() => setIsSettingsOpen(false)}

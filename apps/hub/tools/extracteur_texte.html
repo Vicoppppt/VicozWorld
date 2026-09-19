@@ -569,7 +569,7 @@
       <p class="subtitle">Glissez un PDF, une image ou collez directement une capture d'écran (Ctrl+V) !</p>
     </header>
 
-    <!-- AI Toggle Switch (Gemini 2.5) -->
+    <!-- AI Toggle Switch -->
     <div class="ai-banner">
       <div class="ai-banner-left">
         <span style="font-size: 1.5rem;">✨</span>
@@ -577,7 +577,7 @@
           <div class="ai-banner-title">
             <span>Relecture & Restauration Typographique IA</span>
           </div>
-          <div class="ai-banner-desc">L'IA Gemini 2.5 lit le texte, répare tous les accents, supprime les coupures et reformate les vrais paragraphes.</div>
+          <div class="ai-banner-desc">L'IA lit le texte, répare tous les accents, supprime les coupures et reformate les vrais paragraphes.</div>
         </div>
       </div>
       <label class="switch-container">
@@ -851,7 +851,7 @@
 
         const useAI = aiToggle.checked && EMBEDDED_API_KEY;
         if (useAI) {
-          showLoading(true, "2/2 Relecture & restauration typographique par l'IA Gemini...");
+          showLoading(true, "2/2 Relecture & restauration typographique par l'IA...");
           try {
             const aiRefined = await refinePdfWithGemini(file, extractedText, EMBEDDED_API_KEY);
             if (aiRefined && aiRefined.length > 20) {

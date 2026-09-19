@@ -494,15 +494,15 @@
       <p class="subtitle">Glissez votre PDF Pronote et obtenez le tableau Excel avec les 10 cases vides !</p>
     </header>
 
-    <!-- AI Toggle Switch (Relecteur / Vérificateur Gemini 2.5) -->
+    <!-- AI Toggle Switch (Relecteur / Vérificateur IA) -->
     <div class="ai-banner">
       <div class="ai-banner-left">
         <span style="font-size: 1.5rem;">✨</span>
         <div>
           <div class="ai-banner-title">
-            <span>Relecture & Vérification IA Gemini</span>
+            <span>Relecture & Vérification IA</span>
           </div>
-          <div class="ai-banner-desc">L'extracteur local lit le PDF et l'IA Gemini 2.5 vérifie qu'aucun élève n'a été sauté.</div>
+          <div class="ai-banner-desc">L'extracteur local lit le PDF et l'IA vérifie qu'aucun élève n'a été sauté.</div>
         </div>
       </div>
       <label class="switch-container">
@@ -556,7 +556,7 @@
       <h3>💡 Comment ça fonctionne ?</h3>
       <ol>
         <li>Téléchargez votre liste de classe au format PDF depuis Pronote (Index Education).</li>
-        <li>Glissez le fichier ci-dessus : le moteur local lit les colonnes et l'IA Gemini valide chaque élève.</li>
+        <li>Glissez le fichier ci-dessus : le moteur local lit les colonnes et l'IA valide chaque élève.</li>
         <li>Cliquez sur <strong>« Télécharger Excel (.xlsx) »</strong>
 
   <a href="/" style="position: fixed; top: 16px; left: 16px; z-index: 999; display: inline-flex; align-items: center; gap: 6px; background: #ffffff; border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 10px; text-decoration: none; color: #334155; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.08); transition: all 0.2s;">
@@ -653,7 +653,7 @@
           // 2. Étape 2 : Si l'option IA est cochée, l'IA relit et vérifie
           const useAI = aiToggle.checked && EMBEDDED_API_KEY;
           if (useAI) {
-            showLoading(true, "2/2 Relecture & vérification avec Google Gemini 2.5...");
+            showLoading(true, "2/2 Relecture & vérification avec l'IA...");
             try {
               const verifiedResult = await verifyAndCorrectWithGemini(file, finalClass, EMBEDDED_API_KEY);
               if (verifiedResult && verifiedResult.students && verifiedResult.students.length > 0) {

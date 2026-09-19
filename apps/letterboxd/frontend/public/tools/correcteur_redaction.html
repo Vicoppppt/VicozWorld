@@ -1235,18 +1235,13 @@
             <span style="animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 9999px; background-color: #34d399; opacity: 0.75;"></span>
             <span style="position: relative; display: inline-flex; border-radius: 9999px; height: 12px; width: 12px; background-color: #10b981;"></span>
           </div>
-          <span id="apiKeyStatusLabel" style="font-weight: bold;">Gemini Connecté</span>
+          <span id="apiKeyStatusLabel" style="font-weight: bold;">IA Connectée</span>
         </div>
       </div>
     </div>
 
     <!-- Header -->
     <header>
-      <div class="badge-pill">
-        <span>✨ IA de pointe • Gemini 3.7 Flash & 3.1 Pro</span>
-        <span>•</span>
-        <span>Français Collège (6e - 3e)</span>
-      </div>
       <h1>Évaluateur & Correcteur de Rédactions</h1>
       <p class="subtitle">
         Analyse pédagogique, constructive et sans note imposée : synthèse globale, respect des consignes et grille de critères qualitatifs.
@@ -1446,7 +1441,7 @@
           <input type="file" id="pdfFileInput" accept=".pdf" style="display: none;" onchange="handleStudentPdfUpload(event)">
           <div class="drop-zone-icon">📄</div>
           <div class="drop-zone-title">Glissez ou sélectionnez le fichier PDF de la copie</div>
-          <div class="drop-zone-subtitle">Le fichier sera lu et analysé par l'IA Gemini</div>
+          <div class="drop-zone-subtitle">Le fichier sera lu et analysé par l'IA</div>
         </div>
         <div id="pdfFileInfo" style="margin-top: 10px; font-size: 0.9rem; font-weight: 600; color: #334155; display: none;"></div>
       </div>
@@ -1455,7 +1450,7 @@
       <div class="btn-submit-container">
         <button class="btn-primary-large" id="btnEvaluate" onclick="startEvaluation()">
           <span>✨</span>
-          <span>Évaluer la Copie avec Gemini 3.7</span>
+          <span>Évaluer la Copie</span>
         </button>
         <span style="font-size: 0.85rem; color: var(--text-muted);">
           Correction qualitative et analyse personnalisée sans note imposée
@@ -1609,7 +1604,7 @@
   <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>
     <div class="loading-step" id="loadingStepTitle">Analyse en cours...</div>
-    <div class="loading-subtext" id="loadingStepSubtext">Gemini lit la copie et confronte chaque paragraphe à vos critères de notation.</div>
+    <div class="loading-subtext" id="loadingStepSubtext">L'IA lit la copie et confronte chaque paragraphe à vos critères de notation.</div>
   </div>
 
   <script>
@@ -1710,7 +1705,7 @@
         btn.style.borderColor = '#86efac';
         btn.style.color = '#166534';
       } else {
-        statusLabel.textContent = 'Configurer Clé Gemini ⚠️';
+        statusLabel.textContent = 'Intelligence Artificielle ⚠️';
         btn.style.borderColor = '#fde68a';
         btn.style.color = '#b45309';
       }
@@ -1849,7 +1844,7 @@
         return;
       }
 
-      showLoading(true, "Génération des critères...", "Gemini analyse le sujet pour concevoir une liste de critères adaptée.");
+      showLoading(true, "Génération des critères...", "L'IA analyse le sujet pour concevoir une liste de critères adaptée.");
 
       try {
         const prompt = `Tu es un professeur principal de Français au collège en France.
@@ -2044,7 +2039,7 @@ Réponds STRICTEMENT au format JSON suivant (sans balises superflues) :
         }
       }
 
-      showLoading(true, "Correction de la copie en cours...", "Gemini 3.7 examine la rédaction, la langue et chaque critère pédagogique.");
+      showLoading(true, "Correction de la copie en cours...", "L'IA examine la rédaction, la langue et chaque critère pédagogique.");
 
       try {
         const criteriaPromptList = criteria.map((c, i) => `${i + 1}. ${c.name}`).join("\n");
