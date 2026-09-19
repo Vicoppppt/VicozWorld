@@ -434,13 +434,14 @@ export function Home() {
               </div>
 
               {newsBriefing.global_takeaway ? (
-                <div className="space-y-2 pt-1">
-                  <p className="text-xs font-bold text-zinc-200 line-clamp-2 leading-snug">
+                <div className="space-y-3 pt-1">
+                  <p className="text-xs font-bold text-zinc-200 leading-snug">
                     « {newsBriefing.global_takeaway} »
                   </p>
                   {newsBriefing.top_stories && newsBriefing.top_stories[0] && (
-                    <div className="text-[11px] text-zinc-400 bg-zinc-950/40 p-2.5 rounded-xl border border-zinc-800/60 line-clamp-2">
-                      🔥 <strong className="text-zinc-300">{newsBriefing.top_stories[0].headline}</strong>
+                    <div className="text-[11px] text-zinc-400 bg-zinc-950/40 p-3 rounded-xl border border-zinc-800/60 flex items-start gap-2">
+                      <span className="text-sm">🔥</span>
+                      <strong className="text-zinc-300 leading-tight">{newsBriefing.top_stories[0].headline}</strong>
                     </div>
                   )}
                 </div>

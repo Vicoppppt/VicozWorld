@@ -1230,10 +1230,13 @@
       </a>
 
       <div class="top-actions">
-        <button class="btn-outline" id="btnSettings" onclick="openSettingsModal()">
-          <span>⚙️</span>
-          <span id="apiKeyStatusLabel">Clé Gemini</span>
-        </button>
+        <div class="btn-outline" id="btnSettings" style="cursor: default; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: #10b981;">
+          <div style="position: relative; display: flex; width: 12px; height: 12px; margin-right: 4px;">
+            <span style="animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 9999px; background-color: #34d399; opacity: 0.75;"></span>
+            <span style="position: relative; display: inline-flex; border-radius: 9999px; height: 12px; width: 12px; background-color: #10b981;"></span>
+          </div>
+          <span id="apiKeyStatusLabel" style="font-weight: bold;">Gemini Connecté</span>
+        </div>
       </div>
     </div>
 
@@ -1600,38 +1603,7 @@
 
   </div>
 
-  <!-- MODAL : Paramètres & Clé API -->
-  <div class="modal-overlay" id="settingsModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title">⚙️ Configuration Gemini IA</div>
-        <button class="btn-close-modal" onclick="closeSettingsModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="modalApiKey">Clé API Google Gemini</label>
-          <input type="password" id="modalApiKey" placeholder="AIzaSy...">
-          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
-            Votre clé est enregistrée de façon 100% sécurisée et privée dans votre navigateur (<a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--primary);">obtenir une clé gratuite sur Google AI Studio</a>).
-          </div>
-        </div>
 
-        <div class="form-group" style="margin-top: 14px;">
-          <label for="modalModelSelect">Modèle Gemini</label>
-          <select id="modalModelSelect">
-            <option value="gemini-3.7-flash" selected>Gemini 3.7 Flash (Dernière génération avec Raisonnement / Thinking - Recommandé)</option>
-            <option value="gemini-3.1-pro">Gemini 3.1 Pro (Modèle de pointe pour l'analyse littéraire avancée)</option>
-            <option value="gemini-1.5-pro">Gemini 2.5 Pro</option>
-            <option value="gemini-1.5-flash">Gemini 2.5 Flash</option>
-          </select>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-outline" onclick="closeSettingsModal()">Annuler</button>
-        <button class="btn-action btn-action-primary" onclick="saveSettingsModal()">Enregistrer</button>
-      </div>
-    </div>
-  </div>
 
   <!-- LOADING OVERLAY -->
   <div class="loading-overlay" id="loadingOverlay">
@@ -1866,12 +1838,7 @@
 
     // Extract Criteria with AI from Topic
     async function extractCriteriaWithAI() {
-      const apiKey = getStoredApiKey();
-      if (!apiKey) {
-        alert("Veuillez d'abord renseigner votre clé API Gemini (bouton en haut à droite).");
-        openSettingsModal();
-        return;
-      }
+      
 
       const topic = document.getElementById('devoirTopic').value.trim();
       const classe = document.getElementById('classeLevel').value;
@@ -1913,7 +1880,7 @@ Réponds STRICTEMENT au format JSON suivant (sans balises superflues) :
         }
 
         const model = getStoredModel();
-        const res = await callGeminiAPI(parts, model, apiKey, 0.2);
+        const res = await callGeminiAPI(parts, model, 0.2);
         
         const jsonMatch = res.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
@@ -2035,12 +2002,7 @@ Réponds STRICTEMENT au format JSON suivant (sans balises superflues) :
 
     // MAIN EVALUATION ENGINE
     async function startEvaluation() {
-      const apiKey = getStoredApiKey();
-      if (!apiKey) {
-        alert("Veuillez d'abord configurer votre clé API Google Gemini.");
-        openSettingsModal();
-        return;
-      }
+      
 
       const classe = document.getElementById('classeLevel').value;
       const textType = document.getElementById('textType').value;
@@ -2178,7 +2140,7 @@ Réponds STRICTEMENT au format JSON structuré suivant (SANS texte avant ni apr�
         }
 
         const model = getStoredModel();
-        const rawResponse = await callGeminiAPI(promptParts, model, apiKey, 0.2);
+        const rawResponse = await callGeminiAPI(promptParts, model, 0.2);
 
         const jsonMatch = rawResponse.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
@@ -2342,9 +2304,10 @@ Réponds STRICTEMENT au format JSON structuré suivant (SANS texte avant ni apr�
       });
     }
 
-    // Call Gemini API Function
+    // Call Gemini API Function via local proxy
     async function callGeminiAPI(parts, model, apiKey, temperature = 0.2) {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      // apiKey is ignored because the backend proxy uses its own
+      const endpoint = `/api/ai/proxy/gemini/default`;
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -2359,7 +2322,7 @@ Réponds STRICTEMENT au format JSON structuré suivant (SANS texte avant ni apr�
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Erreur API Gemini (${response.status}) : ${errorText}`);
+        throw new Error(`Erreur API Proxy Gemini (${response.status}) : ${errorText}`);
       }
 
       const resJson = await response.json();

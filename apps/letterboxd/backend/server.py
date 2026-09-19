@@ -207,6 +207,13 @@ def init_db():
         )
     """)
     cursor.execute("""
+        CREATE TABLE IF NOT EXISTS ai_model_settings (
+            service_id TEXT PRIMARY KEY,
+            model_name TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
         INSERT OR IGNORE INTO managed_proxies (id, domain, label, is_protected)
         VALUES 
         ('vw', 'vw.vicopetit.dedyn.io', 'VicozWorld', 1),
@@ -523,6 +530,42 @@ def trigger_backup(request: Request):
     if not filename:
         raise HTTPException(status_code=500, detail="Échec de la sauvegarde.")
     return {"status": "ok", "backup_file": filename, "message": "Sauvegarde créée avec succès."}
+
+@app.post("/api/ai/config")
+def save_ai_config(payload: AIServiceConfigRequest):
+    cfg = payload.dict()
+    if save_ai_service_config(cfg):
+        return {"success": True}
+    raise HTTPException(status_code=500, detail="Erreur sauvegarde config IA")
+
+@app.post("/api/ai/proxy/gemini/{model}")
+async def proxy_gemini_api(model: str, request: Request):
+    """Proxy générique pour les outils HTML statiques afin de cacher la clé API."""
+    cfg = get_weather_config_db()
+    api_key = cfg.get("gemini_api_key", "").strip()
+    if not api_key:
+        api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=400, detail="Clé API Gemini non configurée sur le serveur.")
+    
+    if model == "default":
+        ai_cfg = get_ai_service_config()
+        model = ai_cfg.get("tools_text", "gemini-1.5-flash")
+    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+    body = await request.body()
+    
+    req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json", "User-Agent": "VicozWorld/1.0"}, method="POST")
+    ctx = ssl.create_default_context()
+    try:
+        with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
+            data = resp.read()
+            return JSONResponse(content=json.loads(data.decode("utf-8")))
+    except urllib.error.HTTPError as e:
+        error_msg = e.read().decode("utf-8")
+        raise HTTPException(status_code=e.code, detail=error_msg)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/admin/backups")
 def list_backups(request: Request):
@@ -1577,24 +1620,32 @@ DEFAULT_AI_SERVICE_CONFIG = {
 }
 
 def get_ai_service_config() -> dict:
-    if os.path.exists(AI_CONFIG_FILE):
-        try:
-            with open(AI_CONFIG_FILE, "r", encoding="utf-8") as f:
-                saved = json.load(f)
-                res = DEFAULT_AI_SERVICE_CONFIG.copy()
-                res.update(saved)
-                return res
-        except Exception as e:
-            logger.warning(f"Erreur lecture {AI_CONFIG_FILE}: {e}")
-    return DEFAULT_AI_SERVICE_CONFIG.copy()
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT service_id, model_name FROM ai_model_settings")
+    rows = cursor.fetchall()
+    conn.close()
+    
+    res = DEFAULT_AI_SERVICE_CONFIG.copy()
+    for r in rows:
+        res[r["service_id"]] = r["model_name"]
+    return res
 
 def save_ai_service_config(cfg: dict):
     try:
-        with open(AI_CONFIG_FILE, "w", encoding="utf-8") as f:
-            json.dump(cfg, f, indent=2, ensure_ascii=False)
+        conn = get_db()
+        cursor = conn.cursor()
+        for s_id, m_name in cfg.items():
+            cursor.execute("""
+                INSERT INTO ai_model_settings (service_id, model_name)
+                VALUES (?, ?)
+                ON CONFLICT(service_id) DO UPDATE SET model_name=excluded.model_name, updated_at=CURRENT_TIMESTAMP
+            """, (s_id, m_name))
+        conn.commit()
+        conn.close()
         return True
     except Exception as e:
-        logger.error(f"Erreur écriture {AI_CONFIG_FILE}: {e}")
+        logger.error(f"Erreur écriture ai_model_settings DB: {e}")
         return False
 
 @app.get("/api/ai/models")
@@ -1731,7 +1782,7 @@ def get_news_briefing(force: Optional[bool] = False):
         return {"success": False, "error": "Aucun article disponible."}
 
     cfg = get_weather_config_db()
-    gemini_key = cfg.get("gemini_api_key")
+    gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not gemini_key:
         return {
             "success": False,
@@ -1934,17 +1985,17 @@ def get_wmo_info(code):
     return WMO_WEATHER_CODES.get(code, {"label": "Partiellement nuageux", "icon": "cloud-sun"})
 
 @app.get("/api/weather/report")
-def get_weather_report(lat: Optional[float] = None, lon: Optional[float] = None, city: Optional[str] = None):
+def get_weather_report(lat: Optional[float] = None, lon: Optional[float] = None, city: Optional[str] = None, force: bool = False):
     cfg = get_weather_config_db()
     cur_lat = lat if lat is not None else cfg["default_lat"]
     cur_lon = lon if lon is not None else cfg["default_lon"]
     cur_city = city if city else cfg["default_city"]
-    gemini_key = cfg["gemini_api_key"]
+    gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
 
     cache_key = f"{round(cur_lat, 3)}_{round(cur_lon, 3)}"
     now_ts = time.time()
     
-    if cache_key in WEATHER_CACHE and (now_ts - WEATHER_CACHE[cache_key]["timestamp"]) < 600:
+    if not force and cache_key in WEATHER_CACHE and (now_ts - WEATHER_CACHE[cache_key]["timestamp"]) < 600:
         cached_data = WEATHER_CACHE[cache_key]["data"]
         cached_data["city"] = cur_city
         return cached_data
@@ -2197,7 +2248,7 @@ def get_hub_summary(request: Request, force: Optional[bool] = False):
 
     # 1. Récupération sécurisée des données des différents modules
     try:
-        weather_data = get_weather_report()
+        weather_data = get_weather_report(force=force)
     except Exception as e:
         logger.warning(f"Hub: erreur weather: {e}")
         weather_data = {}
@@ -2214,51 +2265,54 @@ def get_hub_summary(request: Request, force: Optional[bool] = False):
         logger.warning(f"Hub: erreur electricity: {e}")
         electricity_stats = {}
 
-    # 2. Suggestion Film / Série (depuis sélection de chefs d'œuvre)
-    curated_movies = [
-        {
-            "title": "Interstellar",
-            "year": "2014",
-            "director": "Christopher Nolan",
-            "genre": "Sci-Fi / Drame",
-            "rating": 8.7,
-            "poster": "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
-            "backdrop": "https://image.tmdb.org/t/p/w1280/xJHokMbljvjADYdit5fK5VQsXEG.jpg",
-            "synopsis": "Une équipe d'explorateurs voyage à travers un trou de ver pour assurer la survie de l'humanité."
-        },
-        {
-            "title": "Dune : Deuxième Partie",
-            "year": "2024",
-            "director": "Denis Villeneuve",
-            "genre": "Science-Fiction / Aventure",
-            "rating": 8.6,
-            "poster": "https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg",
-            "backdrop": "https://image.tmdb.org/t/p/w1280/xOMo8BRK7PfcJv9JCnx7s520bne.jpg",
-            "synopsis": "Paul Atréides s'unit à Chani et aux Fremen pour mener la révolte contre les conspirateurs."
-        },
-        {
-            "title": "Oppenheimer",
-            "year": "2023",
-            "director": "Christopher Nolan",
-            "genre": "Biopic / Histoire",
-            "rating": 8.9,
-            "poster": "https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
-            "backdrop": "https://image.tmdb.org/t/p/w1280/fm6KqXpk3M2HVveHwCrBSSBaO0V.jpg",
-            "synopsis": "L'histoire captivante du physicien J. Robert Oppenheimer et du Projet Manhattan."
-        },
-        {
-            "title": "Le Voyage de Chihiro",
-            "year": "2001",
-            "director": "Hayao Miyazaki",
-            "genre": "Animation / Fantastique",
-            "rating": 8.6,
-            "poster": "https://image.tmdb.org/t/p/w500/dL11niApZXKLWrmAhv1Z5w27Zq4.jpg",
-            "backdrop": "https://image.tmdb.org/t/p/w1280/mSDsSDwaP3E7dEfUPWy4J0djt4O.jpg",
-            "synopsis": "Chihiro, une fillette de dix ans, s'aventure dans un monde magique gouverné par des esprits."
-        }
-    ]
-    day_of_year = datetime.now().timetuple().tm_yday
-    movie_pick = curated_movies[day_of_year % len(curated_movies)]
+    # 2. Suggestion Film / Série
+    global DAILY_MOVIE_PICK_CACHE
+    if "DAILY_MOVIE_PICK_CACHE" not in globals():
+        DAILY_MOVIE_PICK_CACHE = {"date": None, "movie": None}
+    
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    cfg = get_weather_config_db()
+    gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    
+    if DAILY_MOVIE_PICK_CACHE["date"] == current_date and DAILY_MOVIE_PICK_CACHE["movie"]:
+        movie_pick = DAILY_MOVIE_PICK_CACHE["movie"]
+    else:
+        movie_pick = None
+        if gemini_key:
+            try:
+                ai_cfg = get_ai_service_config()
+                model_choice = ai_cfg.get("hub_briefing", "gemini-1.5-flash")
+                prompt = f"""Tu es un expert en cinéma. Recommande un excellent film (chef-d'œuvre, film culte ou pépite méconnue) pour ce soir.
+Ne recommande PAS Interstellar, Dune, Oppenheimer, Le Voyage de Chihiro.
+Change de suggestion chaque jour.
+Réponds STRICTEMENT au format JSON avec ces clés :
+{{
+  "title": "Titre du film",
+  "year": "Année",
+  "director": "Réalisateur",
+  "genre": "Genre",
+  "rating": "Note sur 10 (ex: 8.5)",
+  "poster": "URL d'une affiche (mets une image TMDB ou Unsplash valide si tu en connais, ou une URL générique https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&q=80&w=500)",
+  "synopsis": "Bref synopsis accrocheur"
+}}"""
+                parsed_movie = call_gemini_json_api(prompt, gemini_key, preferred_model=model_choice)
+                if parsed_movie and "title" in parsed_movie:
+                    if not parsed_movie.get("poster"):
+                        parsed_movie["poster"] = "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&q=80&w=500"
+                    movie_pick = parsed_movie
+                    DAILY_MOVIE_PICK_CACHE["date"] = current_date
+                    DAILY_MOVIE_PICK_CACHE["movie"] = movie_pick
+            except Exception as e:
+                logger.warning(f"Erreur suggestion film Gemini: {e}")
+        
+        if not movie_pick:
+            # Fallback
+            curated_movies = [
+                {"title": "Interstellar", "year": "2014", "director": "Christopher Nolan", "genre": "Sci-Fi / Drame", "rating": 8.7, "poster": "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg", "synopsis": "Une équipe d'explorateurs voyage à travers un trou de ver pour assurer la survie de l'humanité."},
+                {"title": "Dune : Deuxième Partie", "year": "2024", "director": "Denis Villeneuve", "genre": "Science-Fiction / Aventure", "rating": 8.6, "poster": "https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg", "synopsis": "Paul Atréides s'unit à Chani et aux Fremen pour mener la révolte contre les conspirateurs."}
+            ]
+            day_of_year = datetime.now().timetuple().tm_yday
+            movie_pick = curated_movies[day_of_year % len(curated_movies)]
 
     # 3. Données domotique statiques (en développement pour Home Assistant)
     domotique_data = {
@@ -2274,7 +2328,7 @@ def get_hub_summary(request: Request, force: Optional[bool] = False):
 
     # 4. Synthèse globale
     cfg = get_weather_config_db()
-    gemini_key = cfg.get("gemini_api_key")
+    gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
     
     hour = datetime.now().hour
     greeting_prefix = "Bonsoir Victor" if hour >= 18 else "Bonjour Victor"
