@@ -105,5 +105,6 @@ x-casaos:
     en_us: "VicozWorld"
     fr_fr: "VicozWorld"
   index: /
-  port_map: "3000"
-  scheme: http
+  host: vw.vicopetit.dedyn.io
+  port_map: "443"
+  scheme: https
