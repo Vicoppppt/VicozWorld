@@ -20,7 +20,7 @@ const CATEGORIES = [
   { id: "Autre", label: "Autres", icon: "📦" },
 ];
 
-const STATUS_FILTERS = ["Tous", "Possédé", "Prêté", "Souhaité"];
+const STATUS_FILTERS = ["Tous", "Possédé", "En cours", "Prêté", "Souhaité"];
 
 export function Bibliotheque() {
   const { isGuest } = useProfile();
@@ -355,11 +355,12 @@ export function Bibliotheque() {
                     {item.category}
                   </div>
 
-                  {/* Statut si prêté ou wishlist */}
+                  {/* Statut si en cours, prêté ou wishlist */}
                   {item.status !== "Possédé" && (
                     <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase shadow-md ${
-                      item.status === "Prêté" ? "bg-amber-500 text-black" :
-                      item.status === "Souhaité" ? "bg-purple-500 text-white" : "bg-zinc-700 text-white"
+                      item.status === "En cours" ? "bg-cyan-500 text-black shadow-cyan-500/20" :
+                      item.status === "Prêté" ? "bg-amber-500 text-black shadow-amber-500/20" :
+                      item.status === "Souhaité" ? "bg-purple-500 text-white shadow-purple-500/20" : "bg-zinc-700 text-white"
                     }`}>
                       {item.status}
                     </div>

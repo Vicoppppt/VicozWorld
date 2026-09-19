@@ -23,12 +23,10 @@ export function EditLibraryItemModal({ item, isOpen, onClose, onSave }) {
     format: "",
     cover: "",
     status: "Possédé",
-    condition: "Très bon état",
     rating: 0,
     lentTo: "",
     location: "",
-    notes: "",
-    description: ""
+    notes: ""
   });
 
   useEffect(() => {
@@ -41,12 +39,10 @@ export function EditLibraryItemModal({ item, isOpen, onClose, onSave }) {
         format: item.format || "",
         cover: item.cover || "",
         status: item.status || "Possédé",
-        condition: item.condition || "Très bon état",
         rating: item.rating || 0,
         lentTo: item.lentTo || "",
         location: item.location || "",
-        notes: item.notes || "",
-        description: item.description || ""
+        notes: item.notes || ""
       });
     }
   }, [item, isOpen]);
@@ -157,7 +153,7 @@ export function EditLibraryItemModal({ item, isOpen, onClose, onSave }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-semibold text-zinc-400">Catégorie</label>
               <select
@@ -180,21 +176,6 @@ export function EditLibraryItemModal({ item, isOpen, onClose, onSave }) {
                 className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
-
-            <div>
-              <label className="text-xs font-semibold text-zinc-400">État</label>
-              <select
-                value={formData.condition}
-                onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              >
-                <option value="Neuf">✨ Neuf sous blister</option>
-                <option value="Comme neuf">💎 Comme neuf</option>
-                <option value="Très bon état">👍 Très bon état</option>
-                <option value="Bon état">👌 Bon état</option>
-                <option value="État d'usage">⚠️ État d'usage / Usé</option>
-              </select>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -206,6 +187,7 @@ export function EditLibraryItemModal({ item, isOpen, onClose, onSave }) {
                 className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
                 <option value="Possédé">🏠 Dans ma collection</option>
+                <option value="En cours">📖 En cours (Lecture / Écoute)</option>
                 <option value="Prêté">🤝 Prêté à quelqu'un</option>
                 <option value="Souhaité">🎁 Liste d'envies</option>
                 <option value="Vendu / Donné">📦 Vendu ou donné</option>

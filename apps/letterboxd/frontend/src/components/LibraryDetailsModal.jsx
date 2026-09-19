@@ -77,14 +77,9 @@ export function LibraryDetailsModal({ item, isOpen, onClose, onEditClick, onDele
                   </span>
                 )}
 
-                {item.condition && (
-                  <span className="px-2.5 py-1 rounded-xl bg-zinc-950 border border-zinc-800 text-zinc-300 text-xs font-semibold">
-                    {item.condition}
-                  </span>
-                )}
-
                 <span className={`px-2.5 py-1 rounded-xl text-xs font-bold border ${
                   item.status === "Possédé" ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30" :
+                  item.status === "En cours" ? "bg-cyan-500/10 text-cyan-300 border-cyan-500/30" :
                   item.status === "Prêté" ? "bg-amber-500/10 text-amber-300 border-amber-500/30" :
                   item.status === "Souhaité" ? "bg-purple-500/10 text-purple-300 border-purple-500/30" :
                   "bg-zinc-800 text-zinc-400 border-zinc-700"
@@ -124,16 +119,6 @@ export function LibraryDetailsModal({ item, isOpen, onClose, onEditClick, onDele
               <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">Commentaire personnel</h4>
               <p className="text-sm text-zinc-300 whitespace-pre-line leading-relaxed italic">
                 « {item.notes} »
-              </p>
-            </div>
-          )}
-
-          {/* Description ou résumé en ligne */}
-          {item.description && (
-            <div className="p-4 rounded-2xl bg-zinc-950/40 border border-zinc-800/60 space-y-1">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">Résumé & informations</h4>
-              <p className="text-xs text-zinc-400 leading-relaxed max-h-40 overflow-y-auto">
-                {item.description}
               </p>
             </div>
           )}

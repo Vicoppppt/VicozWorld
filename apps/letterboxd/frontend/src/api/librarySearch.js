@@ -16,14 +16,116 @@ function stripHtml(html) {
 
 const GOOGLE_BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY || "AIzaSyA5tl9yNcVeQdDlHUV0OYtE-dfCoX_OEFo";
 
+// Magazines de référence culture urbaine / rap / foot / société pour auto-complétion immédiate
+const CURATED_MAGAZINES = [
+  {
+    keywords: ["views"],
+    title: "Views Magazine",
+    creator: "Views France",
+    format: "Revue / Magazine Papier Culture & Musique",
+    cover: "https://views.fr/wp-content/uploads/2021/11/COUVERTURE-1-1024x1024.jpg",
+    year: "2017",
+    source: "Revue Views"
+  },
+  {
+    keywords: ["radikal"],
+    title: "Radikal Magazine",
+    creator: "Radikal",
+    format: "Mensuel Rap & Hip-Hop Français",
+    cover: "https://m.media-amazon.com/images/I/51w+zM8dOJL._AC_UF1000,1000_QL80_.jpg",
+    year: "1996",
+    source: "Revue Radikal"
+  },
+  {
+    keywords: ["mosaique", "mosaïque"],
+    title: "Mosaïque Magazine",
+    creator: "Mosaïque",
+    format: "Revue Rap Francophone / Mook",
+    cover: "https://mosaiquemagazine.fr/wp-content/uploads/2023/04/MOSAIQUE-NUMERO-3-COUVERTURE.jpg",
+    year: "2020",
+    source: "Mosaïque Revue"
+  },
+  {
+    keywords: ["so foot"],
+    title: "So Foot",
+    creator: "So Press",
+    format: "Magazine Culture & Football",
+    cover: "https://boutique.sofoot.com/cdn/shop/files/SF210.jpg",
+    year: "2003",
+    source: "So Foot"
+  },
+  {
+    keywords: ["society"],
+    title: "Society",
+    creator: "So Press",
+    format: "Magazine de société bimensuel",
+    cover: "https://boutique.sofoot.com/cdn/shop/files/S227.jpg",
+    year: "2015",
+    source: "Society"
+  },
+  {
+    keywords: ["rer"],
+    title: "RER Magazine",
+    creator: "RER",
+    format: "Mensuel Hip-Hop & Graff",
+    cover: "",
+    year: "1996",
+    source: "RER Mag"
+  },
+  {
+    keywords: ["groove"],
+    title: "Groove Magazine",
+    creator: "Groove",
+    format: "Mensuel Rap & R&B",
+    cover: "",
+    year: "1997",
+    source: "Groove Mag"
+  },
+  {
+    keywords: ["lerapenfrance", "le rap en france", "lref"],
+    title: "Le Rap en France",
+    creator: "LREF",
+    format: "Fanzine / Mook Rap",
+    cover: "",
+    year: "2019",
+    source: "LREF"
+  }
+];
+
 /**
- * Recherche de Livres ou Magazines via Apple Books API (Source n°1 Ultra-HD sans quota), avec fallback Google Books et Open Library
+ * Recherche de Livres ou Magazines via Apple Books API, avec fallback Google Books et Open Library
  */
 export async function searchBooksAndMagazines(query, type = "Livre") {
   if (!query || !query.trim()) return [];
   const q = query.trim();
+  const qLower = q.toLowerCase();
 
-  // 1. Source n°1 : Apple Books (Rapide, sans quota, couvertures HD magnifiques, descriptions complètes)
+  // Pour les magazines : vérification instantanée des revues de référence (Views, Mosaïque, Radikal...)
+  if (type === "Magazine") {
+    const curatedMatches = CURATED_MAGAZINES.filter(m =>
+      m.keywords.some(k => qLower.includes(k) || k.includes(qLower))
+    ).map(m => ({
+      id: `curated_${m.keywords[0]}`,
+      title: m.title,
+      creator: m.creator,
+      year: m.year,
+      releaseDate: m.year,
+      cover: m.cover,
+      category: "Magazine",
+      format: m.format,
+      publisher: m.creator,
+      description: "",
+      source: m.source
+    }));
+
+    if (curatedMatches.length > 0) {
+      // Si on a des matches spécifiques, on les met en tête
+      const otherResults = await searchAppleBooks(q, type).catch(() => []);
+      return [...curatedMatches, ...otherResults];
+    }
+  }
+
+  // 1. Source n°1 : Apple Books (Rapide, sans quota, couvertures HD)
   try {
     const appleResults = await searchAppleBooks(q, type);
     if (appleResults && appleResults.length > 0) {
@@ -36,7 +138,8 @@ export async function searchBooksAndMagazines(query, type = "Livre") {
   // 2. Source n°2 : Google Books (si disponible)
   try {
     const isMag = type === "Magazine";
-    const printType = isMag ? "&printType=magazines" : "&printType=books";
+    // Si magazine, on ne bride pas forcément le printType pour attraper les publications périodiques
+    const printType = isMag ? "" : "&printType=books";
     const keyParam = GOOGLE_BOOKS_API_KEY ? `&key=${GOOGLE_BOOKS_API_KEY}` : "";
     const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}${printType}&maxResults=10&langRestrict=fr${keyParam}`;
     
@@ -175,10 +278,84 @@ function parseGoogleBooksItems(items, defaultCategory) {
 }
 
 /**
- * Recherche de Musique (CDs et Vinyles) via iTunes Search API
+ * Recherche d'albums via Deezer (Idéal pour le rap français, artistes indés, albums récents & pochettes 1000x1000)
+ */
+async function searchDeezerAlbums(query, format = "CD") {
+  try {
+    let data = null;
+    // 1. Essai via le proxy backend
+    try {
+      const res = await fetch(`/api/library/search/deezer?q=${encodeURIComponent(query)}`);
+      if (res.ok) {
+        data = await res.json();
+      }
+    } catch {}
+
+    // 2. Si non concluant, essai direct
+    if (!data || !data.data || data.data.length === 0) {
+      const res = await fetch(`https://api.deezer.com/search/album?q=${encodeURIComponent(query)}&limit=15`);
+      if (res.ok) {
+        data = await res.json();
+      }
+    }
+
+    if (!data || !data.data || !Array.isArray(data.data) || data.data.length === 0) {
+      return [];
+    }
+
+    return data.data.map(album => {
+      const artist = album.artist?.name || "";
+      const cover = album.cover_xl || album.cover_big || album.cover_medium || "";
+      return {
+        id: `deezer_${album.id}`,
+        title: album.title || "Album",
+        creator: artist,
+        year: "",
+        releaseDate: "",
+        cover: cover,
+        category: format === "Vinyle" ? "Vinyle" : "CD",
+        format: format === "Vinyle" ? "Vinyle 33T (LP)" : "CD Audio",
+        publisher: "Deezer",
+        genre: "Musique",
+        trackCount: album.nb_tracks || null,
+        description: `Album de ${artist}.`,
+        source: "Deezer"
+      };
+    });
+  } catch (err) {
+    console.warn("Erreur recherche Deezer :", err);
+    return [];
+  }
+}
+
+/**
+ * Recherche de Musique (CDs et Vinyles) combinant Deezer (Rap FR / Pop / Indé) et Apple Music / iTunes
  */
 export async function searchMusicAlbums(query, format = "CD") {
   if (!query || !query.trim()) return [];
+  const q = query.trim();
+
+  // Recherche conjointe Deezer + iTunes pour couverture 100% (Rap Fr, Variété, Rock, etc.)
+  try {
+    const [deezerRes, itunesRes] = await Promise.all([
+      searchDeezerAlbums(q, format).catch(() => []),
+      searchItunesAlbums(q, format).catch(() => [])
+    ]);
+
+    if (deezerRes.length > 0) {
+      // Filtrer les doublons éventuels par titre
+      const existingTitles = new Set(deezerRes.map(d => d.title.toLowerCase().trim()));
+      const filteredItunes = itunesRes.filter(it => !existingTitles.has(it.title.toLowerCase().trim()));
+      return [...deezerRes, ...filteredItunes];
+    }
+    return itunesRes;
+  } catch (err) {
+    console.warn("Erreur recherche musique :", err);
+    return await searchItunesAlbums(q, format);
+  }
+}
+
+async function searchItunesAlbums(query, format = "CD") {
   try {
     const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query.trim())}&entity=album&limit=15&country=FR`;
     const res = await fetch(url);

@@ -40,13 +40,11 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
     category: "Livre",
     format: "Broché",
     cover: "",
-    status: "Possédé", // Possédé, Prêté, Souhaité, Vendu
-    condition: "Très bon état", // Neuf, Comme neuf, Très bon état, Bon état, État moyen
+    status: "Possédé", // Possédé, En cours, Prêté, Souhaité, Vendu
     rating: 0,
     lentTo: "",
     location: "", // Étagère, Meuble salon, etc.
     notes: "",
-    description: "",
     source: ""
   });
 
@@ -65,12 +63,10 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
         format: "Broché",
         cover: "",
         status: "Possédé",
-        condition: "Très bon état",
         rating: 0,
         lentTo: "",
         location: "",
         notes: "",
-        description: "",
         source: ""
       });
     }
@@ -110,12 +106,10 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
       format: item.format || formats[0],
       cover: item.cover || "",
       status: "Possédé",
-      condition: "Très bon état",
       rating: 0,
       lentTo: "",
       location: "",
       notes: "",
-      description: item.description || "",
       source: item.source || ""
     });
     setStep(2);
@@ -417,7 +411,7 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
               </div>
 
               {/* Propriétés de l'objet physique */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Catégorie */}
                 <div>
                   <label className="text-xs font-semibold text-zinc-400">Catégorie</label>
@@ -461,34 +455,19 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
                     </div>
                   )}
                 </div>
-
-                {/* État de l'objet */}
-                <div>
-                  <label className="text-xs font-semibold text-zinc-400">État physique</label>
-                  <select
-                    value={formData.condition}
-                    onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                    className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  >
-                    <option value="Neuf">✨ Neuf sous blister</option>
-                    <option value="Comme neuf">💎 Comme neuf</option>
-                    <option value="Très bon état">👍 Très bon état</option>
-                    <option value="Bon état">👌 Bon état</option>
-                    <option value="État d'usage">⚠️ État d'usage / Usé</option>
-                  </select>
-                </div>
               </div>
 
               {/* Statut & Emplacement */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-400">Statut de possession</label>
+                  <label className="text-xs font-semibold text-zinc-400">Statut</label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                     className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   >
                     <option value="Possédé">🏠 Dans ma collection</option>
+                    <option value="En cours">📖 En cours (Lecture / Écoute)</option>
                     <option value="Prêté">🤝 Prêté à quelqu'un</option>
                     <option value="Souhaité">🎁 Liste d'envies (Wishlist)</option>
                     <option value="Vendu / Donné">📦 Vendu ou donné</option>

@@ -933,6 +933,27 @@ def delete_library_item(item_id: str):
     return {"success": True, "id": item_id}
 
 
+@app.get("/api/library/search/deezer")
+def search_deezer_proxy(q: str):
+    """Proxy de recherche d'albums Deezer avec pochettes 1000x1000px."""
+    if not q or not q.strip():
+        return {"data": []}
+    try:
+        import urllib.request
+        import urllib.parse
+        encoded_q = urllib.parse.quote(q.strip())
+        url = f"https://api.deezer.com/search/album?q={encoded_q}&limit=15"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            if response.status == 200:
+                raw = response.read().decode("utf-8")
+                return json.loads(raw)
+    except Exception as e:
+        logger.warning(f"Erreur proxy Deezer: {e}")
+    return {"data": []}
+
+
+
 # --- ENDPOINTS NOTES ---
 @app.get("/api/notes")
 def get_notes():
