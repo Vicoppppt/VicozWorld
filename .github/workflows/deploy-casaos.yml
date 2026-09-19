@@ -55,7 +55,11 @@ jobs:
 
           # 5. Reconstruire et relancer tous les services
           echo "🐳 Construction et démarrage des conteneurs via Docker Compose..."
-          docker compose up -d --build --remove-orphans
+          if ! docker compose up -d --build --remove-orphans; then
+            echo "❌ Échec de docker compose up ! Affichage des logs du backend :"
+            docker logs letterboxd-backend --tail 100 || true
+            exit 1
+          fi
 
           # 5.5 Vérification de santé du backend
           echo "🏥 Vérification de la disponibilité des services..."

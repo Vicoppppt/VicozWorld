@@ -42,11 +42,11 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://vw.vicopetit.dedyn.io}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 15s
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     volumes:
       - ./data/letterboxd:/app/data
       - ./data/certs:/app/data/certs

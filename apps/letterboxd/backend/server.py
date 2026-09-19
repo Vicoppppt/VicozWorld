@@ -41,7 +41,13 @@ CERTS_DIR = os.getenv("CERTS_DIR", os.path.join(DB_DIR, "certs"))
 
 # Initialisation du chiffrement
 ENCRYPTION_KEY = os.getenv("DB_ENCRYPTION_KEY", "").strip()
-cipher = Fernet(ENCRYPTION_KEY) if ENCRYPTION_KEY else None
+cipher = None
+if ENCRYPTION_KEY:
+    try:
+        cipher = Fernet(ENCRYPTION_KEY)
+    except Exception as e:
+        logger.warning(f"Clé de chiffrement DB_ENCRYPTION_KEY invalide, chiffrement désactivé: {e}")
+
 
 def encrypt_value(value: str) -> str:
     """Chiffre une valeur si la clé maître est configurée."""
@@ -531,41 +537,7 @@ def trigger_backup(request: Request):
         raise HTTPException(status_code=500, detail="Échec de la sauvegarde.")
     return {"status": "ok", "backup_file": filename, "message": "Sauvegarde créée avec succès."}
 
-@app.post("/api/ai/config")
-def save_ai_config(payload: AIServiceConfigRequest):
-    cfg = payload.dict()
-    if save_ai_service_config(cfg):
-        return {"success": True}
-    raise HTTPException(status_code=500, detail="Erreur sauvegarde config IA")
 
-@app.post("/api/ai/proxy/gemini/{model}")
-async def proxy_gemini_api(model: str, request: Request):
-    """Proxy générique pour les outils HTML statiques afin de cacher la clé API."""
-    cfg = get_weather_config_db()
-    api_key = cfg.get("gemini_api_key", "").strip()
-    if not api_key:
-        api_key = os.getenv("GEMINI_API_KEY", "").strip()
-    if not api_key:
-        raise HTTPException(status_code=400, detail="Clé API Gemini non configurée sur le serveur.")
-    
-    if model == "default":
-        ai_cfg = get_ai_service_config()
-        model = ai_cfg.get("tools_text", "gemini-1.5-flash")
-    
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-    body = await request.body()
-    
-    req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json", "User-Agent": "VicozWorld/1.0"}, method="POST")
-    ctx = ssl.create_default_context()
-    try:
-        with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
-            data = resp.read()
-            return JSONResponse(content=json.loads(data.decode("utf-8")))
-    except urllib.error.HTTPError as e:
-        error_msg = e.read().decode("utf-8")
-        raise HTTPException(status_code=e.code, detail=error_msg)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/admin/backups")
 def list_backups(request: Request):
@@ -1707,6 +1679,36 @@ def set_ai_config_endpoint(req: AIServiceConfigRequest):
     cfg = req.dict()
     save_ai_service_config(cfg)
     return {"status": "ok", "config": cfg}
+
+@app.post("/api/ai/proxy/gemini/{model}")
+async def proxy_gemini_api(model: str, request: Request):
+    """Proxy générique pour les outils HTML statiques afin de cacher la clé API."""
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        cfg = get_weather_config_db()
+        api_key = cfg.get("gemini_api_key", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=400, detail="Clé API Gemini non configurée sur le serveur.")
+    
+    if model == "default":
+        ai_cfg = get_ai_service_config()
+        model = ai_cfg.get("tools_text", "gemini-1.5-flash")
+    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+    body = await request.body()
+    
+    req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json", "User-Agent": "VicozWorld/1.0"}, method="POST")
+    ctx = ssl.create_default_context()
+    try:
+        with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
+            data = resp.read()
+            return JSONResponse(content=json.loads(data.decode("utf-8")))
+    except urllib.error.HTTPError as e:
+        error_msg = e.read().decode("utf-8")
+        raise HTTPException(status_code=e.code, detail=error_msg)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 def call_gemini_json_api(prompt: str, api_key: str, preferred_model: Optional[str] = None, max_retries: int = 1) -> Optional[dict]:
     global LAST_GEMINI_CALL_TIME
