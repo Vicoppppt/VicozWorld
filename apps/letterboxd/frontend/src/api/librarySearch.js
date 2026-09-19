@@ -14,6 +14,8 @@ function stripHtml(html) {
   return html.replace(/<[^>]*>?/gm, "").trim();
 }
 
+const GOOGLE_BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY || "AIzaSyA5tl9yNcVeQdDlHUV0OYtE-dfCoX_OEFo";
+
 /**
  * Recherche de Livres ou Magazines via Google Books API avec fallback immédiat sur Open Library (anti-erreur 429)
  */
@@ -25,8 +27,7 @@ export async function searchBooksAndMagazines(query, type = "Livre") {
   try {
     const isMag = type === "Magazine";
     const printType = isMag ? "&printType=magazines" : "&printType=books";
-    const apiKey = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY || "";
-    const keyParam = apiKey ? `&key=${apiKey}` : "";
+    const keyParam = GOOGLE_BOOKS_API_KEY ? `&key=${GOOGLE_BOOKS_API_KEY}` : "";
     const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}${printType}&maxResults=10&langRestrict=fr${keyParam}`;
     
     const res = await fetch(url);
