@@ -38,8 +38,7 @@ services:
       - GMAIL_PASSWORD=${GMAIL_PASSWORD:-${GMAIL_APP_PASSWORD:-}}
       - ENEDIS_PDL=${ENEDIS_PDL:-}
       - ENEDIS_TOKEN=${ENEDIS_TOKEN:-}
-      - FIREBASE_API_KEY=${FIREBASE_API_KEY:-}
-      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
+      - DB_ENCRYPTION_KEY=${DB_ENCRYPTION_KEY:-}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://vw.vicopetit.dedyn.io}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
@@ -50,8 +49,8 @@ services:
     volumes:
       - ./data/letterboxd:/app/data
       - ./data/certs:/app/data/certs
-      - ./data/letterboxd/woob-config:/root/.config/woob
-      - ./data/letterboxd/woob-data:/root/.local/share/woob
+      - ./data/letterboxd/woob-config:/home/vicoz/.config/woob
+      - ./data/letterboxd/woob-data:/home/vicoz/.local/share/woob
       - /sys/class/power_supply:/sys/class/power_supply:ro
     networks:
       app-network:

@@ -18,11 +18,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 ENV DATA_DIR=/app/data
-RUN mkdir -p /app/data
+ENV HOME=/home/vicoz
 
-# NOTE sécurité : USER non-root retiré car incompatible avec les volumes montés depuis l'hôte
-# (./data/letterboxd appartient à root sur le serveur, et woob monte /root/.config/woob)
-# À réintroduire avec un entrypoint gosu si les permissions des volumes sont corrigées.
+# Création du dossier data et de l'utilisateur non-root vicoz (ID 1000)
+RUN mkdir -p /app/data && \
+    groupadd -g 1000 vicoz && \
+    useradd -u 1000 -g 1000 -d /home/vicoz -s /bin/bash vicoz && \
+    mkdir -p /home/vicoz/.config/woob /home/vicoz/.local/share/woob && \
+    chown -R vicoz:vicoz /app /home/vicoz
+
+USER 1000:1000
 
 EXPOSE 8000
 
