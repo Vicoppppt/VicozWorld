@@ -13,8 +13,7 @@ const CATEGORIES = [
   { id: "Tous", label: "Tout afficher", icon: "✨" },
   { id: "Livre", label: "Livres", icon: "📚" },
   { id: "Manga", label: "Mangas", icon: "📖" },
-  { id: "CD", label: "CDs", icon: "💿" },
-  { id: "Vinyle", label: "Vinyles", icon: "🎵" },
+  { id: "Musique", label: "Vinyles & CDs", icon: "🎵" },
   { id: "Blu-ray / 4K", label: "Films (Blu-ray / 4K)", icon: "📀" },
   { id: "Magazine", label: "Magazines", icon: "📰" },
   { id: "Autre", label: "Autres", icon: "📦" },
@@ -57,7 +56,9 @@ export function Bibliotheque() {
   // Filtrage des éléments
   const filteredItems = useMemo(() => {
     return items.filter(item => {
-      const matchCat = activeCategory === "Tous" || item.category === activeCategory;
+      const matchCat = activeCategory === "Tous" ||
+        item.category === activeCategory ||
+        (activeCategory === "Musique" && (item.category === "CD" || item.category === "Vinyle"));
       const matchStatus = activeStatus === "Tous" || item.status === activeStatus;
       const q = searchQuery.toLowerCase().trim();
       const matchSearch = !q || 
@@ -75,13 +76,14 @@ export function Bibliotheque() {
     const total = items.length;
     const books = items.filter(i => i.category === "Livre").length;
     const mangas = items.filter(i => i.category === "Manga").length;
+    const music = items.filter(i => i.category === "CD" || i.category === "Vinyle").length;
     const cds = items.filter(i => i.category === "CD").length;
     const vinyls = items.filter(i => i.category === "Vinyle").length;
     const blurays = items.filter(i => i.category === "Blu-ray / 4K" || i.category === "Film").length;
     const mags = items.filter(i => i.category === "Magazine").length;
     const lent = items.filter(i => i.status === "Prêté").length;
 
-    return { total, books, mangas, cds, vinyls, blurays, mags, lent };
+    return { total, books, mangas, music, cds, vinyls, blurays, mags, lent };
   }, [items]);
 
   // Ajouter un élément
@@ -197,27 +199,18 @@ export function Bibliotheque() {
         </div>
 
         <div 
-          onClick={() => setActiveCategory("CD")}
+          onClick={() => setActiveCategory("Musique")}
           className={`p-3 rounded-2xl border cursor-pointer transition-all ${
-            activeCategory === "CD" 
-              ? "bg-cyan-500/20 border-cyan-500/50 text-white" 
-              : "bg-zinc-900/60 border-zinc-800/80 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
-          }`}
-        >
-          <div className="text-[10px] font-bold uppercase tracking-wider text-cyan-400">💿 CDs</div>
-          <div className="text-lg font-black text-white mt-0.5">{stats.cds}</div>
-        </div>
-
-        <div 
-          onClick={() => setActiveCategory("Vinyle")}
-          className={`p-3 rounded-2xl border cursor-pointer transition-all ${
-            activeCategory === "Vinyle" 
+            activeCategory === "Musique" 
               ? "bg-purple-500/20 border-purple-500/50 text-white" 
               : "bg-zinc-900/60 border-zinc-800/80 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
           }`}
         >
-          <div className="text-[10px] font-bold uppercase tracking-wider text-purple-400">🎵 Vinyles</div>
-          <div className="text-lg font-black text-white mt-0.5">{stats.vinyls}</div>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-purple-300">🎵 Vinyles & CDs</div>
+          <div className="text-lg font-black text-white mt-0.5 flex items-baseline gap-1.5">
+            <span>{stats.music}</span>
+            <span className="text-[10px] font-medium text-zinc-400">({stats.vinyls} vin. · {stats.cds} cd)</span>
+          </div>
         </div>
 
         <div 

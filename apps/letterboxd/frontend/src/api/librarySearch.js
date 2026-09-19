@@ -16,79 +16,176 @@ function stripHtml(html) {
 
 const GOOGLE_BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY || "AIzaSyA5tl9yNcVeQdDlHUV0OYtE-dfCoX_OEFo";
 
-// Magazines de référence culture urbaine / rap / foot / société pour auto-complétion immédiate
+// Magazines de référence culture urbaine / rap / foot / société avec numéros d'éditions
 const CURATED_MAGAZINES = [
+  // VIEWS MAGAZINE
   {
     keywords: ["views"],
-    title: "Views Magazine",
+    issue: "N°7",
+    title: "Views Magazine - N°7 (La Fève)",
     creator: "Views France",
     format: "Revue / Magazine Papier Culture & Musique",
-    cover: "https://views.fr/wp-content/uploads/2021/11/COUVERTURE-1-1024x1024.jpg",
-    year: "2017",
+    cover: "https://views.fr/wp-content/uploads/2023/12/Views-Cover-7-scaled.jpg",
+    year: "2023",
     source: "Revue Views"
   },
   {
-    keywords: ["radikal"],
-    title: "Radikal Magazine",
-    creator: "Radikal",
-    format: "Mensuel Rap & Hip-Hop Français",
-    cover: "https://m.media-amazon.com/images/I/51w+zM8dOJL._AC_UF1000,1000_QL80_.jpg",
-    year: "1996",
-    source: "Revue Radikal"
+    keywords: ["views"],
+    issue: "N°6",
+    title: "Views Magazine - N°6 (Werenoi)",
+    creator: "Views France",
+    format: "Revue / Magazine Papier Culture & Musique",
+    cover: "https://views.fr/wp-content/uploads/2023/06/COUVERTURE-VIEWS-6.jpg",
+    year: "2023",
+    source: "Revue Views"
   },
   {
+    keywords: ["views"],
+    issue: "N°5",
+    title: "Views Magazine - N°5 (Hamza)",
+    creator: "Views France",
+    format: "Revue / Magazine Papier Culture & Musique",
+    cover: "https://views.fr/wp-content/uploads/2023/02/Views-Cover-5.jpg",
+    year: "2023",
+    source: "Revue Views"
+  },
+  {
+    keywords: ["views"],
+    issue: "N°4",
+    title: "Views Magazine - N°4 (Tiakola)",
+    creator: "Views France",
+    format: "Revue / Magazine Papier Culture & Musique",
+    cover: "https://views.fr/wp-content/uploads/2022/10/Couv-Views-4.jpg",
+    year: "2022",
+    source: "Revue Views"
+  },
+  {
+    keywords: ["views"],
+    issue: "N°3",
+    title: "Views Magazine - N°3 (Dinos)",
+    creator: "Views France",
+    format: "Revue / Magazine Papier Culture & Musique",
+    cover: "https://views.fr/wp-content/uploads/2022/05/Views-Cover-3.jpg",
+    year: "2022",
+    source: "Revue Views"
+  },
+  {
+    keywords: ["views"],
+    issue: "N°2",
+    title: "Views Magazine - N°2 (Laylow)",
+    creator: "Views France",
+    format: "Revue / Magazine Papier Culture & Musique",
+    cover: "https://views.fr/wp-content/uploads/2022/01/Views-Cover-2.jpg",
+    year: "2022",
+    source: "Revue Views"
+  },
+  {
+    keywords: ["views"],
+    issue: "N°1",
+    title: "Views Magazine - N°1 (Alpha Wann)",
+    creator: "Views France",
+    format: "Revue / Magazine Papier Culture & Musique",
+    cover: "https://views.fr/wp-content/uploads/2021/11/COUVERTURE-1-1024x1024.jpg",
+    year: "2021",
+    source: "Revue Views"
+  },
+
+  // MOSAÏQUE MAGAZINE
+  {
     keywords: ["mosaique", "mosaïque"],
-    title: "Mosaïque Magazine",
+    issue: "N°4",
+    title: "Mosaïque Magazine - N°4",
     creator: "Mosaïque",
     format: "Revue Rap Francophone / Mook",
-    cover: "https://mosaiquemagazine.fr/wp-content/uploads/2023/04/MOSAIQUE-NUMERO-3-COUVERTURE.jpg",
-    year: "2020",
+    cover: "https://mosaiquemagazine.fr/wp-content/uploads/2023/11/MOSAIQUE-NUMERO-4-COUVERTURE.jpg",
+    year: "2023",
     source: "Mosaïque Revue"
   },
   {
+    keywords: ["mosaique", "mosaïque"],
+    issue: "N°3",
+    title: "Mosaïque Magazine - N°3",
+    creator: "Mosaïque",
+    format: "Revue Rap Francophone / Mook",
+    cover: "https://mosaiquemagazine.fr/wp-content/uploads/2023/04/MOSAIQUE-NUMERO-3-COUVERTURE.jpg",
+    year: "2023",
+    source: "Mosaïque Revue"
+  },
+  {
+    keywords: ["mosaique", "mosaïque"],
+    issue: "N°2",
+    title: "Mosaïque Magazine - N°2",
+    creator: "Mosaïque",
+    format: "Revue Rap Francophone / Mook",
+    cover: "https://mosaiquemagazine.fr/wp-content/uploads/2022/05/MOSAIQUE-NUMERO-2-COUVERTURE.jpg",
+    year: "2022",
+    source: "Mosaïque Revue"
+  },
+  {
+    keywords: ["mosaique", "mosaïque"],
+    issue: "N°1",
+    title: "Mosaïque Magazine - N°1",
+    creator: "Mosaïque",
+    format: "Revue Rap Francophone / Mook",
+    cover: "https://mosaiquemagazine.fr/wp-content/uploads/2021/04/MOSAIQUE-NUMERO-1-COUVERTURE.jpg",
+    year: "2021",
+    source: "Mosaïque Revue"
+  },
+
+  // RADIKAL
+  {
+    keywords: ["radikal"],
+    issue: "Vintage",
+    title: "Radikal Magazine - Édition Vintage Hip-Hop",
+    creator: "Radikal",
+    format: "Mensuel Rap & Hip-Hop Français",
+    cover: "https://m.media-amazon.com/images/I/51w+zM8dOJL._AC_UF1000,1000_QL80_.jpg",
+    year: "1998",
+    source: "Revue Radikal"
+  },
+
+  // SO FOOT & SOCIETY
+  {
     keywords: ["so foot"],
-    title: "So Foot",
+    issue: "Mensuel",
+    title: "So Foot - Le Mensuel",
     creator: "So Press",
     format: "Magazine Culture & Football",
     cover: "https://boutique.sofoot.com/cdn/shop/files/SF210.jpg",
-    year: "2003",
+    year: "2024",
     source: "So Foot"
   },
   {
     keywords: ["society"],
-    title: "Society",
+    issue: "Bimensuel",
+    title: "Society - Le Bimensuel",
     creator: "So Press",
     format: "Magazine de société bimensuel",
     cover: "https://boutique.sofoot.com/cdn/shop/files/S227.jpg",
-    year: "2015",
+    year: "2024",
     source: "Society"
   },
+
+  // RER & GROOVE
   {
     keywords: ["rer"],
-    title: "RER Magazine",
+    issue: "Vintage",
+    title: "RER Magazine - Hip-Hop & Graff",
     creator: "RER",
     format: "Mensuel Hip-Hop & Graff",
     cover: "",
-    year: "1996",
+    year: "1997",
     source: "RER Mag"
   },
   {
     keywords: ["groove"],
-    title: "Groove Magazine",
+    issue: "Vintage",
+    title: "Groove Magazine - Rap & R&B",
     creator: "Groove",
     format: "Mensuel Rap & R&B",
     cover: "",
-    year: "1997",
+    year: "1998",
     source: "Groove Mag"
-  },
-  {
-    keywords: ["lerapenfrance", "le rap en france", "lref"],
-    title: "Le Rap en France",
-    creator: "LREF",
-    format: "Fanzine / Mook Rap",
-    cover: "",
-    year: "2019",
-    source: "LREF"
   }
 ];
 
@@ -100,28 +197,36 @@ export async function searchBooksAndMagazines(query, type = "Livre") {
   const q = query.trim();
   const qLower = q.toLowerCase();
 
-  // Pour les magazines : vérification instantanée des revues de référence (Views, Mosaïque, Radikal...)
+  // Pour les magazines : vérification instantanée des revues de référence avec numéros (Views, Mosaïque, Radikal...)
   if (type === "Magazine") {
-    const curatedMatches = CURATED_MAGAZINES.filter(m =>
+    let curatedMatches = CURATED_MAGAZINES.filter(m =>
       m.keywords.some(k => qLower.includes(k) || k.includes(qLower))
-    ).map(m => ({
-      id: `curated_${m.keywords[0]}`,
-      title: m.title,
-      creator: m.creator,
-      year: m.year,
-      releaseDate: m.year,
-      cover: m.cover,
-      category: "Magazine",
-      format: m.format,
-      publisher: m.creator,
-      description: "",
-      source: m.source
-    }));
+    );
+
+    // Si la recherche mentionne un numéro spécifique (ex: "views 7", "views 3", "mosaique 4")
+    const numMatch = qLower.match(/(?:n°|num[eé]ro\s*|n|\#)?\s*([0-9]+)/i);
+    if (numMatch && curatedMatches.length > 0) {
+      const targetNum = numMatch[1];
+      const specificMatches = curatedMatches.filter(m => m.issue?.includes(targetNum) || m.title?.includes(targetNum));
+      if (specificMatches.length > 0) {
+        curatedMatches = specificMatches;
+      }
+    }
 
     if (curatedMatches.length > 0) {
-      // Si on a des matches spécifiques, on les met en tête
-      const otherResults = await searchAppleBooks(q, type).catch(() => []);
-      return [...curatedMatches, ...otherResults];
+      return curatedMatches.map((m, idx) => ({
+        id: `curated_${m.keywords[0]}_${m.issue || idx}`,
+        title: m.title,
+        creator: m.creator,
+        year: m.year,
+        releaseDate: m.year,
+        cover: m.cover,
+        category: "Magazine",
+        format: m.format,
+        publisher: m.creator,
+        description: "",
+        source: m.source
+      }));
     }
   }
 
@@ -306,19 +411,21 @@ async function searchDeezerAlbums(query, format = "CD") {
     return data.data.map(album => {
       const artist = album.artist?.name || "";
       const cover = album.cover_xl || album.cover_big || album.cover_medium || "";
+      const releaseDate = album.release_date || "";
+      const year = releaseDate ? releaseDate.substring(0, 4) : "";
       return {
         id: `deezer_${album.id}`,
         title: album.title || "Album",
         creator: artist,
-        year: "",
-        releaseDate: "",
+        year: year,
+        releaseDate: releaseDate,
         cover: cover,
         category: format === "Vinyle" ? "Vinyle" : "CD",
         format: format === "Vinyle" ? "Vinyle 33T (LP)" : "CD Audio",
         publisher: "Deezer",
         genre: "Musique",
         trackCount: album.nb_tracks || null,
-        description: `Album de ${artist}.`,
+        description: `Album de ${artist}${year ? ` (${year})` : ""}.`,
         source: "Deezer"
       };
     });

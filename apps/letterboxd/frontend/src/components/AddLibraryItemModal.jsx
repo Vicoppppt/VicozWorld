@@ -8,8 +8,7 @@ import { toast } from "react-hot-toast";
 const CATEGORIES = [
   { id: "Livre", label: "Livre", icon: "📚", color: "from-amber-500/20 to-orange-500/20 text-amber-300 border-amber-500/30" },
   { id: "Manga", label: "Manga", icon: "📖", color: "from-emerald-500/20 to-teal-500/20 text-emerald-300 border-emerald-500/30" },
-  { id: "CD", label: "CD", icon: "💿", color: "from-cyan-500/20 to-blue-500/20 text-cyan-300 border-cyan-500/30" },
-  { id: "Vinyle", label: "Vinyle", icon: "🎵", color: "from-purple-500/20 to-violet-500/20 text-purple-300 border-purple-500/30" },
+  { id: "Musique", label: "Vinyle / CD", icon: "🎵", color: "from-purple-500/20 to-cyan-500/20 text-purple-300 border-purple-500/30" },
   { id: "Blu-ray / 4K", label: "Film (Blu-ray / 4K / DVD)", icon: "📀", color: "from-pink-500/20 to-rose-500/20 text-pink-300 border-pink-500/30" },
   { id: "Magazine", label: "Magazine", icon: "📰", color: "from-yellow-500/20 to-amber-500/20 text-yellow-300 border-yellow-500/30" },
   { id: "Autre", label: "Autre / Objet", icon: "📦", color: "from-zinc-500/20 to-zinc-600/20 text-zinc-300 border-zinc-500/30" },
@@ -18,6 +17,7 @@ const CATEGORIES = [
 const FORMAT_SUGGESTIONS = {
   "Livre": ["Broché", "Poche", "Relié grand format", "E-book", "Beau livre"],
   "Manga": ["Tome simple", "Édition Deluxe / Perfect", "Double / Triple", "Coffret"],
+  "Musique": ["Vinyle 33T (LP)", "CD Audio", "Double LP Gatefold", "Digipack", "Vinyle 45T (Single/EP)", "Boîtier standard (Jewel)", "Édition Collector"],
   "CD": ["Boîtier standard (Jewel)", "Digipack", "Édition Deluxe", "Double CD"],
   "Vinyle": ["Vinyle 33T (LP)", "Vinyle 45T (Single/EP)", "Double LP Gatefold", "Vinyle de couleur / Picture Disc", "180g"],
   "Blu-ray / 4K": ["Blu-ray 4K Ultra HD", "Boîtier Steelbook", "Édition Collector / Coffret", "Blu-ray standard", "DVD"],
@@ -32,6 +32,10 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   
+  // Cases pour Vinyle et/ou CD
+  const [musicHasVinyl, setMusicHasVinyl] = useState(true);
+  const [musicHasCD, setMusicHasCD] = useState(false);
+
   // Données du formulaire
   const [formData, setFormData] = useState({
     title: "",
@@ -55,6 +59,8 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
       setSearchQuery("");
       setSearchResults([]);
       setSelectedCategory("Livre");
+      setMusicHasVinyl(true);
+      setMusicHasCD(false);
       setFormData({
         title: "",
         creator: "",
@@ -82,7 +88,8 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
 
     setIsSearching(true);
     try {
-      const results = await searchLibraryUniversal(searchQuery.trim(), selectedCategory);
+      const searchCat = selectedCategory === "Musique" ? "CD" : selectedCategory;
+      const results = await searchLibraryUniversal(searchQuery.trim(), searchCat);
       setSearchResults(results);
     } catch (err) {
       console.warn("Erreur recherche :", err);
@@ -96,8 +103,15 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
 
   // Clic sur un résultat automatique : Remplit tout et passe à l'étape 2
   const handleSelectResult = (item) => {
-    const cat = item.category || selectedCategory;
+    const isMusic = selectedCategory === "Musique" || item.category === "CD" || item.category === "Vinyle";
+    const cat = isMusic ? "Vinyle" : (item.category || selectedCategory);
     const formats = FORMAT_SUGGESTIONS[cat] || ["Standard"];
+    
+    if (isMusic) {
+      setMusicHasVinyl(true);
+      setMusicHasCD(false);
+    }
+
     setFormData({
       title: item.title || "",
       creator: item.creator || "",
@@ -117,11 +131,17 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
 
   // Passer en saisie manuelle libre si introuvable en ligne
   const handleManualEntry = () => {
-    const formats = FORMAT_SUGGESTIONS[selectedCategory] || ["Standard"];
+    const isMusic = selectedCategory === "Musique";
+    const cat = isMusic ? "Vinyle" : selectedCategory;
+    const formats = FORMAT_SUGGESTIONS[cat] || ["Standard"];
+    if (isMusic) {
+      setMusicHasVinyl(true);
+      setMusicHasCD(false);
+    }
     setFormData(prev => ({
       ...prev,
       title: searchQuery.trim(),
-      category: selectedCategory,
+      category: cat,
       format: formats[0]
     }));
     setStep(2);
@@ -135,8 +155,41 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
       return;
     }
 
+    // Si on est sur une sélection de musique avec à la fois Vinyle et CD cochés
+    const isMusic = selectedCategory === "Musique" || formData.category === "Vinyle" || formData.category === "CD";
+    if (isMusic && musicHasVinyl && musicHasCD) {
+      // Ajout des deux médias : Vinyle ET CD
+      onAdd({
+        ...formData,
+        category: "Vinyle",
+        format: formData.format.includes("Vinyle") ? formData.format : "Vinyle 33T (LP)",
+        id: Date.now().toString(),
+        addedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      setTimeout(() => {
+        onAdd({
+          ...formData,
+          category: "CD",
+          format: "CD Audio",
+          id: (Date.now() + 1).toString(),
+          addedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+      }, 50);
+      toast.success("Vinyle et CD ajoutés à votre bibliothèque !");
+      onClose();
+      return;
+    }
+
+    let finalCategory = formData.category;
+    if (isMusic) {
+      finalCategory = musicHasVinyl ? "Vinyle" : "CD";
+    }
+
     onAdd({
       ...formData,
+      category: finalCategory,
       id: Date.now().toString(),
       addedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -416,11 +469,17 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
                 <div>
                   <label className="text-xs font-semibold text-zinc-400">Catégorie</label>
                   <select
-                    value={formData.category}
+                    value={formData.category === "CD" || formData.category === "Vinyle" ? "Musique" : formData.category}
                     onChange={(e) => {
                       const newCat = e.target.value;
-                      const formats = FORMAT_SUGGESTIONS[newCat] || ["Standard"];
-                      setFormData({ ...formData, category: newCat, format: formats[0] });
+                      if (newCat === "Musique") {
+                        setFormData({ ...formData, category: "Vinyle", format: "Vinyle 33T (LP)" });
+                        setMusicHasVinyl(true);
+                        setMusicHasCD(false);
+                      } else {
+                        const formats = FORMAT_SUGGESTIONS[newCat] || ["Standard"];
+                        setFormData({ ...formData, category: newCat, format: formats[0] });
+                      }
                     }}
                     className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   >
@@ -428,6 +487,50 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
                       <option key={c.id} value={c.id}>{c.icon} {c.label}</option>
                     ))}
                   </select>
+
+                  {/* 2 Petites cases pour sélectionner Vinyle ou / et CD */}
+                  {(formData.category === "Vinyle" || formData.category === "CD" || selectedCategory === "Musique") && (
+                    <div className="mt-2.5 p-2.5 rounded-xl bg-zinc-950/80 border border-indigo-500/30 flex items-center gap-4">
+                      <span className="text-[11px] font-bold text-zinc-300">Format possédé :</span>
+                      <label className="flex items-center gap-1.5 cursor-pointer text-xs text-zinc-200">
+                        <input
+                          type="checkbox"
+                          checked={musicHasVinyl}
+                          onChange={(e) => {
+                            const val = e.target.checked;
+                            if (!val && !musicHasCD) return; // Garder au moins un des deux
+                            setMusicHasVinyl(val);
+                            if (val && !musicHasCD) {
+                              setFormData({ ...formData, category: "Vinyle", format: "Vinyle 33T (LP)" });
+                            } else if (!val && musicHasCD) {
+                              setFormData({ ...formData, category: "CD", format: "CD Audio" });
+                            }
+                          }}
+                          className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 bg-zinc-900 border-zinc-700"
+                        />
+                        <span className="font-semibold text-purple-300">🎵 Vinyle</span>
+                      </label>
+
+                      <label className="flex items-center gap-1.5 cursor-pointer text-xs text-zinc-200">
+                        <input
+                          type="checkbox"
+                          checked={musicHasCD}
+                          onChange={(e) => {
+                            const val = e.target.checked;
+                            if (!val && !musicHasVinyl) return; // Garder au moins un des deux
+                            setMusicHasCD(val);
+                            if (val && !musicHasVinyl) {
+                              setFormData({ ...formData, category: "CD", format: "CD Audio" });
+                            } else if (!val && musicHasVinyl) {
+                              setFormData({ ...formData, category: "Vinyle", format: "Vinyle 33T (LP)" });
+                            }
+                          }}
+                          className="w-4 h-4 rounded text-cyan-600 focus:ring-cyan-500 bg-zinc-900 border-zinc-700"
+                        />
+                        <span className="font-semibold text-cyan-300">💿 CD</span>
+                      </label>
+                    </div>
+                  )}
                 </div>
 
                 {/* Format / Édition */}
