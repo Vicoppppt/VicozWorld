@@ -75,7 +75,7 @@ def analyze_emails_with_ai(emails: List[Dict[str, Any]], api_key: str) -> Dict[s
         client = genai.Client(api_key=api_key)
         try:
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-1.5-flash",
                 contents=f"{SYSTEM_PROMPT}\n\n{prompt_user}",
                 config=types.GenerateContentConfig(
                     temperature=0.1,
@@ -90,7 +90,7 @@ def analyze_emails_with_ai(emails: List[Dict[str, Any]], api_key: str) -> Dict[s
         import urllib.request
         import urllib.parse
         
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         headers = {"Content-Type": "application/json"}
         body = {
             "contents": [{"parts": [{"text": f"{SYSTEM_PROMPT}\n\n{prompt_user}"}]}],
@@ -193,7 +193,7 @@ Ne rajoute AUCUN texte autour du JSON.
         client = genai.Client(api_key=api_key)
         try:
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-1.5-flash",
                 contents=f"{system_prompt_categorize}\n\n{prompt_user}",
                 config=types.GenerateContentConfig(
                     temperature=0.1,
@@ -205,7 +205,7 @@ Ne rajoute AUCUN texte autour du JSON.
             raise RuntimeError(f"Erreur lors de l'appel Gemini : {e}")
     else:
         import urllib.request
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         headers = {"Content-Type": "application/json"}
         body = {
             "contents": [{"parts": [{"text": f"{system_prompt_categorize}\n\n{prompt_user}"}]}],

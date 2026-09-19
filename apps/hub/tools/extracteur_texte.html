@@ -993,7 +993,7 @@ Transcris l'intégralité du texte visible avec une perfection absolue :
 
 Renvoie UNIQUEMENT le texte propre reformaté, prêt à être copié dans Word. Ne mets aucune phrase d'introduction ni de conclusion.`;
 
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -1046,7 +1046,7 @@ Extrais l'intégralité du texte principal avec une propreté absolue :
 
 Renvoie UNIQUEMENT le texte propre reformaté, prêt à être collé dans Word.`;
 
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
       const response = await fetch(endpoint, {
         method: 'POST',

@@ -801,8 +801,8 @@ Réponds STRICTEMENT sous ce format JSON (sans bloc Markdown \`\`\`json, uniquem
   ]
 }`;
 
-      // Utilisation du modèle supporté gemini-2.5-flash
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      // Utilisation du modèle supporté gemini-1.5-flash
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
       const response = await fetch(endpoint, {
         method: 'POST',

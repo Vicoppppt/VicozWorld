@@ -1561,9 +1561,9 @@ GEMINI_LOCK = threading.Lock()
 LAST_GEMINI_CALL_TIME = 0.0
 
 MODELS_CASCADE = [
-    "gemini-2.5-flash",      # Modèle principal recommandé
-    "gemini-2.0-flash",      # Fallback stable
-    "gemini-1.5-flash"       # Fallback universel
+    "gemini-1.5-flash",      # Modèle universel stable et gratuit
+    "gemini-2.0-flash",      # Modèle nouvelle génération
+    "gemini-1.5-pro"        # Fallback haute capacité
 ]
 
 def call_gemini_json_api(prompt: str, api_key: str, max_retries: int = 1) -> Optional[dict]:
