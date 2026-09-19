@@ -1360,6 +1360,7 @@ def get_electricity_stats():
         "configured": bool(pdl and token),
         "settings": {
             "pdl": pdl,
+            "token": token,
             "kwh_price": kwh_price,
             "subscription_price": sub_price,
             "target_monthly_budget": target_budget
