@@ -95,7 +95,7 @@ export function AddLibraryItemModal({ isOpen, onClose, onAdd }) {
       } finally {
         setIsSearching(false);
       }
-    }, 400);
+    }, 600);
 
     return () => clearTimeout(timer);
   }, [searchQuery, selectedCategory, step, isOpen]);
