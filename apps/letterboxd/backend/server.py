@@ -214,36 +214,19 @@ def init_db():
         ('casa', 'casa.vicopetit.dedyn.io', 'CasaOS', 0),
         ('ng', 'ng.vicopetit.dedyn.io', 'Proxy Manager', 0)
     """)
-    default_enedis_pdl = encrypt_value(os.getenv("ENEDIS_PDL", ""))
-    default_enedis_token = encrypt_value(os.getenv("ENEDIS_TOKEN", ""))
     cursor.execute("""
         INSERT OR IGNORE INTO electricity_settings (id, pdl, token, kwh_price, subscription_price, target_monthly_budget)
-        VALUES (1, ?, ?, 0.2516, 12.50, 60.00)
-    """, (default_enedis_pdl, default_enedis_token))
+        VALUES (1, '', '', 0.2516, 12.50, 60.00)
+    """)
     
     cursor.execute("""
         INSERT OR IGNORE INTO weather_settings (id, gemini_api_key, default_city, default_lat, default_lon)
         VALUES (1, '', 'Paris', 48.8566, 2.3522)
     """)
     
-    # Auto-migration : chiffrer les clés existantes en clair si la clé maître est dispo
-    if cipher:
-        cursor.execute("SELECT pdl, token FROM electricity_settings WHERE id = 1")
-        elec_row = cursor.fetchone()
-        if elec_row:
-            pdl = elec_row["pdl"]
-            token = elec_row["token"]
-            updated = False
-            if pdl and not pdl.startswith("gAAAAA"):
-                pdl = encrypt_value(pdl)
-                updated = True
-            if token and not token.startswith("gAAAAA"):
-                token = encrypt_value(token)
-                updated = True
-            if updated:
-                cursor.execute("UPDATE electricity_settings SET pdl = ?, token = ? WHERE id = 1", (pdl, token))
-                
-        cursor.execute("UPDATE weather_settings SET gemini_api_key = '' WHERE id = 1")
+    # Nettoyage complet des colonnes secrètes désormais gérées via l'environnement Docker/CasaOS
+    cursor.execute("UPDATE electricity_settings SET pdl = '', token = '' WHERE id = 1")
+    cursor.execute("UPDATE weather_settings SET gemini_api_key = '' WHERE id = 1")
                 
     conn.commit()
     conn.close()
@@ -1128,26 +1111,30 @@ def clear_genealogy():
 # --- ENDPOINTS ÉLECTRICITÉ (ENEDIS / MYELECTRICALDATA) ---
 
 class ElectricityConfig(BaseModel):
-    pdl: str
-    token: str
     kwh_price: float = 0.2516
     subscription_price: float = 12.50
     target_monthly_budget: float = 60.00
+    pdl: Optional[str] = None
+    token: Optional[str] = None
 
 def get_electricity_config_db():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT pdl, token, kwh_price, subscription_price, target_monthly_budget FROM electricity_settings WHERE id = 1")
+    cursor.execute("SELECT kwh_price, subscription_price, target_monthly_budget FROM electricity_settings WHERE id = 1")
     row = cursor.fetchone()
     conn.close()
+    
+    pdl = os.getenv("ENEDIS_PDL", "")
+    token = os.getenv("ENEDIS_TOKEN", "")
+    
     if row:
         d = dict(row)
-        d["pdl"] = decrypt_value(d["pdl"])
-        d["token"] = decrypt_value(d["token"])
+        d["pdl"] = pdl
+        d["token"] = token
         return d
     return {
-        "pdl": os.getenv("ENEDIS_PDL", ""),
-        "token": os.getenv("ENEDIS_TOKEN", ""),
+        "pdl": pdl,
+        "token": token,
         "kwh_price": 0.2516,
         "subscription_price": 12.50,
         "target_monthly_budget": 60.00
@@ -1155,7 +1142,7 @@ def get_electricity_config_db():
 
 def sync_electricity_from_api(pdl: str, token: str, days: int = 90):
     if not pdl or not token:
-        return {"success": False, "error": "PDL ou Token non renseigné."}
+        return {"success": False, "error": "PDL ou Token non renseigné dans les variables CasaOS."}
     
     end_dt = datetime.now()
     start_dt = end_dt - timedelta(days=days)
@@ -1217,20 +1204,16 @@ def get_electricity_config():
 def save_electricity_config(config: ElectricityConfig):
     conn = get_db()
     cursor = conn.cursor()
-    enc_pdl = encrypt_value(config.pdl)
-    enc_token = encrypt_value(config.token)
     
     cursor.execute("""
         INSERT INTO electricity_settings (id, pdl, token, kwh_price, subscription_price, target_monthly_budget, updated_at)
-        VALUES (1, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        VALUES (1, '', '', ?, ?, ?, CURRENT_TIMESTAMP)
         ON CONFLICT(id) DO UPDATE SET
-            pdl = excluded.pdl,
-            token = excluded.token,
             kwh_price = excluded.kwh_price,
             subscription_price = excluded.subscription_price,
             target_monthly_budget = excluded.target_monthly_budget,
             updated_at = CURRENT_TIMESTAMP
-    """, (enc_pdl, enc_token, config.kwh_price, config.subscription_price, config.target_monthly_budget))
+    """, (config.kwh_price, config.subscription_price, config.target_monthly_budget))
     conn.commit()
     conn.close()
 

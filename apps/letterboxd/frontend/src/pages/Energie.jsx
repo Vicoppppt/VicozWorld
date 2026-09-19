@@ -473,32 +473,23 @@ export function Energie() {
               </div>
 
               <form onSubmit={handleSaveConfig} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-300 mb-1">
-                    Numéro PRM / Point de Livraison (14 chiffres)
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={configForm.pdl}
-                    onChange={(e) => setConfigForm({ ...configForm, pdl: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-zinc-950 border border-zinc-700 rounded-xl text-sm text-zinc-100 focus:outline-none focus:border-amber-500 transition-colors"
-                    placeholder="01139218434363"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-zinc-300 mb-1">
-                    Clé d'accès MyElectricalData (Token API)
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={configForm.token}
-                    onChange={(e) => setConfigForm({ ...configForm, token: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-zinc-950 border border-zinc-700 rounded-xl text-sm text-zinc-100 focus:outline-none focus:border-amber-500 transition-colors font-mono text-xs"
-                    placeholder="Votre clé token..."
-                  />
+                <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl flex items-start gap-2.5">
+                  <div className="mt-0.5">
+                    {configForm.pdl && configForm.token && configForm.pdl.length > 5 ? (
+                      <div className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </div>
+                    ) : (
+                      <div className="h-2 w-2 rounded-full bg-red-500"></div>
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-amber-500">Identifiants Enedis</h4>
+                    <p className="text-[10px] text-zinc-400 leading-tight mt-1">
+                      Le Point de Livraison (PDL) et le Token MyElectricalData sont désormais gérés de manière sécurisée via les variables d'environnement CasaOS (<code className="text-zinc-300">ENEDIS_PDL</code> et <code className="text-zinc-300">ENEDIS_TOKEN</code>).
+                    </p>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
