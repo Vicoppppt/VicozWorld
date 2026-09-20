@@ -13,16 +13,25 @@ import ssl
 import logging
 import urllib.request
 import urllib.error
+import time
+import threading
 from typing import Optional
 from fastapi import APIRouter, HTTPException
 
-from models import PlugSetStateRequest
+from models import PlugSetStateRequest, PlugAutomationRequest
+from database import get_plug_automation_config, save_plug_automation_config
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/hub/plug", tags=["plug"])
 
 # Cache mémoire léger de secours (en cas de coupure temporaire de Home Assistant)
 _LAST_STATE = "off"
+
+# État de la régulation automatique CPU
+_AUTO_COOLING_ACTIVE = False
+_AUTO_COOLING_UNTIL = 0.0
+_CURRENT_CPU = 0.0
+_CONSECUTIVE_OVER_THRESHOLD = 0
 
 
 def _get_plug_config() -> dict:
@@ -223,6 +232,10 @@ def set_plug_state(req: PlugSetStateRequest):
         final_state = target
 
     _LAST_STATE = final_state
+    if final_state == "off":
+        global _AUTO_COOLING_ACTIVE, _AUTO_COOLING_UNTIL
+        _AUTO_COOLING_ACTIVE = False
+        _AUTO_COOLING_UNTIL = 0.0
 
     return {
         "success": True,
@@ -263,6 +276,11 @@ def toggle_plug():
         final_state = target_state
 
     _LAST_STATE = final_state
+    if final_state == "off":
+        global _AUTO_COOLING_ACTIVE, _AUTO_COOLING_UNTIL
+        _AUTO_COOLING_ACTIVE = False
+        _AUTO_COOLING_UNTIL = 0.0
+
 
     return {
         "success": True,
@@ -272,6 +290,96 @@ def toggle_plug():
         "entity_id": entity_id,
     }
 
+
+# ─── Moteur de Régulation Automatique CPU ────────────────────────────────────
+
+def _measure_cpu_percent() -> float:
+    """Mesure la charge CPU isolée dans le conteneur Docker sans installation hôte."""
+    global _CURRENT_CPU
+    try:
+        import psutil
+        val = psutil.cpu_percent(interval=None)
+        if val is not None and val >= 0:
+            _CURRENT_CPU = float(val)
+            return _CURRENT_CPU
+    except Exception:
+        pass
+
+    try:
+        if os.path.exists("/proc/loadavg"):
+            with open("/proc/loadavg", "r") as f:
+                load = float(f.read().split()[0])
+                cores = os.cpu_count() or 1
+                pct = min(100.0, max(0.0, (load / cores) * 100))
+                _CURRENT_CPU = round(pct, 1)
+                return _CURRENT_CPU
+    except Exception:
+        pass
+    return _CURRENT_CPU
+
+
+def _cpu_monitor_worker():
+    """Tâche de fond surveillant la charge processeur et déclenchant la ventilation."""
+    global _AUTO_COOLING_ACTIVE, _AUTO_COOLING_UNTIL, _CONSECUTIVE_OVER_THRESHOLD
+    # Initialisation baseline psutil
+    try:
+        import psutil
+        psutil.cpu_percent(interval=None)
+    except Exception:
+        pass
+
+    while True:
+        try:
+            time.sleep(15)
+            cpu = _measure_cpu_percent()
+            config = get_plug_automation_config()
+            if not config.get("enabled"):
+                _AUTO_COOLING_ACTIVE = False
+                _CONSECUTIVE_OVER_THRESHOLD = 0
+                continue
+
+            threshold = float(config.get("cpu_threshold", 50.0))
+            duration_sec = int(config.get("duration_minutes", 10)) * 60
+            now = time.time()
+
+            # 1. Pic CPU détecté (2 vérifications consécutives soit ~30s pour éliminer les micro-pics)
+            if cpu >= threshold:
+                _CONSECUTIVE_OVER_THRESHOLD += 1
+                if _CONSECUTIVE_OVER_THRESHOLD >= 2:
+                    cfg = _get_plug_config()
+                    if cfg["hass_url"] and cfg["hass_token"]:
+                        _call_hass_service(cfg["hass_url"], cfg["hass_token"], "turn_on", cfg["entity_id"])
+                    _AUTO_COOLING_ACTIVE = True
+                    _AUTO_COOLING_UNTIL = max(_AUTO_COOLING_UNTIL, now + duration_sec)
+                    logger.info(
+                        f"Régulation auto: CPU {cpu}% >= seuil {threshold}%. "
+                        f"Ventilation active jusqu'à {time.strftime('%H:%M:%S', time.localtime(_AUTO_COOLING_UNTIL))}"
+                    )
+            else:
+                _CONSECUTIVE_OVER_THRESHOLD = 0
+
+            # 2. Minuterie de refroidissement écoulée
+            if _AUTO_COOLING_ACTIVE and now >= _AUTO_COOLING_UNTIL:
+                if cpu < threshold:
+                    cfg = _get_plug_config()
+                    if cfg["hass_url"] and cfg["hass_token"]:
+                        _call_hass_service(cfg["hass_url"], cfg["hass_token"], "turn_off", cfg["entity_id"])
+                    _AUTO_COOLING_ACTIVE = False
+                    logger.info(f"Régulation auto: CPU stabilisé ({cpu}% < {threshold}%). Ventilation arrêtée.")
+                else:
+                    # Le processeur est encore trop chaud, on prolonge de 2 minutes
+                    _AUTO_COOLING_UNTIL = now + 120
+                    logger.info(f"Régulation auto: CPU toujours élevé ({cpu}%). Prolongation ventilation de 2 min.")
+        except Exception as e:
+            logger.debug(f"Boucle monitor CPU: {e}")
+
+
+# Démarrage du thread daemon en arrière-plan
+_monitor_thread = threading.Thread(target=_cpu_monitor_worker, daemon=True, name="PlugCpuMonitor")
+_monitor_thread.start()
+
+
+# ─── Endpoints Configuration & Automatisation ─────────────────────────────────
 
 @router.get("/config")
 def get_plug_config():
@@ -288,3 +396,47 @@ def get_plug_config():
         "has_token": has_token,
         "token_source": "Fichier .env (HASS_TOKEN)",
     }
+
+
+@router.get("/automation")
+def get_plug_automation():
+    """Retourne l'état en direct et les préférences de régulation automatique."""
+    cfg = get_plug_automation_config()
+    now = time.time()
+    remaining = max(0, int(_AUTO_COOLING_UNTIL - now)) if _AUTO_COOLING_ACTIVE else 0
+    current_cpu = _measure_cpu_percent()
+
+    return {
+        "enabled": cfg["enabled"],
+        "cpu_threshold": cfg["cpu_threshold"],
+        "duration_minutes": cfg["duration_minutes"],
+        "current_cpu": current_cpu,
+        "is_auto_cooling": _AUTO_COOLING_ACTIVE,
+        "remaining_seconds": remaining,
+    }
+
+
+@router.post("/automation")
+def update_plug_automation(req: PlugAutomationRequest):
+    """Enregistre les préférences de régulation automatique dans SQLite (comme ai_model_settings)."""
+    cfg = {
+        "enabled": req.enabled,
+        "cpu_threshold": req.cpu_threshold,
+        "duration_minutes": req.duration_minutes,
+    }
+    ok = save_plug_automation_config(cfg)
+    if not ok:
+        raise HTTPException(status_code=500, detail="Erreur enregistrement des préférences de régulation.")
+
+    # Si désactivé immédiatement par l'utilisateur, couper l'état auto actif
+    if not req.enabled:
+        global _AUTO_COOLING_ACTIVE, _AUTO_COOLING_UNTIL
+        _AUTO_COOLING_ACTIVE = False
+        _AUTO_COOLING_UNTIL = 0.0
+
+    return {
+        "success": True,
+        **cfg,
+        "current_cpu": round(_CURRENT_CPU, 1),
+    }
+

@@ -49,6 +49,8 @@ import {
   Power,
   PlugZap,
   Fan,
+  Cpu,
+  Timer,
   X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -94,6 +96,15 @@ export function Home() {
     has_token: false,
     token_source: "",
   });
+  const [plugAutomation, setPlugAutomation] = useState({
+    enabled: false,
+    cpu_threshold: 50,
+    duration_minutes: 10,
+    current_cpu: null,
+    is_auto_cooling: false,
+    remaining_seconds: 0,
+  });
+  const [isSavingAutomation, setIsSavingAutomation] = useState(false);
 
   const fetchAiData = async () => {
     setIsLoadingAiModels(true);
@@ -221,6 +232,56 @@ export function Home() {
     }
   };
 
+  const fetchPlugAutomation = async () => {
+    try {
+      const res = await fetch('/api/hub/plug/automation');
+      if (res.ok) {
+        const data = await res.json();
+        setPlugAutomation(prev => ({
+          ...prev,
+          ...data,
+        }));
+      }
+    } catch (e) {
+      console.warn("Erreur chargement automatisation prise:", e);
+    }
+  };
+
+  const handleSavePlugAutomation = async (overrideCfg = null) => {
+    const payload = overrideCfg || {
+      enabled: plugAutomation.enabled,
+      cpu_threshold: Number(plugAutomation.cpu_threshold),
+      duration_minutes: Number(plugAutomation.duration_minutes),
+    };
+    setIsSavingAutomation(true);
+    const toastId = toast.loading("Enregistrement de la régulation...");
+    try {
+      const res = await fetch('/api/hub/plug/automation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPlugAutomation(prev => ({
+          ...prev,
+          ...data,
+        }));
+        if (payload.enabled) {
+          toast.success(`Régulation active (Seuil ${payload.cpu_threshold}% • ${payload.duration_minutes} min)`, { id: toastId, icon: "❄️" });
+        } else {
+          toast.success("Régulation automatique désactivée", { id: toastId });
+        }
+      } else {
+        toast.error("Erreur enregistrement régulation", { id: toastId });
+      }
+    } catch (err) {
+      toast.error("Erreur réseau", { id: toastId });
+    } finally {
+      setIsSavingAutomation(false);
+    }
+  };
+
   const handleTogglePlug = async (e) => {
     if (e) e.stopPropagation();
     if (isTogglingPlug) return;
@@ -278,9 +339,11 @@ export function Home() {
       fetchBattery();
       fetchBankBalances();
       fetchPlugStatus();
+      fetchPlugAutomation();
       const timer = setInterval(() => {
         fetchBattery();
         fetchPlugStatus();
+        fetchPlugAutomation();
       }, 30000);
       return () => clearInterval(timer);
     }
@@ -443,7 +506,13 @@ export function Home() {
                     </span>
                   </div>
                   <span className="text-[9px] text-zinc-400 flex items-center gap-1">
-                    <span>{plugData?.is_on === true ? 'Refroidissement actif ❄️' : plugData?.is_on === false ? 'Ventilation coupée' : 'Connexion...'}</span>
+                    <span>
+                      {plugData?.is_on === true 
+                        ? (plugAutomation?.is_auto_cooling ? 'Refroidissement AUTO ⚡' : 'Refroidissement actif ❄️')
+                        : plugData?.is_on === false 
+                        ? (plugAutomation?.enabled ? 'Auto en veille (CPU calme)' : 'Ventilation coupée') 
+                        : 'Connexion...'}
+                    </span>
                     {plugData?.connected && <span className="text-cyan-400 font-bold">• HA</span>}
                   </span>
                 </div>
@@ -455,16 +524,18 @@ export function Home() {
                     e.stopPropagation();
                     setIsPlugModalOpen(true);
                     fetchPlugConfig();
+                    fetchPlugAutomation();
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.stopPropagation();
                       setIsPlugModalOpen(true);
                       fetchPlugConfig();
+                      fetchPlugAutomation();
                     }
                   }}
                   className="p-1 -mr-0.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700/60 transition-colors cursor-pointer"
-                  title="Configurer la liaison Home Assistant"
+                  title="Configurer la liaison Home Assistant et la régulation CPU"
                 >
                   <SlidersHorizontal className="w-3 h-3 opacity-60 hover:opacity-100" />
                 </div>
@@ -1434,11 +1505,145 @@ export function Home() {
                 </button>
               </div>
 
+              {/* Régulation Automatique CPU (Stockée en base SQLite) */}
+              <div className="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800/80 space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                      <Cpu className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-zinc-200 flex items-center gap-2">
+                        <span>Régulation Automatique</span>
+                        <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded ${
+                          plugAutomation.enabled
+                            ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                            : 'bg-zinc-800 text-zinc-500'
+                        }`}>
+                          {plugAutomation.enabled ? 'ACTIVE' : 'DÉSACTIVÉE'}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-zinc-400">
+                        Déclenche le ventilateur dès que le processeur surchauffe
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !plugAutomation.enabled;
+                      setPlugAutomation(prev => ({ ...prev, enabled: next }));
+                    }}
+                    className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      plugAutomation.enabled ? 'bg-cyan-500' : 'bg-zinc-800'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                        plugAutomation.enabled ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Statut CPU actuel */}
+                <div className="p-2.5 rounded-xl bg-zinc-900/80 border border-zinc-800/60 flex items-center justify-between text-xs">
+                  <span className="text-zinc-400 flex items-center gap-1.5">
+                    <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                    Charge CPU actuelle :
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`font-mono font-bold ${
+                      (plugAutomation.current_cpu || 0) >= plugAutomation.cpu_threshold
+                        ? 'text-rose-400 font-extrabold'
+                        : (plugAutomation.current_cpu || 0) >= 40
+                        ? 'text-amber-400'
+                        : 'text-emerald-400'
+                    }`}>
+                      {plugAutomation.current_cpu !== null ? `${plugAutomation.current_cpu}%` : 'Mesure...'}
+                    </span>
+                    {plugAutomation.is_auto_cooling && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 animate-pulse">
+                        ❄️ Auto ON ({Math.ceil((plugAutomation.remaining_seconds || 0) / 60)}m)
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {plugAutomation.enabled && (
+                  <div className="space-y-3 pt-2 border-t border-zinc-800/60">
+                    {/* Seuil de déclenchement CPU */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-zinc-300 font-medium">Seuil de déclenchement CPU</span>
+                        <span className="font-mono font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/30">
+                          {plugAutomation.cpu_threshold}%
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="25"
+                        max="85"
+                        step="5"
+                        value={plugAutomation.cpu_threshold}
+                        onChange={(e) => setPlugAutomation({ ...plugAutomation, cpu_threshold: Number(e.target.value) })}
+                        className="w-full accent-cyan-400 h-1.5 bg-zinc-800 rounded-lg cursor-pointer"
+                      />
+                      <div className="flex justify-between text-[10px] text-zinc-500">
+                        <span>25% (Sensible)</span>
+                        <span>50% (Standard)</span>
+                        <span>85% (Forte charge)</span>
+                      </div>
+                    </div>
+
+                    {/* Durée minimale de refroidissement */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-zinc-300 font-medium">Durée minimale de refroidissement</span>
+                        <span className="text-zinc-400 text-[10px]">
+                          {plugAutomation.duration_minutes} minutes consécutives
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[5, 10, 15, 30].map((dur) => (
+                          <button
+                            key={dur}
+                            type="button"
+                            onClick={() => setPlugAutomation({ ...plugAutomation, duration_minutes: dur })}
+                            className={`py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                              plugAutomation.duration_minutes === dur
+                                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm'
+                                : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-zinc-200 hover:bg-zinc-800'
+                            }`}
+                          >
+                            {dur} min
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bouton Enregistrer les préférences de régulation */}
+                <div className="pt-1 flex justify-end">
+                  <button
+                    type="button"
+                    disabled={isSavingAutomation}
+                    onClick={() => handleSavePlugAutomation()}
+                    className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-cyan-500/20 disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>{isSavingAutomation ? 'Enregistrement...' : 'Enregistrer la régulation'}</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Informations de configuration issues du .env */}
               <div className="space-y-4">
                 <div className="p-4 rounded-2xl bg-zinc-950/60 border border-zinc-800/80 space-y-3">
                   <div className="flex items-center justify-between pb-2 border-b border-zinc-800/60">
-                    <span className="text-xs font-medium text-zinc-400">Source des paramètres</span>
+                    <span className="text-xs font-medium text-zinc-400">Source des identifiants</span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                       Fichier .env du serveur
                     </span>
@@ -1482,7 +1687,7 @@ export function Home() {
                 <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/20 text-[11px] text-zinc-400 flex items-start gap-2.5">
                   <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
                   <span>
-                    La configuration est désormais chargée directement depuis le fichier <code className="text-cyan-300 font-mono">.env</code> de votre serveur CasaOS. Aucune information n'est enregistrée en base de données.
+                    Les identifiants restent stockés dans le fichier <code className="text-cyan-300 font-mono">.env</code> de votre serveur CasaOS. Les préférences de régulation sont sauvegardées avec vos choix d'IA.
                   </span>
                 </div>
 
@@ -1492,6 +1697,7 @@ export function Home() {
                     onClick={() => {
                       fetchPlugStatus();
                       fetchPlugConfig();
+                      fetchPlugAutomation();
                       toast.success("Statut synchronisé");
                     }}
                     className="px-3.5 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors flex items-center gap-1.5"

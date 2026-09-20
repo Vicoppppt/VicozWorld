@@ -87,3 +87,9 @@ class HubUrlsRequest(BaseModel):
 class PlugSetStateRequest(BaseModel):
     state: str  # "on" | "off"
 
+
+class PlugAutomationRequest(BaseModel):
+    enabled: bool = False
+    cpu_threshold: float = 50.0
+    duration_minutes: int = 10
+

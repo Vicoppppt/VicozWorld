@@ -219,6 +219,15 @@ def init_db():
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS plug_automation_settings (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                enabled INTEGER DEFAULT 0,
+                cpu_threshold REAL DEFAULT 50.0,
+                duration_minutes INTEGER DEFAULT 10,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
         cursor.execute("DROP TABLE IF EXISTS plug_settings")
 
         # Données par défaut
@@ -238,6 +247,10 @@ def init_db():
             INSERT OR IGNORE INTO weather_settings (id, gemini_api_key, default_city, default_lat, default_lon)
             VALUES (1, '', 'Paris', 48.8566, 2.3522)
         """)
+        cursor.execute("""
+            INSERT OR IGNORE INTO plug_automation_settings (id, enabled, cpu_threshold, duration_minutes)
+            VALUES (1, 0, 50.0, 10)
+        """)
 
         # Nettoyage des colonnes secrètes gérées via variables d'env
         cursor.execute("UPDATE electricity_settings SET pdl = '', token = '' WHERE id = 1")
@@ -248,3 +261,44 @@ def init_db():
         create_db_backup("startup")
     except Exception as e:
         logger.warning(f"Sauvegarde démarrage ignorée: {e}")
+
+
+def get_plug_automation_config() -> dict:
+    """Récupère les préférences de régulation automatique du ventilateur."""
+    try:
+        with get_db_ctx() as conn:
+            row = conn.execute("SELECT enabled, cpu_threshold, duration_minutes FROM plug_automation_settings WHERE id = 1").fetchone()
+            if row:
+                return {
+                    "enabled": bool(row["enabled"]),
+                    "cpu_threshold": float(row["cpu_threshold"]),
+                    "duration_minutes": int(row["duration_minutes"]),
+                }
+    except Exception as e:
+        logger.warning(f"Erreur lecture plug_automation_settings: {e}")
+    return {"enabled": False, "cpu_threshold": 50.0, "duration_minutes": 10}
+
+
+def save_plug_automation_config(cfg: dict) -> bool:
+    """Sauvegarde les préférences de régulation automatique du ventilateur."""
+    try:
+        with get_db_ctx() as conn:
+            conn.execute("""
+                INSERT INTO plug_automation_settings (id, enabled, cpu_threshold, duration_minutes)
+                VALUES (1, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    enabled=excluded.enabled,
+                    cpu_threshold=excluded.cpu_threshold,
+                    duration_minutes=excluded.duration_minutes,
+                    updated_at=CURRENT_TIMESTAMP
+            """, (
+                1 if cfg.get("enabled") else 0,
+                float(cfg.get("cpu_threshold", 50.0)),
+                int(cfg.get("duration_minutes", 10)),
+            ))
+            conn.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Erreur écriture plug_automation_settings: {e}")
+        return False
+
