@@ -283,6 +283,7 @@ export function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           hass_url: plugConfig.hass_url,
+          hass_token: plugConfig.hass_token,
           entity_id: plugConfig.entity_id,
           name: plugConfig.name,
           device_model: plugConfig.device_model,
@@ -1483,26 +1484,30 @@ export function Home() {
                   </span>
                 </div>
 
-                {/* Sécurité du jeton Home Assistant (strictement dans .env) */}
-                <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-zinc-800 space-y-1.5">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
-                      <Lock className="w-3.5 h-3.5 text-cyan-400" />
-                      Jeton d'accès (HASS_TOKEN)
-                    </span>
+                    <label className="text-xs font-bold text-zinc-300">
+                      Jeton d'accès longue durée (HASS_TOKEN)
+                    </label>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                       plugConfig.has_token 
-                        ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' 
+                        ? 'text-cyan-300 bg-cyan-500/10 border-cyan-500/30' 
                         : 'text-amber-400 bg-amber-500/10 border-amber-500/30'
                     }`}>
-                      {plugConfig.has_token ? 'Sécurisé dans .env' : 'Non détecté dans .env'}
+                      {plugConfig.has_token ? '✓ Jeton actif et mémorisé' : 'Requis pour piloter'}
                     </span>
                   </div>
-                  <p className="text-[11px] text-zinc-400 leading-relaxed">
-                    {plugConfig.has_token 
-                      ? '🔒 Le jeton est lu directement depuis la variable d’environnement HASS_TOKEN (.env). Aucun jeton n’est persisté en base de données.'
-                      : '⚠️ Pour connecter la prise, ajoutez HASS_TOKEN=votre_jeton dans votre fichier .env du serveur. Le token reste ainsi strictement confiné à l’environnement système.'}
-                  </p>
+                  <input
+                    type="password"
+                    value={plugConfig.hass_token || ''}
+                    onChange={(e) => setPlugConfig({ ...plugConfig, hass_token: e.target.value })}
+                    placeholder={plugConfig.has_token ? '•••••••••••••••• (conservé de façon permanente)' : 'Collez votre jeton Home Assistant ici'}
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-100 font-mono placeholder:text-zinc-500 focus:outline-none focus:border-cyan-500"
+                  />
+                  <span className="text-[10px] text-zinc-500 flex items-center gap-1">
+                    <Lock className="w-3 h-3 text-cyan-400 shrink-0" />
+                    <span>Mémorisé de façon permanente dans la base chiffrée. Inutile de le retaper après un déploiement GitHub Actions.</span>
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

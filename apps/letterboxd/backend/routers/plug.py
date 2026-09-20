@@ -17,34 +17,35 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 
 from database import get_db_ctx
+from crypto import encrypt_value, decrypt_value
 from models import PlugConfigRequest, PlugSetStateRequest
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/hub/plug", tags=["plug"])
 
 
-def _get_env_token() -> str:
-    """Récupère le jeton Home Assistant STRICTEMENT depuis la variable d'environnement."""
-    return os.getenv("HASS_TOKEN", "").strip()
-
-
 def _get_plug_config() -> dict:
     """
     Lit la configuration de la prise.
-    L'URL et l'entity_id proviennent de SQLite ou des variables d'environnement.
-    Le token provient EXCLUSIVEMENT de os.getenv('HASS_TOKEN').
+    Le token est récupéré en priorité depuis l'environnement .env (HASS_TOKEN),
+    ou depuis la base de données persistante (déchiffré via Fernet).
     """
     with get_db_ctx() as conn:
         row = conn.execute(
             """
-            SELECT hass_url, entity_id, name, device_model, room, last_known_state
+            SELECT hass_url, hass_token, entity_id, name, device_model, room, last_known_state
             FROM plug_settings WHERE id = 1
             """
         ).fetchone()
 
     env_url = os.getenv("HASS_URL", "").strip()
     env_entity = os.getenv("HASS_PLUG_ENTITY_ID", "").strip()
-    token = _get_env_token()
+    env_token = os.getenv("HASS_TOKEN", "").strip()
+
+    # Priorité : HASS_TOKEN dans .env, sinon token chiffré en base
+    token = env_token
+    if not token and row and row["hass_token"]:
+        token = decrypt_value(row["hass_token"])
 
     if row:
         d = dict(row)
@@ -52,7 +53,7 @@ def _get_plug_config() -> dict:
         entity = d.get("entity_id") or env_entity or "switch.prise_serveur"
         return {
             "hass_url": url.rstrip("/"),
-            "hass_token": token,  # Strictement depuis l'env
+            "hass_token": token,
             "entity_id": entity,
             "name": d.get("name") or "Ventilos Serveur",
             "device_model": d.get("device_model") or "TP-Link P100",
@@ -329,7 +330,7 @@ def toggle_plug():
 def get_plug_config():
     """
     Retourne la configuration actuelle.
-    Ne renvoie JAMAIS le token, confirme simplement s'il est présent dans .env.
+    Ne renvoie jamais le token en clair, indique seulement sa présence via has_token.
     """
     cfg = _get_plug_config()
     has_token = bool(cfg["hass_token"])
@@ -341,15 +342,15 @@ def get_plug_config():
         "device_model": cfg["device_model"],
         "room": cfg["room"],
         "has_token": has_token,
-        "token_source": "Variable d'environnement HASS_TOKEN (.env)" if has_token else "Non configuré",
+        "token_source": "Variable d'environnement HASS_TOKEN (.env)" if os.getenv("HASS_TOKEN") else ("Base de données persistante (chiffrée)" if has_token else "Non configuré"),
     }
 
 
 @router.post("/config")
 def save_plug_config(req: PlugConfigRequest):
     """
-    Enregistre les paramètres non sensibles (URL, entité, nom, pièce) en SQLite.
-    🔒 LE TOKEN N'EST JAMAIS STOCKÉ EN BASE DE DONNÉES.
+    Enregistre les paramètres (URL, token chiffré, entité, nom, pièce) en base SQLite persistante.
+    Résiste aux redémarrages et aux déploiements GitHub Actions.
     """
     current_cfg = _get_plug_config()
     new_url = (req.hass_url if req.hass_url is not None else current_cfg["hass_url"]).strip().rstrip("/")
@@ -358,25 +359,46 @@ def save_plug_config(req: PlugConfigRequest):
     new_model = (req.device_model or current_cfg["device_model"]).strip()
     new_room = (req.room or current_cfg["room"]).strip()
 
+    # Si un nouveau jeton a été saisi (non masqué et non vide)
+    new_raw_token = (req.hass_token or "").strip()
+    should_update_token = bool(new_raw_token and not new_raw_token.startswith("••") and not new_raw_token.startswith("******"))
+
     with get_db_ctx() as conn:
-        conn.execute(
-            """
-            INSERT INTO plug_settings (id, hass_url, hass_token, entity_id, name, device_model, room, updated_at)
-            VALUES (1, ?, '', ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(id) DO UPDATE SET
-                hass_url = excluded.hass_url,
-                hass_token = '',
-                entity_id = excluded.entity_id,
-                name = excluded.name,
-                device_model = excluded.device_model,
-                room = excluded.room,
-                updated_at = CURRENT_TIMESTAMP
-            """,
-            (new_url, new_entity, new_name, new_model, new_room),
-        )
+        if should_update_token:
+            encrypted_token = encrypt_value(new_raw_token)
+            conn.execute(
+                """
+                INSERT INTO plug_settings (id, hass_url, hass_token, entity_id, name, device_model, room, updated_at)
+                VALUES (1, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(id) DO UPDATE SET
+                    hass_url = excluded.hass_url,
+                    hass_token = excluded.hass_token,
+                    entity_id = excluded.entity_id,
+                    name = excluded.name,
+                    device_model = excluded.device_model,
+                    room = excluded.room,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                (new_url, encrypted_token, new_entity, new_name, new_model, new_room),
+            )
+        else:
+            conn.execute(
+                """
+                INSERT INTO plug_settings (id, hass_url, entity_id, name, device_model, room, updated_at)
+                VALUES (1, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(id) DO UPDATE SET
+                    hass_url = excluded.hass_url,
+                    entity_id = excluded.entity_id,
+                    name = excluded.name,
+                    device_model = excluded.device_model,
+                    room = excluded.room,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                (new_url, new_entity, new_name, new_model, new_room),
+            )
         conn.commit()
 
     return {
         "success": True,
-        "message": "Configuration enregistrée avec succès. Le jeton d'accès reste protégé dans le fichier .env.",
+        "message": "Configuration enregistrée avec succès de façon permanente !",
     }
