@@ -258,6 +258,7 @@ def init_db():
         # Nettoyage des colonnes secrètes gérées via variables d'env
         cursor.execute("UPDATE electricity_settings SET pdl = '', token = '' WHERE id = 1")
         cursor.execute("UPDATE weather_settings SET gemini_api_key = '' WHERE id = 1")
+        cursor.execute("UPDATE plug_settings SET hass_token = '' WHERE id = 1")
         conn.commit()
 
     try:

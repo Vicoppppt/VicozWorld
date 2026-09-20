@@ -75,8 +75,8 @@ export function Home() {
   // Prise Serveur (TP-Link P100 / Home Assistant)
   const [plugData, setPlugData] = useState({
     name: "Prise Serveur",
-    is_on: true,
-    state: "on",
+    is_on: null,
+    state: "loading",
     device_model: "TP-Link P100",
     room: "Salon",
     configured: false,
@@ -86,11 +86,12 @@ export function Home() {
   const [isPlugModalOpen, setIsPlugModalOpen] = useState(false);
   const [plugConfig, setPlugConfig] = useState({
     hass_url: "",
-    hass_token: "",
     entity_id: "switch.prise_serveur",
     name: "Prise Serveur",
     device_model: "TP-Link P100",
     room: "Salon",
+    has_token: false,
+    token_source: "",
   });
   const [isSavingPlugConfig, setIsSavingPlugConfig] = useState(false);
 
@@ -186,11 +187,19 @@ export function Home() {
   };
 
   const fetchPlugStatus = async () => {
+    // Si une bascule manuelle est en cours, ne pas écraser avec une lecture intermédiaire
+    if (isTogglingPlug) return;
     try {
       const res = await fetch('/api/hub/plug');
       if (res.ok) {
         const data = await res.json();
-        setPlugData(data);
+        setPlugData(prev => ({
+          ...prev,
+          ...data,
+          // Conserver un booléen strict
+          is_on: Boolean(data.is_on),
+          state: data.state || (data.is_on ? 'on' : 'off')
+        }));
       }
     } catch (e) {
       console.warn("Erreur récupération statut prise:", e);
@@ -205,7 +214,6 @@ export function Home() {
         setPlugConfig(prev => ({
           ...prev,
           ...data,
-          hass_token: data.masked_token || "",
         }));
       }
     } catch (e) {
@@ -217,27 +225,49 @@ export function Home() {
     if (e) e.stopPropagation();
     if (isTogglingPlug) return;
     setIsTogglingPlug(true);
-    const prevIsOn = plugData?.is_on ?? true;
+
+    // Déterminer l'état cible déterministe
+    const currentlyOn = Boolean(plugData?.is_on);
+    const targetState = currentlyOn ? 'off' : 'on';
+    const targetIsOn = !currentlyOn;
+
     // Mise à jour optimiste immédiate
-    setPlugData(prev => ({ ...prev, is_on: !prevIsOn, state: !prevIsOn ? 'on' : 'off' }));
+    setPlugData(prev => ({
+      ...prev,
+      is_on: targetIsOn,
+      state: targetState
+    }));
+
     try {
-      const res = await fetch('/api/hub/plug/toggle', { method: 'POST' });
+      // Appel explicite idempotent : commande 'turn_on' ou 'turn_off' garantie
+      const res = await fetch('/api/hub/plug/set', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: targetState })
+      });
+
       if (res.ok) {
         const data = await res.json();
-        setPlugData(prev => ({ ...prev, ...data }));
-        if (data.is_on) {
+        setPlugData(prev => ({
+          ...prev,
+          ...data,
+          is_on: data.is_on ?? targetIsOn,
+          state: data.state ?? targetState
+        }));
+        if (targetIsOn) {
           toast.success("Prise Serveur allumée (Alimentation secteur)", { icon: "⚡" });
         } else {
           toast.success("Prise Serveur éteinte (Sur batterie)", { icon: "🔌" });
         }
-        // Rafraîchir l'état de la batterie après 1,5s
-        setTimeout(fetchBattery, 1500);
+        // Rafraîchir l'état de la batterie après 2 secondes
+        setTimeout(fetchBattery, 2000);
       } else {
-        setPlugData(prev => ({ ...prev, is_on: prevIsOn, state: prevIsOn ? 'on' : 'off' }));
-        toast.error("Impossible de basculer la prise");
+        // Rollback en cas d'échec
+        setPlugData(prev => ({ ...prev, is_on: currentlyOn, state: currentlyOn ? 'on' : 'off' }));
+        toast.error("Échec de la commande de la prise");
       }
     } catch (err) {
-      setPlugData(prev => ({ ...prev, is_on: prevIsOn, state: prevIsOn ? 'on' : 'off' }));
+      setPlugData(prev => ({ ...prev, is_on: currentlyOn, state: currentlyOn ? 'on' : 'off' }));
       toast.error("Erreur réseau lors de la bascule de la prise");
     } finally {
       setIsTogglingPlug(false);
@@ -247,15 +277,21 @@ export function Home() {
   const handleSavePlugConfig = async (e) => {
     e.preventDefault();
     setIsSavingPlugConfig(true);
-    const toastId = toast.loading("Enregistrement de la configuration Home Assistant...");
+    const toastId = toast.loading("Enregistrement de la configuration...");
     try {
       const res = await fetch('/api/hub/plug/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(plugConfig),
+        body: JSON.stringify({
+          hass_url: plugConfig.hass_url,
+          entity_id: plugConfig.entity_id,
+          name: plugConfig.name,
+          device_model: plugConfig.device_model,
+          room: plugConfig.room,
+        }),
       });
       if (res.ok) {
-        toast.success("Configuration Home Assistant enregistrée !", { id: toastId });
+        toast.success("Configuration enregistrée !", { id: toastId });
         setIsPlugModalOpen(false);
         fetchPlugStatus();
       } else {
@@ -396,21 +432,31 @@ export function Home() {
               <button
                 type="button"
                 onClick={handleTogglePlug}
-                disabled={isTogglingPlug}
+                disabled={isTogglingPlug || plugData?.is_on === null}
                 className={`group relative flex items-center gap-2.5 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer ${
-                  plugData?.is_on
+                  plugData?.is_on === true
                     ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-emerald-500/10'
-                    : 'bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 border-zinc-700/80'
+                    : plugData?.is_on === false
+                    ? 'bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 border-zinc-700/80'
+                    : 'bg-zinc-900 text-zinc-500 border-zinc-800'
                 }`}
-                title={`Prise Serveur (${plugData?.device_model || 'TP-Link P100'}) : ${plugData?.is_on ? 'Allumée (Alimente le serveur)' : 'Éteinte (Serveur sur batterie)'} — Cliquer pour ${plugData?.is_on ? 'éteindre' : 'allumer'}`}
+                title={`Prise Serveur (${plugData?.device_model || 'TP-Link P100'}) : ${
+                  plugData?.is_on === true
+                    ? 'Allumée (Alimente le serveur)'
+                    : plugData?.is_on === false
+                    ? 'Éteinte (Serveur sur batterie)'
+                    : 'Chargement...'
+                } — Cliquer pour basculer`}
               >
                 <div className="relative flex items-center justify-center">
                   <Power className={`w-4 h-4 transition-all ${
-                    plugData?.is_on
+                    plugData?.is_on === true
                       ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]'
-                      : 'text-zinc-500'
+                      : plugData?.is_on === false
+                      ? 'text-zinc-500'
+                      : 'text-zinc-600'
                   } ${isTogglingPlug ? 'animate-spin' : ''}`} />
-                  {plugData?.is_on && (
+                  {plugData?.is_on === true && (
                     <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75"></span>
                   )}
                 </div>
@@ -419,15 +465,17 @@ export function Home() {
                   <div className="flex items-center gap-1.5">
                     <span className="font-bold text-zinc-100">{plugData?.name || 'Prise Serveur'}</span>
                     <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md transition-colors ${
-                      plugData?.is_on
+                      plugData?.is_on === true
                         ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                        : 'bg-zinc-700/70 text-zinc-400 border border-zinc-600/50'
+                        : plugData?.is_on === false
+                        ? 'bg-zinc-700/70 text-zinc-400 border border-zinc-600/50'
+                        : 'bg-zinc-800 text-zinc-500 border border-zinc-700/40'
                     }`}>
-                      {plugData?.is_on ? 'ON' : 'OFF'}
+                      {plugData?.is_on === true ? 'ON' : plugData?.is_on === false ? 'OFF' : '...'}
                     </span>
                   </div>
                   <span className="text-[9px] text-zinc-400 flex items-center gap-1">
-                    <span>{plugData?.is_on ? 'Secteur actif' : 'Sur batterie'}</span>
+                    <span>{plugData?.is_on === true ? 'Secteur actif' : plugData?.is_on === false ? 'Sur batterie' : 'Connexion...'}</span>
                     {plugData?.connected && <span className="text-emerald-400 font-bold">• HA</span>}
                   </span>
                 </div>
@@ -1436,20 +1484,26 @@ export function Home() {
                   </span>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-zinc-300">
-                    Jeton d'accès longue durée (Token)
-                  </label>
-                  <input
-                    type="password"
-                    value={plugConfig.hass_token || ''}
-                    onChange={(e) => setPlugConfig({ ...plugConfig, hass_token: e.target.value })}
-                    placeholder={plugConfig.has_token ? '•••••••••••••••• (inchangé)' : 'Collez votre jeton Home Assistant'}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-100 font-mono placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500"
-                  />
-                  <span className="text-[10px] text-zinc-500">
-                    Généré dans Home Assistant : Profil (en bas à gauche) → Sécurité → Jetons d'accès longue durée.
-                  </span>
+                {/* Sécurité du jeton Home Assistant (strictement dans .env) */}
+                <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-zinc-800 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-cyan-400" />
+                      Jeton d'accès (HASS_TOKEN)
+                    </span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                      plugConfig.has_token 
+                        ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' 
+                        : 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+                    }`}>
+                      {plugConfig.has_token ? 'Sécurisé dans .env' : 'Non détecté dans .env'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    {plugConfig.has_token 
+                      ? '🔒 Le jeton est lu directement depuis la variable d’environnement HASS_TOKEN (.env). Aucun jeton n’est persisté en base de données.'
+                      : '⚠️ Pour connecter la prise, ajoutez HASS_TOKEN=votre_jeton dans votre fichier .env du serveur. Le token reste ainsi strictement confiné à l’environnement système.'}
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
