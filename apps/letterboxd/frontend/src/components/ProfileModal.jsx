@@ -27,12 +27,13 @@ export function ProfileModal() {
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           className="max-w-2xl w-full text-center space-y-8"
         >
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              <span>VicozWorld Hub</span>
-            </div>
-            <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+          <div className="space-y-3 flex flex-col items-center">
+            <img 
+              src="/logo.png" 
+              alt="VicozWorld" 
+              className="h-12 sm:h-14 object-contain drop-shadow-[0_4px_16px_rgba(139,92,246,0.3)]" 
+            />
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
               Qui utilise le Hub ?
             </h1>
             <p className="text-sm text-zinc-400 max-w-md mx-auto">
@@ -48,8 +49,8 @@ export function ProfileModal() {
               onClick={() => selectProfile('victor')}
               className="p-5 rounded-3xl bg-zinc-900/80 hover:bg-zinc-900 border border-zinc-800 hover:border-indigo-500/50 transition-all text-left flex flex-col items-center sm:items-start group shadow-2xl relative overflow-hidden"
             >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-3xl shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform mb-3">
-                🚀
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-600/30 border border-indigo-500/40 flex items-center justify-center p-2 shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform mb-3">
+                <img src="/logo-icon.png" alt="Victor" className="w-full h-full object-contain" />
               </div>
               <div className="text-lg font-bold text-white group-hover:text-indigo-300 transition-colors">
                 Victor

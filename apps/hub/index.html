@@ -2,8 +2,11 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mon Hub d'Applications & Outils</title>
+  <title>VicozWorld - Hub d'Applications & Outils</title>
   
   <style>
     :root {
@@ -874,12 +877,17 @@
        ÉCRAN DE SÉLECTION DE PROFIL (NETFLIX)
        ========================================== -->
   <div class="profile-screen" id="profileScreen">
-    <div class="profile-title">Qui utilise le Hub ?</div>
+    <div class="profile-title" style="display: flex; flex-direction: column; align-items: center; gap: 14px; margin-bottom: 24px;">
+      <img src="./logo.png" alt="VicozWorld" style="height: 56px; object-fit: contain; filter: drop-shadow(0 4px 16px rgba(139, 92, 246, 0.4));">
+      <span>Qui utilise le Hub ?</span>
+    </div>
     <div class="profiles-container">
       
       <!-- Profil Victor -->
       <div class="profile-card profile-victor" onclick="selectProfile('victor')">
-        <div class="profile-avatar-box">🚀</div>
+        <div class="profile-avatar-box" style="padding: 10px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3);">
+          <img src="./logo-icon.png" alt="Victor" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
         <div class="profile-name">Victor</div>
         <div class="profile-role">Accès Complet</div>
       </div>
@@ -903,9 +911,11 @@
       <!-- Header -->
       <header>
         <div class="brand">
-          <div class="logo-icon" id="userAvatarHeader">🚀</div>
+          <div class="logo-icon" id="userAvatarHeader" style="background: transparent; box-shadow: none; width: 44px; height: 44px; padding: 0;">
+            <img src="./logo-icon.png" alt="VicozWorld" style="width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(139, 92, 246, 0.4));">
+          </div>
           <div>
-            <h1 id="userGreeting">Mon Hub d'Applications</h1>
+            <h1 id="userGreeting">VicozWorld Hub</h1>
             <div class="header-desc" id="userSubGreeting">Tous vos outils et services accessibles en un clic</div>
           </div>
         </div>

@@ -138,14 +138,12 @@ export function Layout({ children }) {
                 className="flex items-center gap-2.5 group"
                 title={isVictor ? "Ouvrir CasaOS (https://casa.vicopetit.dedyn.io/#/)" : "Accueil"}
               >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-black shadow-md group-hover:scale-105 transition-transform ${
-                  isGuest 
-                    ? "bg-gradient-to-tr from-amber-600 to-orange-500 shadow-amber-500/20" 
-                    : isMaman 
-                    ? "bg-gradient-to-tr from-pink-600 to-rose-500 shadow-pink-500/20" 
-                    : "bg-gradient-to-tr from-indigo-600 to-violet-500 shadow-indigo-500/20"
-                }`}>
-                  {isGuest ? "🍿" : isMaman ? "👩‍🏫" : "V"}
+                <div className="relative w-8 h-8 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <img 
+                    src="/logo-icon.png" 
+                    alt="VicozWorld" 
+                    className="w-full h-full object-contain drop-shadow-[0_2px_8px_rgba(139,92,246,0.4)]" 
+                  />
                 </div>
                 <div>
                   <span className="text-lg font-bold tracking-tight text-white group-hover:text-indigo-300 transition-colors flex items-center gap-1">
