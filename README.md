@@ -67,21 +67,13 @@ docker compose up -d --build
 
 ## 💻 Démarrage en Mode Développement Local (Sans Docker)
 
-### 1. Portail Hub & Outils Web
-Ouvrez simplement `apps/hub/index.html` dans un navigateur ou lancez un serveur statique :
-```bash
-cd apps/hub
-npx serve .
-```
-
-### 2. Mon Letterboxd
-**Frontend :**
+### 1. Portail Web & Outils (Frontend)
 ```bash
 cd apps/letterboxd/frontend
 npm install
 npm run dev
 ```
-*(Disponible sur http://localhost:5173)*
+*(Disponible sur http://localhost:5173 - Outils disponibles sur /tools/...)*
 
 **Backend :**
 ```bash

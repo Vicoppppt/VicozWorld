@@ -135,24 +135,24 @@ export function Layout({ children }) {
                 href={isVictor ? "https://casa.vicopetit.dedyn.io/#/" : "/"}
                 target={isVictor ? "_blank" : "_self"}
                 rel="noopener noreferrer"
-                className="flex items-center gap-2.5 group"
+                className="flex items-center gap-2.5 group py-1"
                 title={isVictor ? "Ouvrir CasaOS (https://casa.vicopetit.dedyn.io/#/)" : "Accueil"}
               >
-                <div className="relative w-8 h-8 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <img 
-                    src="/logo-icon.png" 
-                    alt="VicozWorld" 
-                    className="w-full h-full object-contain drop-shadow-[0_2px_8px_rgba(139,92,246,0.4)]" 
-                  />
-                </div>
-                <div>
-                  <span className="text-lg font-bold tracking-tight text-white group-hover:text-indigo-300 transition-colors flex items-center gap-1">
-                    {isGuest ? "VicozWorld" : isMaman ? "Espace Maman" : "VicozWorld"}
+                <img 
+                  src="/logo.png" 
+                  alt="VicozWorld" 
+                  className="h-9 sm:h-10 w-auto object-contain drop-shadow-[0_2px_12px_rgba(139,92,246,0.45)] group-hover:scale-105 transition-transform" 
+                />
+                {isMaman && (
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-300 border border-pink-500/20">
+                    Espace Maman
                   </span>
-                  <span className="block text-[10px] font-medium text-zinc-400 -mt-1">
-                    {isGuest ? "Espace Médias & Météo" : isMaman ? "Boîte à outils collège" : "Portail Personnel"}
+                )}
+                {isGuest && (
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                    Invité
                   </span>
-                </div>
+                )}
               </a>
             </div>
 
