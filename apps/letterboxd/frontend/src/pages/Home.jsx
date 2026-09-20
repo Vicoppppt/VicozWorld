@@ -94,7 +94,6 @@ export function Home() {
     has_token: false,
     token_source: "",
   });
-  const [isSavingPlugConfig, setIsSavingPlugConfig] = useState(false);
 
   const fetchAiData = async () => {
     setIsLoadingAiModels(true);
@@ -270,37 +269,6 @@ export function Home() {
       toast.error("Erreur réseau lors de la bascule de la prise");
     } finally {
       setIsTogglingPlug(false);
-    }
-  };
-
-  const handleSavePlugConfig = async (e) => {
-    e.preventDefault();
-    setIsSavingPlugConfig(true);
-    const toastId = toast.loading("Enregistrement de la configuration...");
-    try {
-      const res = await fetch('/api/hub/plug/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          hass_url: plugConfig.hass_url,
-          hass_token: plugConfig.hass_token,
-          entity_id: plugConfig.entity_id,
-          name: plugConfig.name,
-          device_model: plugConfig.device_model,
-          room: plugConfig.room,
-        }),
-      });
-      if (res.ok) {
-        toast.success("Configuration enregistrée !", { id: toastId });
-        setIsPlugModalOpen(false);
-        fetchPlugStatus();
-      } else {
-        toast.error("Erreur lors de l'enregistrement", { id: toastId });
-      }
-    } catch (err) {
-      toast.error("Erreur réseau", { id: toastId });
-    } finally {
-      setIsSavingPlugConfig(false);
     }
   };
 
@@ -1466,96 +1434,80 @@ export function Home() {
                 </button>
               </div>
 
-              {/* Formulaire de configuration Home Assistant */}
-              <form onSubmit={handleSavePlugConfig} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-zinc-300">
-                    URL Home Assistant
-                  </label>
-                  <input
-                    type="text"
-                    value={plugConfig.hass_url || ''}
-                    onChange={(e) => setPlugConfig({ ...plugConfig, hass_url: e.target.value })}
-                    placeholder="ex: http://homeassistant.local:8123 ou http://192.168.1.50:8123"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-100 font-medium placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500"
-                  />
-                  <span className="text-[10px] text-zinc-500">
-                    Accessible sur votre réseau local ou via reverse proxy.
-                  </span>
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-zinc-300">
-                      Jeton d'accès longue durée (HASS_TOKEN)
-                    </label>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                      plugConfig.has_token 
-                        ? 'text-cyan-300 bg-cyan-500/10 border-cyan-500/30' 
-                        : 'text-amber-400 bg-amber-500/10 border-amber-500/30'
-                    }`}>
-                      {plugConfig.has_token ? '✓ Jeton actif et mémorisé' : 'Requis pour piloter'}
+              {/* Informations de configuration issues du .env */}
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-zinc-950/60 border border-zinc-800/80 space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-zinc-800/60">
+                    <span className="text-xs font-medium text-zinc-400">Source des paramètres</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                      Fichier .env du serveur
                     </span>
                   </div>
-                  <input
-                    type="password"
-                    value={plugConfig.hass_token || ''}
-                    onChange={(e) => setPlugConfig({ ...plugConfig, hass_token: e.target.value })}
-                    placeholder={plugConfig.has_token ? '•••••••••••••••• (conservé de façon permanente)' : 'Collez votre jeton Home Assistant ici'}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-100 font-mono placeholder:text-zinc-500 focus:outline-none focus:border-cyan-500"
-                  />
-                  <span className="text-[10px] text-zinc-500 flex items-center gap-1">
-                    <Lock className="w-3 h-3 text-cyan-400 shrink-0" />
-                    <span>Mémorisé de façon permanente dans la base chiffrée. Inutile de le retaper après un déploiement GitHub Actions.</span>
+
+                  <div className="space-y-2.5 text-xs">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-zinc-400">URL Home Assistant :</span>
+                      <span className="font-mono text-zinc-200 truncate max-w-[220px]" title={plugConfig.hass_url}>
+                        {plugConfig.hass_url || <span className="text-zinc-500 italic">Non renseignée (HASS_URL)</span>}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-zinc-400">Jeton API :</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        plugConfig.has_token 
+                          ? 'text-cyan-300 bg-cyan-500/10 border-cyan-500/30' 
+                          : 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+                      }`}>
+                        {plugConfig.has_token ? '✓ Configuré dans .env (HASS_TOKEN)' : 'Manquant (HASS_TOKEN)'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-zinc-400">Entité :</span>
+                      <span className="font-mono text-zinc-200">
+                        {plugConfig.entity_id || 'switch.prise_serveur'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-zinc-400">Matériel & Lieu :</span>
+                      <span className="text-zinc-200">
+                        TP-Link P100 • Salon (Ventilateurs PC)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/20 text-[11px] text-zinc-400 flex items-start gap-2.5">
+                  <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span>
+                    La configuration est désormais chargée directement depuis le fichier <code className="text-cyan-300 font-mono">.env</code> de votre serveur CasaOS. Aucune information n'est enregistrée en base de données.
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-300">
-                      Entité Home Assistant
-                    </label>
-                    <input
-                      type="text"
-                      value={plugConfig.entity_id || ''}
-                      onChange={(e) => setPlugConfig({ ...plugConfig, entity_id: e.target.value })}
-                      placeholder="switch.prise_serveur"
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-100 font-mono placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-300">
-                      Pièce
-                    </label>
-                    <input
-                      type="text"
-                      value={plugConfig.room || ''}
-                      onChange={(e) => setPlugConfig({ ...plugConfig, room: e.target.value })}
-                      placeholder="Salon"
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-100 font-medium placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-800">
+                <div className="flex items-center justify-between pt-3 border-t border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      fetchPlugStatus();
+                      fetchPlugConfig();
+                      toast.success("Statut synchronisé");
+                    }}
+                    className="px-3.5 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors flex items-center gap-1.5"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Actualiser</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => setIsPlugModalOpen(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                    className="px-5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-xl text-xs font-bold transition-all"
                   >
                     Fermer
                   </button>
-                  <button
-                    type="submit"
-                    disabled={isSavingPlugConfig}
-                    className="px-5 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50 flex items-center gap-1.5"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                    <span>{isSavingPlugConfig ? 'Enregistrement...' : 'Enregistrer la liaison'}</span>
-                  </button>
                 </div>
-              </form>
+              </div>
             </motion.div>
           </div>
         )}

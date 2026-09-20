@@ -219,19 +219,7 @@ def init_db():
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS plug_settings (
-                id INTEGER PRIMARY KEY CHECK (id = 1),
-                hass_url TEXT DEFAULT '',
-                hass_token TEXT DEFAULT '',
-                entity_id TEXT DEFAULT 'switch.prise_serveur',
-                name TEXT DEFAULT 'Ventilos Serveur',
-                device_model TEXT DEFAULT 'TP-Link P100',
-                room TEXT DEFAULT 'Salon',
-                last_known_state TEXT DEFAULT 'off',
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+        cursor.execute("DROP TABLE IF EXISTS plug_settings")
 
         # Données par défaut
         cursor.execute("""
@@ -249,10 +237,6 @@ def init_db():
         cursor.execute("""
             INSERT OR IGNORE INTO weather_settings (id, gemini_api_key, default_city, default_lat, default_lon)
             VALUES (1, '', 'Paris', 48.8566, 2.3522)
-        """)
-        cursor.execute("""
-            INSERT OR IGNORE INTO plug_settings (id, hass_url, hass_token, entity_id, name, device_model, room, last_known_state)
-            VALUES (1, '', '', 'switch.prise_serveur', 'Ventilos Serveur', 'TP-Link P100', 'Salon', 'off')
         """)
 
         # Nettoyage des colonnes secrètes gérées via variables d'env

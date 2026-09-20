@@ -1,89 +1,43 @@
 """
 Router Prise Connectée / Domotique : /api/hub/plug/*
-Pilote la 'Prise Serveur' (TP-Link Tapo P100) via l'API REST de Home Assistant.
+Pilote les ventilateurs de refroidissement du PC serveur (TP-Link Tapo P100)
+via l'API REST de Home Assistant.
 
-🔒 SÉCURITÉ :
-Le jeton d'accès (HASS_TOKEN) est lu EXCLUSIVEMENT depuis les variables
-d'environnement (.env) et n'est JAMAIS persisté en base de données SQLite.
+🔒 CONFIGURATION 100% .ENV :
+Toutes les informations (URL, Token, Entité) sont lues STRICTEMENT depuis
+les variables d'environnement (.env). Aucune donnée n'est stockée en base de données.
 """
 import os
 import json
 import ssl
-import time
 import logging
 import urllib.request
 import urllib.error
 from typing import Optional
 from fastapi import APIRouter, HTTPException
 
-from database import get_db_ctx
-from crypto import encrypt_value, decrypt_value
-from models import PlugConfigRequest, PlugSetStateRequest
+from models import PlugSetStateRequest
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/hub/plug", tags=["plug"])
 
+# Cache mémoire léger de secours (en cas de coupure temporaire de Home Assistant)
+_LAST_STATE = "off"
+
 
 def _get_plug_config() -> dict:
-    """
-    Lit la configuration de la prise.
-    Le token est récupéré en priorité depuis l'environnement .env (HASS_TOKEN),
-    ou depuis la base de données persistante (déchiffré via Fernet).
-    """
-    with get_db_ctx() as conn:
-        row = conn.execute(
-            """
-            SELECT hass_url, hass_token, entity_id, name, device_model, room, last_known_state
-            FROM plug_settings WHERE id = 1
-            """
-        ).fetchone()
-
-    env_url = os.getenv("HASS_URL", "").strip()
-    env_entity = os.getenv("HASS_PLUG_ENTITY_ID", "").strip()
-    env_token = os.getenv("HASS_TOKEN", "").strip()
-
-    # Priorité : HASS_TOKEN dans .env, sinon token chiffré en base
-    token = env_token
-    if not token and row and row["hass_token"]:
-        token = decrypt_value(row["hass_token"])
-
-    if row:
-        d = dict(row)
-        url = d.get("hass_url") or env_url
-        entity = d.get("entity_id") or env_entity or "switch.prise_serveur"
-        return {
-            "hass_url": url.rstrip("/"),
-            "hass_token": token,
-            "entity_id": entity,
-            "name": d.get("name") or "Ventilos Serveur",
-            "device_model": d.get("device_model") or "TP-Link P100",
-            "room": d.get("room") or "Salon",
-            "last_known_state": d.get("last_known_state") or "off",
-        }
-
+    """Lit la configuration de la prise STRICTEMENT depuis le fichier .env."""
+    url = os.getenv("HASS_URL", "").strip().rstrip("/")
+    token = os.getenv("HASS_TOKEN", "").strip()
+    entity_id = os.getenv("HASS_PLUG_ENTITY_ID", "switch.prise_serveur").strip()
     return {
-        "hass_url": env_url.rstrip("/"),
+        "hass_url": url,
         "hass_token": token,
-        "entity_id": env_entity or "switch.prise_serveur",
+        "entity_id": entity_id,
         "name": "Ventilos Serveur",
         "device_model": "TP-Link P100",
         "room": "Salon",
-        "last_known_state": "off",
     }
-
-
-def _update_last_known_state(state: str):
-    """Met à jour le dernier état connu de la prise en base SQLite."""
-    clean_state = "on" if state.lower() == "on" else "off"
-    try:
-        with get_db_ctx() as conn:
-            conn.execute(
-                "UPDATE plug_settings SET last_known_state = ?, updated_at = CURRENT_TIMESTAMP WHERE id = 1",
-                (clean_state,),
-            )
-            conn.commit()
-    except Exception as e:
-        logger.warning(f"Erreur mise à jour last_known_state: {e}")
 
 
 def _query_hass_state(hass_url: str, hass_token: str, entity_id: str) -> Optional[dict]:
@@ -138,7 +92,6 @@ def _call_hass_service(hass_url: str, hass_token: str, service: str, entity_id: 
         with urllib.request.urlopen(req, timeout=4.5, context=ctx) as resp:
             if resp.status in (200, 201):
                 raw = resp.read().decode("utf-8")
-                # Home Assistant renvoie généralement une liste d'entités modifiées
                 try:
                     data = json.loads(raw)
                     if isinstance(data, list):
@@ -150,7 +103,7 @@ def _call_hass_service(hass_url: str, hass_token: str, service: str, entity_id: 
                 return True, None
     except Exception as e:
         logger.error(f"Erreur appel service Home Assistant {domain}/{service}: {e}")
-        # Tentative fallback avec domain homeassistant
+        # Tentative fallback avec domain homeassistant générique
         try:
             fallback_url = f"{hass_url}/api/services/homeassistant/{service}"
             fb_req = urllib.request.Request(
@@ -173,14 +126,14 @@ def _call_hass_service(hass_url: str, hass_token: str, service: str, entity_id: 
 @router.get("")
 def get_plug_status():
     """
-    Retourne l'état en direct vérifié de la Prise Serveur.
-    Priorité absolue à l'état réel rapporté par Home Assistant.
+    Retourne l'état en direct vérifié des ventilateurs de refroidissement.
+    Lit l'état directement depuis Home Assistant.
     """
+    global _LAST_STATE
     cfg = _get_plug_config()
     hass_url = cfg["hass_url"]
     hass_token = cfg["hass_token"]
     entity_id = cfg["entity_id"]
-    last_known = cfg["last_known_state"]
 
     has_credentials = bool(hass_url and hass_token)
 
@@ -188,7 +141,6 @@ def get_plug_status():
         hass_data = _query_hass_state(hass_url, hass_token, entity_id)
         if hass_data:
             raw_state = str(hass_data.get("state", "")).lower().strip()
-            # Dans Home Assistant, les états valides d'un commutateur sont 'on' ou 'off'
             if raw_state == "on":
                 is_on = True
                 clean_state = "on"
@@ -196,12 +148,11 @@ def get_plug_status():
                 is_on = False
                 clean_state = "off"
             else:
-                # Appareil indisponible ou inconnu (ex: 'unavailable')
                 is_on = False
                 clean_state = raw_state or "unavailable"
 
             if clean_state in ("on", "off"):
-                _update_last_known_state(clean_state)
+                _LAST_STATE = clean_state
 
             return {
                 "configured": True,
@@ -218,41 +169,41 @@ def get_plug_status():
                 "last_updated": hass_data.get("last_updated"),
             }
         else:
-            # Home Assistant configuré mais requête échouée
             return {
                 "configured": True,
                 "connected": False,
                 "available": False,
-                "state": last_known,
-                "is_on": last_known == "on",
+                "state": _LAST_STATE,
+                "is_on": _LAST_STATE == "on",
                 "name": cfg["name"],
                 "entity_id": entity_id,
                 "device_model": cfg["device_model"],
                 "room": cfg["room"],
-                "warning": "Home Assistant configuré mais injoignable.",
+                "warning": "Home Assistant configuré dans le .env mais injoignable.",
             }
 
-    # Non configuré : mode local autonome
+    # Non configuré dans le .env
     return {
         "configured": False,
         "connected": False,
         "available": True,
-        "state": last_known,
-        "is_on": last_known == "on",
+        "state": _LAST_STATE,
+        "is_on": _LAST_STATE == "on",
         "name": cfg["name"],
         "entity_id": entity_id,
         "device_model": cfg["device_model"],
         "room": cfg["room"],
-        "hint": "Ajoutez HASS_URL et HASS_TOKEN dans votre fichier .env pour synchroniser la prise en direct.",
+        "hint": "Ajoutez HASS_URL et HASS_TOKEN dans votre fichier .env pour activer la synchronisation.",
     }
 
 
 @router.post("/set")
 def set_plug_state(req: PlugSetStateRequest):
     """
-    Définit explicitement l'état de la prise ('on' pour allumer, 'off' pour éteindre).
+    Définit explicitement l'état des ventilateurs ('on' pour allumer, 'off' pour éteindre).
     Commande IDEMPOTENTE : impossible de basculer dans le mauvais sens.
     """
+    global _LAST_STATE
     target = req.state.lower().strip()
     if target not in ("on", "off"):
         raise HTTPException(status_code=400, detail="L'état doit être 'on' ou 'off'.")
@@ -269,11 +220,9 @@ def set_plug_state(req: PlugSetStateRequest):
             raise HTTPException(status_code=502, detail="Échec de la commande vers Home Assistant.")
         final_state = confirmed_state if confirmed_state in ("on", "off") else target
     else:
-        # Mode autonome
         final_state = target
-        success = True
 
-    _update_last_known_state(final_state)
+    _LAST_STATE = final_state
 
     return {
         "success": True,
@@ -287,22 +236,21 @@ def set_plug_state(req: PlugSetStateRequest):
 @router.post("/toggle")
 def toggle_plug():
     """
-    Inverse l'état de la prise.
+    Inverse l'état des ventilateurs.
     Détermine l'état courant réel pour envoyer l'action inverse explicite (turn_off si ON, turn_on si OFF).
     """
+    global _LAST_STATE
     cfg = _get_plug_config()
     hass_url = cfg["hass_url"]
     hass_token = cfg["hass_token"]
     entity_id = cfg["entity_id"]
 
-    # 1. Déterminer l'état actuel de manière fiable
-    current_state = cfg["last_known_state"]
+    current_state = _LAST_STATE
     if hass_url and hass_token:
         live = _query_hass_state(hass_url, hass_token, entity_id)
         if live and live.get("state") in ("on", "off"):
             current_state = live["state"]
 
-    # 2. Inverser vers l'état cible déterministe
     target_state = "off" if current_state == "on" else "on"
     service = "turn_off" if current_state == "on" else "turn_on"
 
@@ -313,9 +261,8 @@ def toggle_plug():
         final_state = confirmed_state if confirmed_state in ("on", "off") else target_state
     else:
         final_state = target_state
-        success = True
 
-    _update_last_known_state(final_state)
+    _LAST_STATE = final_state
 
     return {
         "success": True,
@@ -328,10 +275,7 @@ def toggle_plug():
 
 @router.get("/config")
 def get_plug_config():
-    """
-    Retourne la configuration actuelle.
-    Ne renvoie jamais le token en clair, indique seulement sa présence via has_token.
-    """
+    """Retourne la configuration active issue du .env."""
     cfg = _get_plug_config()
     has_token = bool(cfg["hass_token"])
 
@@ -342,63 +286,5 @@ def get_plug_config():
         "device_model": cfg["device_model"],
         "room": cfg["room"],
         "has_token": has_token,
-        "token_source": "Variable d'environnement HASS_TOKEN (.env)" if os.getenv("HASS_TOKEN") else ("Base de données persistante (chiffrée)" if has_token else "Non configuré"),
-    }
-
-
-@router.post("/config")
-def save_plug_config(req: PlugConfigRequest):
-    """
-    Enregistre les paramètres (URL, token chiffré, entité, nom, pièce) en base SQLite persistante.
-    Résiste aux redémarrages et aux déploiements GitHub Actions.
-    """
-    current_cfg = _get_plug_config()
-    new_url = (req.hass_url if req.hass_url is not None else current_cfg["hass_url"]).strip().rstrip("/")
-    new_entity = (req.entity_id or current_cfg["entity_id"]).strip()
-    new_name = (req.name or current_cfg["name"]).strip()
-    new_model = (req.device_model or current_cfg["device_model"]).strip()
-    new_room = (req.room or current_cfg["room"]).strip()
-
-    # Si un nouveau jeton a été saisi (non masqué et non vide)
-    new_raw_token = (req.hass_token or "").strip()
-    should_update_token = bool(new_raw_token and not new_raw_token.startswith("••") and not new_raw_token.startswith("******"))
-
-    with get_db_ctx() as conn:
-        if should_update_token:
-            encrypted_token = encrypt_value(new_raw_token)
-            conn.execute(
-                """
-                INSERT INTO plug_settings (id, hass_url, hass_token, entity_id, name, device_model, room, updated_at)
-                VALUES (1, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-                ON CONFLICT(id) DO UPDATE SET
-                    hass_url = excluded.hass_url,
-                    hass_token = excluded.hass_token,
-                    entity_id = excluded.entity_id,
-                    name = excluded.name,
-                    device_model = excluded.device_model,
-                    room = excluded.room,
-                    updated_at = CURRENT_TIMESTAMP
-                """,
-                (new_url, encrypted_token, new_entity, new_name, new_model, new_room),
-            )
-        else:
-            conn.execute(
-                """
-                INSERT INTO plug_settings (id, hass_url, entity_id, name, device_model, room, updated_at)
-                VALUES (1, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-                ON CONFLICT(id) DO UPDATE SET
-                    hass_url = excluded.hass_url,
-                    entity_id = excluded.entity_id,
-                    name = excluded.name,
-                    device_model = excluded.device_model,
-                    room = excluded.room,
-                    updated_at = CURRENT_TIMESTAMP
-                """,
-                (new_url, new_entity, new_name, new_model, new_room),
-            )
-        conn.commit()
-
-    return {
-        "success": True,
-        "message": "Configuration enregistrée avec succès de façon permanente !",
+        "token_source": "Fichier .env (HASS_TOKEN)",
     }
