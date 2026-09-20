@@ -272,6 +272,7 @@ export function Home() {
         } else {
           toast.success("Régulation automatique désactivée", { id: toastId });
         }
+        fetchPlugStatus();
       } else {
         toast.error("Erreur enregistrement régulation", { id: toastId });
       }
@@ -1534,6 +1535,7 @@ export function Home() {
                     onClick={() => {
                       const next = !plugAutomation.enabled;
                       setPlugAutomation(prev => ({ ...prev, enabled: next }));
+                      handleSavePlugAutomation({ ...plugAutomation, enabled: next });
                     }}
                     className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                       plugAutomation.enabled ? 'bg-cyan-500' : 'bg-zinc-800'

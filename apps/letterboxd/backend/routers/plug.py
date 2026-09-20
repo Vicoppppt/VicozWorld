@@ -130,6 +130,114 @@ def _call_hass_service(hass_url: str, hass_token: str, service: str, entity_id: 
     return False, None
 
 
+# ─── Moteur de Régulation Automatique CPU ────────────────────────────────────
+
+def _measure_cpu_percent() -> float:
+    """Mesure la charge CPU isolée dans le conteneur Docker sans installation hôte."""
+    global _CURRENT_CPU
+    try:
+        import psutil
+        val = psutil.cpu_percent(interval=None)
+        if val is not None and val >= 0:
+            _CURRENT_CPU = float(val)
+            return _CURRENT_CPU
+    except Exception:
+        pass
+
+    try:
+        if os.path.exists("/proc/loadavg"):
+            with open("/proc/loadavg", "r") as f:
+                load = float(f.read().split()[0])
+                cores = os.cpu_count() or 1
+                pct = min(100.0, max(0.0, (load / cores) * 100))
+                _CURRENT_CPU = round(pct, 1)
+                return _CURRENT_CPU
+    except Exception:
+        pass
+    return _CURRENT_CPU
+
+
+def _evaluate_cooling_regulation(force_check_hass: bool = False):
+    """
+    Évalue et applique la régulation thermique :
+    - Si CPU >= seuil : active la ventilation et arme la minuterie.
+    - Si CPU < seuil :
+        - Si la minuterie est en cours : maintient la ventilation jusqu'à la fin de la durée.
+        - Si la minuterie est expirée OU qu'aucun cycle auto n'est actif : éteint le ventilateur !
+    """
+    global _AUTO_COOLING_ACTIVE, _AUTO_COOLING_UNTIL, _CONSECUTIVE_OVER_THRESHOLD, _LAST_STATE
+    config = get_plug_automation_config()
+    if not config.get("enabled"):
+        _AUTO_COOLING_ACTIVE = False
+        _CONSECUTIVE_OVER_THRESHOLD = 0
+        return
+
+    threshold = float(config.get("cpu_threshold", 50.0))
+    duration_sec = int(config.get("duration_minutes", 10)) * 60
+    now = time.time()
+    cpu = _measure_cpu_percent()
+    cfg = _get_plug_config()
+
+    if not cfg["hass_url"] or not cfg["hass_token"]:
+        return
+
+    # Vérification de l'état réel de la prise auprès de Home Assistant
+    live_data = _query_hass_state(cfg["hass_url"], cfg["hass_token"], cfg["entity_id"])
+    if live_data and live_data.get("state") in ("on", "off"):
+        is_currently_on = (live_data["state"] == "on")
+        _LAST_STATE = live_data["state"]
+    else:
+        is_currently_on = (_LAST_STATE == "on")
+
+    # CAS 1 : Charge CPU élevée (surchauffe)
+    if cpu >= threshold:
+        _CONSECUTIVE_OVER_THRESHOLD += 1
+        # Déclenchement si 2 mesures consécutives (~30s) ou forçage
+        if _CONSECUTIVE_OVER_THRESHOLD >= 2 or force_check_hass:
+            if not is_currently_on:
+                _call_hass_service(cfg["hass_url"], cfg["hass_token"], "turn_on", cfg["entity_id"])
+                _LAST_STATE = "on"
+                logger.info(f"Régulation auto: Allumage ventilateurs (CPU {cpu}% >= seuil {threshold}%)")
+            _AUTO_COOLING_ACTIVE = True
+            _AUTO_COOLING_UNTIL = max(_AUTO_COOLING_UNTIL, now + duration_sec)
+    else:
+        _CONSECUTIVE_OVER_THRESHOLD = 0
+
+        # CAS 2 : Charge CPU normale / calme (< seuil)
+        if _AUTO_COOLING_ACTIVE and now < _AUTO_COOLING_UNTIL:
+            # Minuterie encore active, on laisse tourner
+            pass
+        else:
+            # Aucune minuterie active ou durée écoulée : le ventilateur doit être éteint !
+            if is_currently_on:
+                _call_hass_service(cfg["hass_url"], cfg["hass_token"], "turn_off", cfg["entity_id"])
+                _LAST_STATE = "off"
+                logger.info(f"Régulation auto: Extinction ventilateurs (CPU calme {cpu}% < seuil {threshold}%)")
+            _AUTO_COOLING_ACTIVE = False
+            _AUTO_COOLING_UNTIL = 0.0
+
+
+def _cpu_monitor_worker():
+    """Tâche de fond surveillant la charge processeur et régulant la ventilation."""
+    try:
+        import psutil
+        psutil.cpu_percent(interval=None)
+    except Exception:
+        pass
+
+    while True:
+        try:
+            time.sleep(15)
+            _evaluate_cooling_regulation()
+        except Exception as e:
+            logger.debug(f"Boucle monitor CPU: {e}")
+
+
+# Démarrage du thread daemon en arrière-plan
+_monitor_thread = threading.Thread(target=_cpu_monitor_worker, daemon=True, name="PlugCpuMonitor")
+_monitor_thread.start()
+
+
 # ─── Endpoints API ────────────────────────────────────────────────────────────
 
 @router.get("")
@@ -139,6 +247,11 @@ def get_plug_status():
     Lit l'état directement depuis Home Assistant.
     """
     global _LAST_STATE
+    try:
+        _evaluate_cooling_regulation()
+    except Exception:
+        pass
+
     cfg = _get_plug_config()
     hass_url = cfg["hass_url"]
     hass_token = cfg["hass_token"]
@@ -232,10 +345,16 @@ def set_plug_state(req: PlugSetStateRequest):
         final_state = target
 
     _LAST_STATE = final_state
+    global _AUTO_COOLING_ACTIVE, _AUTO_COOLING_UNTIL
     if final_state == "off":
-        global _AUTO_COOLING_ACTIVE, _AUTO_COOLING_UNTIL
         _AUTO_COOLING_ACTIVE = False
         _AUTO_COOLING_UNTIL = 0.0
+    elif final_state == "on":
+        config = get_plug_automation_config()
+        if config.get("enabled"):
+            duration_sec = int(config.get("duration_minutes", 10)) * 60
+            _AUTO_COOLING_ACTIVE = True
+            _AUTO_COOLING_UNTIL = time.time() + duration_sec
 
     return {
         "success": True,
@@ -252,7 +371,7 @@ def toggle_plug():
     Inverse l'état des ventilateurs.
     Détermine l'état courant réel pour envoyer l'action inverse explicite (turn_off si ON, turn_on si OFF).
     """
-    global _LAST_STATE
+    global _LAST_STATE, _AUTO_COOLING_ACTIVE, _AUTO_COOLING_UNTIL
     cfg = _get_plug_config()
     hass_url = cfg["hass_url"]
     hass_token = cfg["hass_token"]
@@ -277,10 +396,14 @@ def toggle_plug():
 
     _LAST_STATE = final_state
     if final_state == "off":
-        global _AUTO_COOLING_ACTIVE, _AUTO_COOLING_UNTIL
         _AUTO_COOLING_ACTIVE = False
         _AUTO_COOLING_UNTIL = 0.0
-
+    elif final_state == "on":
+        config = get_plug_automation_config()
+        if config.get("enabled"):
+            duration_sec = int(config.get("duration_minutes", 10)) * 60
+            _AUTO_COOLING_ACTIVE = True
+            _AUTO_COOLING_UNTIL = time.time() + duration_sec
 
     return {
         "success": True,
@@ -289,94 +412,6 @@ def toggle_plug():
         "name": cfg["name"],
         "entity_id": entity_id,
     }
-
-
-# ─── Moteur de Régulation Automatique CPU ────────────────────────────────────
-
-def _measure_cpu_percent() -> float:
-    """Mesure la charge CPU isolée dans le conteneur Docker sans installation hôte."""
-    global _CURRENT_CPU
-    try:
-        import psutil
-        val = psutil.cpu_percent(interval=None)
-        if val is not None and val >= 0:
-            _CURRENT_CPU = float(val)
-            return _CURRENT_CPU
-    except Exception:
-        pass
-
-    try:
-        if os.path.exists("/proc/loadavg"):
-            with open("/proc/loadavg", "r") as f:
-                load = float(f.read().split()[0])
-                cores = os.cpu_count() or 1
-                pct = min(100.0, max(0.0, (load / cores) * 100))
-                _CURRENT_CPU = round(pct, 1)
-                return _CURRENT_CPU
-    except Exception:
-        pass
-    return _CURRENT_CPU
-
-
-def _cpu_monitor_worker():
-    """Tâche de fond surveillant la charge processeur et déclenchant la ventilation."""
-    global _AUTO_COOLING_ACTIVE, _AUTO_COOLING_UNTIL, _CONSECUTIVE_OVER_THRESHOLD
-    # Initialisation baseline psutil
-    try:
-        import psutil
-        psutil.cpu_percent(interval=None)
-    except Exception:
-        pass
-
-    while True:
-        try:
-            time.sleep(15)
-            cpu = _measure_cpu_percent()
-            config = get_plug_automation_config()
-            if not config.get("enabled"):
-                _AUTO_COOLING_ACTIVE = False
-                _CONSECUTIVE_OVER_THRESHOLD = 0
-                continue
-
-            threshold = float(config.get("cpu_threshold", 50.0))
-            duration_sec = int(config.get("duration_minutes", 10)) * 60
-            now = time.time()
-
-            # 1. Pic CPU détecté (2 vérifications consécutives soit ~30s pour éliminer les micro-pics)
-            if cpu >= threshold:
-                _CONSECUTIVE_OVER_THRESHOLD += 1
-                if _CONSECUTIVE_OVER_THRESHOLD >= 2:
-                    cfg = _get_plug_config()
-                    if cfg["hass_url"] and cfg["hass_token"]:
-                        _call_hass_service(cfg["hass_url"], cfg["hass_token"], "turn_on", cfg["entity_id"])
-                    _AUTO_COOLING_ACTIVE = True
-                    _AUTO_COOLING_UNTIL = max(_AUTO_COOLING_UNTIL, now + duration_sec)
-                    logger.info(
-                        f"Régulation auto: CPU {cpu}% >= seuil {threshold}%. "
-                        f"Ventilation active jusqu'à {time.strftime('%H:%M:%S', time.localtime(_AUTO_COOLING_UNTIL))}"
-                    )
-            else:
-                _CONSECUTIVE_OVER_THRESHOLD = 0
-
-            # 2. Minuterie de refroidissement écoulée
-            if _AUTO_COOLING_ACTIVE and now >= _AUTO_COOLING_UNTIL:
-                if cpu < threshold:
-                    cfg = _get_plug_config()
-                    if cfg["hass_url"] and cfg["hass_token"]:
-                        _call_hass_service(cfg["hass_url"], cfg["hass_token"], "turn_off", cfg["entity_id"])
-                    _AUTO_COOLING_ACTIVE = False
-                    logger.info(f"Régulation auto: CPU stabilisé ({cpu}% < {threshold}%). Ventilation arrêtée.")
-                else:
-                    # Le processeur est encore trop chaud, on prolonge de 2 minutes
-                    _AUTO_COOLING_UNTIL = now + 120
-                    logger.info(f"Régulation auto: CPU toujours élevé ({cpu}%). Prolongation ventilation de 2 min.")
-        except Exception as e:
-            logger.debug(f"Boucle monitor CPU: {e}")
-
-
-# Démarrage du thread daemon en arrière-plan
-_monitor_thread = threading.Thread(target=_cpu_monitor_worker, daemon=True, name="PlugCpuMonitor")
-_monitor_thread.start()
 
 
 # ─── Endpoints Configuration & Automatisation ─────────────────────────────────
@@ -401,6 +436,11 @@ def get_plug_config():
 @router.get("/automation")
 def get_plug_automation():
     """Retourne l'état en direct et les préférences de régulation automatique."""
+    try:
+        _evaluate_cooling_regulation()
+    except Exception:
+        pass
+
     cfg = get_plug_automation_config()
     now = time.time()
     remaining = max(0, int(_AUTO_COOLING_UNTIL - now)) if _AUTO_COOLING_ACTIVE else 0
@@ -411,14 +451,14 @@ def get_plug_automation():
         "cpu_threshold": cfg["cpu_threshold"],
         "duration_minutes": cfg["duration_minutes"],
         "current_cpu": current_cpu,
-        "is_auto_cooling": _AUTO_COOLING_ACTIVE,
+        "is_auto_cooling": _AUTO_COOLING_ACTIVE and remaining > 0,
         "remaining_seconds": remaining,
     }
 
 
 @router.post("/automation")
 def update_plug_automation(req: PlugAutomationRequest):
-    """Enregistre les préférences de régulation automatique dans SQLite (comme ai_model_settings)."""
+    """Enregistre les préférences de régulation automatique dans SQLite et applique immédiatement."""
     cfg = {
         "enabled": req.enabled,
         "cpu_threshold": req.cpu_threshold,
@@ -428,15 +468,23 @@ def update_plug_automation(req: PlugAutomationRequest):
     if not ok:
         raise HTTPException(status_code=500, detail="Erreur enregistrement des préférences de régulation.")
 
-    # Si désactivé immédiatement par l'utilisateur, couper l'état auto actif
     if not req.enabled:
         global _AUTO_COOLING_ACTIVE, _AUTO_COOLING_UNTIL
         _AUTO_COOLING_ACTIVE = False
         _AUTO_COOLING_UNTIL = 0.0
+    else:
+        # Évaluation et application immédiate !
+        _evaluate_cooling_regulation(force_check_hass=True)
+
+    now = time.time()
+    remaining = max(0, int(_AUTO_COOLING_UNTIL - now)) if _AUTO_COOLING_ACTIVE else 0
 
     return {
         "success": True,
         **cfg,
         "current_cpu": round(_CURRENT_CPU, 1),
+        "is_auto_cooling": _AUTO_COOLING_ACTIVE and remaining > 0,
+        "remaining_seconds": remaining,
     }
+
 
