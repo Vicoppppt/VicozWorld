@@ -32,8 +32,8 @@ services:
     environment:
       - DATA_DIR=/app/data
       - TZ=Europe/Paris
-      - GMAIL_EMAIL=${GMAIL_EMAIL:-${GMAIL_USER:-}}
-      - GMAIL_PASSWORD=${GMAIL_PASSWORD:-${GMAIL_APP_PASSWORD:-}}
+      - GMAIL_EMAIL=${GMAIL_EMAIL:-}
+      - GMAIL_PASSWORD=${GMAIL_PASSWORD:-}
       - ENEDIS_PDL=${ENEDIS_PDL:-}
       - ENEDIS_TOKEN=${ENEDIS_TOKEN:-}
       - DB_ENCRYPTION_KEY=${DB_ENCRYPTION_KEY:-}

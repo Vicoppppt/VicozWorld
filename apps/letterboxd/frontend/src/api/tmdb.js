@@ -87,32 +87,29 @@ export async function getMediaDetails(mediaId, mediaType) {
 }
 
 /**
- * Recherche une personne (acteur, réalisateur) par son nom
+ * Recherche des personnes (acteurs, réalisateurs) par nom.
+ * @param {string} name
+ * @param {{ single?: boolean }} options - si single=true, retourne uniquement le 1er résultat
  */
-export async function searchPerson(name) {
-  if (!API_KEY) return null;
+export async function searchPersons(name, { single = false } = {}) {
+  if (!API_KEY || !name) return single ? null : [];
   try {
-    const data = await fetchJson(`${BASE_URL}/search/person?query=${encodeURIComponent(name)}&api_key=${API_KEY}&language=fr-FR`);
-    return data.results && data.results.length > 0 ? data.results[0] : null;
+    const data = await fetchJson(
+      `${BASE_URL}/search/person?query=${encodeURIComponent(name)}&api_key=${API_KEY}&language=fr-FR`
+    );
+    const results = data.results || [];
+    return single ? (results[0] ?? null) : results;
   } catch (error) {
-    console.error("Erreur lors de la recherche de personne :", error);
-    return null;
+    console.error('Erreur lors de la recherche de personne :', error);
+    return single ? null : [];
   }
 }
 
 /**
- * Recherche une liste de personnes (acteurs, réalisateurs)
+ * @deprecated Utiliser searchPersons(name, { single: true }) à la place.
+ * Conservé pour rétrocompatibilité.
  */
-export async function searchPersons(name) {
-  if (!API_KEY || !name) return [];
-  try {
-    const data = await fetchJson(`${BASE_URL}/search/person?query=${encodeURIComponent(name)}&api_key=${API_KEY}&language=fr-FR`);
-    return data.results || [];
-  } catch (error) {
-    console.error("Erreur lors de la recherche de personnes :", error);
-    return [];
-  }
-}
+export const searchPerson = (name) => searchPersons(name, { single: true });
 
 /**
  * Récupère les films réalisés par une personne

@@ -12,6 +12,7 @@ avec une explication en français pour chaque e-mail.
 
 import json
 import os
+import urllib.request
 from typing import List, Dict, Any
 
 SYSTEM_PROMPT = """Tu es un Agent IA expert en tri et en organisation de boîtes mails.
@@ -37,7 +38,6 @@ Ne rajoute AUCUN texte autour du JSON.
 def get_configured_gemini_model() -> str:
     """Tente de lire la configuration partagée VicozWorld depuis le backend."""
     try:
-        import urllib.request
         with urllib.request.urlopen("http://backend:8000/api/ai/config", timeout=2) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             return data.get("gmail_assistant", "gemini-1.5-flash")

@@ -9,6 +9,7 @@ Interface Web Visuelle & Interactive avec Agent IA & Gestion de Libellés Gmail 
 """
 
 import os
+import json
 import streamlit as st
 import pandas as pd
 from dotenv import load_dotenv
@@ -61,7 +62,6 @@ def load_saved_config():
     """Charge la configuration persistante depuis config.json s'il existe."""
     if os.path.exists(CONFIG_FILE):
         try:
-            import json
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception:
@@ -75,12 +75,11 @@ def save_config(user, password, api_key, auto_connect=True):
     Ne l'utilisez que sur un serveur de confiance (accès local uniquement).
     Le mot de passe d'application Gmail est stocké pour la reconnexion automatique.
     """
-    import json
     try:
         data = {
-            "GMAIL_USER": user,
+            "GMAIL_EMAIL": user,
             # Le mot de passe est stocké uniquement si auto_connect est activé
-            "GMAIL_APP_PASSWORD": password if auto_connect else "",
+            "GMAIL_PASSWORD": password if auto_connect else "",
             "GEMINI_API_KEY": api_key,
             "AUTO_CONNECT": auto_connect
         }
@@ -92,6 +91,7 @@ def save_config(user, password, api_key, auto_connect=True):
     except Exception as e:
         print(f"Erreur sauvegarde config : {e}")
         return False
+
 
 
 def get_gmail_manager():

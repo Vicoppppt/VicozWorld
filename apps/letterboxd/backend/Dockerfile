@@ -15,6 +15,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Pré-téléchargement des modèles ONNX de rembg au build
+# Évite le téléchargement (~100-500 Mo) à la première requête en production
+RUN python -c "from rembg import new_session; new_session('bria-rmbg')" 2>/dev/null || \
+    python -c "from rembg import new_session; new_session('u2net')" 2>/dev/null || \
+    echo 'rembg model preload skipped (non-critical)'
+
 COPY . .
 
 ENV DATA_DIR=/app/data
