@@ -46,6 +46,8 @@ import {
   Check,
   SlidersHorizontal,
   GraduationCap,
+  Power,
+  PlugZap,
   X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -69,6 +71,28 @@ export function Home() {
   });
   const [isLoadingAiModels, setIsLoadingAiModels] = useState(false);
   const [isSavingAiConfig, setIsSavingAiConfig] = useState(false);
+
+  // Prise Serveur (TP-Link P100 / Home Assistant)
+  const [plugData, setPlugData] = useState({
+    name: "Prise Serveur",
+    is_on: true,
+    state: "on",
+    device_model: "TP-Link P100",
+    room: "Salon",
+    configured: false,
+    connected: false,
+  });
+  const [isTogglingPlug, setIsTogglingPlug] = useState(false);
+  const [isPlugModalOpen, setIsPlugModalOpen] = useState(false);
+  const [plugConfig, setPlugConfig] = useState({
+    hass_url: "",
+    hass_token: "",
+    entity_id: "switch.prise_serveur",
+    name: "Prise Serveur",
+    device_model: "TP-Link P100",
+    room: "Salon",
+  });
+  const [isSavingPlugConfig, setIsSavingPlugConfig] = useState(false);
 
   const fetchAiData = async () => {
     setIsLoadingAiModels(true);
@@ -161,12 +185,99 @@ export function Home() {
     }
   };
 
+  const fetchPlugStatus = async () => {
+    try {
+      const res = await fetch('/api/hub/plug');
+      if (res.ok) {
+        const data = await res.json();
+        setPlugData(data);
+      }
+    } catch (e) {
+      console.warn("Erreur récupération statut prise:", e);
+    }
+  };
+
+  const fetchPlugConfig = async () => {
+    try {
+      const res = await fetch('/api/hub/plug/config');
+      if (res.ok) {
+        const data = await res.json();
+        setPlugConfig(prev => ({
+          ...prev,
+          ...data,
+          hass_token: data.masked_token || "",
+        }));
+      }
+    } catch (e) {
+      console.warn("Erreur chargement configuration prise:", e);
+    }
+  };
+
+  const handleTogglePlug = async (e) => {
+    if (e) e.stopPropagation();
+    if (isTogglingPlug) return;
+    setIsTogglingPlug(true);
+    const prevIsOn = plugData?.is_on ?? true;
+    // Mise à jour optimiste immédiate
+    setPlugData(prev => ({ ...prev, is_on: !prevIsOn, state: !prevIsOn ? 'on' : 'off' }));
+    try {
+      const res = await fetch('/api/hub/plug/toggle', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setPlugData(prev => ({ ...prev, ...data }));
+        if (data.is_on) {
+          toast.success("Prise Serveur allumée (Alimentation secteur)", { icon: "⚡" });
+        } else {
+          toast.success("Prise Serveur éteinte (Sur batterie)", { icon: "🔌" });
+        }
+        // Rafraîchir l'état de la batterie après 1,5s
+        setTimeout(fetchBattery, 1500);
+      } else {
+        setPlugData(prev => ({ ...prev, is_on: prevIsOn, state: prevIsOn ? 'on' : 'off' }));
+        toast.error("Impossible de basculer la prise");
+      }
+    } catch (err) {
+      setPlugData(prev => ({ ...prev, is_on: prevIsOn, state: prevIsOn ? 'on' : 'off' }));
+      toast.error("Erreur réseau lors de la bascule de la prise");
+    } finally {
+      setIsTogglingPlug(false);
+    }
+  };
+
+  const handleSavePlugConfig = async (e) => {
+    e.preventDefault();
+    setIsSavingPlugConfig(true);
+    const toastId = toast.loading("Enregistrement de la configuration Home Assistant...");
+    try {
+      const res = await fetch('/api/hub/plug/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(plugConfig),
+      });
+      if (res.ok) {
+        toast.success("Configuration Home Assistant enregistrée !", { id: toastId });
+        setIsPlugModalOpen(false);
+        fetchPlugStatus();
+      } else {
+        toast.error("Erreur lors de l'enregistrement", { id: toastId });
+      }
+    } catch (err) {
+      toast.error("Erreur réseau", { id: toastId });
+    } finally {
+      setIsSavingPlugConfig(false);
+    }
+  };
+
   useEffect(() => {
     fetchHubData(false);
     if (isVictor) {
       fetchBattery();
       fetchBankBalances();
-      const timer = setInterval(fetchBattery, 30000);
+      fetchPlugStatus();
+      const timer = setInterval(() => {
+        fetchBattery();
+        fetchPlugStatus();
+      }, 30000);
       return () => clearInterval(timer);
     }
   }, [isVictor]);
@@ -279,6 +390,70 @@ export function Home() {
                 </div>
               </div>
             )}
+
+            {/* Bouton Commutateur Prise Serveur (TP-Link P100 / Home Assistant) */}
+            <div className="flex items-center">
+              <button
+                type="button"
+                onClick={handleTogglePlug}
+                disabled={isTogglingPlug}
+                className={`group relative flex items-center gap-2.5 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+                  plugData?.is_on
+                    ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-emerald-500/10'
+                    : 'bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 border-zinc-700/80'
+                }`}
+                title={`Prise Serveur (${plugData?.device_model || 'TP-Link P100'}) : ${plugData?.is_on ? 'Allumée (Alimente le serveur)' : 'Éteinte (Serveur sur batterie)'} — Cliquer pour ${plugData?.is_on ? 'éteindre' : 'allumer'}`}
+              >
+                <div className="relative flex items-center justify-center">
+                  <Power className={`w-4 h-4 transition-all ${
+                    plugData?.is_on
+                      ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]'
+                      : 'text-zinc-500'
+                  } ${isTogglingPlug ? 'animate-spin' : ''}`} />
+                  {plugData?.is_on && (
+                    <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75"></span>
+                  )}
+                </div>
+
+                <div className="flex flex-col text-left leading-tight">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-zinc-100">{plugData?.name || 'Prise Serveur'}</span>
+                    <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md transition-colors ${
+                      plugData?.is_on
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                        : 'bg-zinc-700/70 text-zinc-400 border border-zinc-600/50'
+                    }`}>
+                      {plugData?.is_on ? 'ON' : 'OFF'}
+                    </span>
+                  </div>
+                  <span className="text-[9px] text-zinc-400 flex items-center gap-1">
+                    <span>{plugData?.is_on ? 'Secteur actif' : 'Sur batterie'}</span>
+                    {plugData?.connected && <span className="text-emerald-400 font-bold">• HA</span>}
+                  </span>
+                </div>
+
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsPlugModalOpen(true);
+                    fetchPlugConfig();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.stopPropagation();
+                      setIsPlugModalOpen(true);
+                      fetchPlugConfig();
+                    }
+                  }}
+                  className="p-1 -mr-0.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700/60 transition-colors cursor-pointer"
+                  title="Configurer la liaison Home Assistant"
+                >
+                  <SlidersHorizontal className="w-3 h-3 opacity-60 hover:opacity-100" />
+                </div>
+              </button>
+            </div>
 
             {/* Indicateur Modèles IA cliquable pour configurer les modèles */}
             <button
@@ -1159,6 +1334,170 @@ export function Home() {
                   </div>
                 </form>
               )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal de Configuration Prise Serveur & Home Assistant */}
+      <AnimatePresence>
+        {isPlugModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 relative overflow-hidden"
+            >
+              {/* Header Modal */}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-emerald-500/10 rounded-2xl text-emerald-400 border border-emerald-500/20">
+                    <PlugZap className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
+                      <span>Prise Serveur</span>
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        TP-Link P100
+                      </span>
+                    </h3>
+                    <p className="text-xs text-zinc-400">
+                      Salon • Contrôle de l'alimentation électrique du serveur
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPlugModalOpen(false)}
+                  className="p-1.5 rounded-xl text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* État en direct & Test rapide */}
+              <div className="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800/80 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl border ${
+                    plugData?.is_on 
+                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+                      : 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                  }`}>
+                    <Power className={`w-5 h-5 ${isTogglingPlug ? 'animate-spin' : ''}`} />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-zinc-200 flex items-center gap-2">
+                      <span>État en direct :</span>
+                      <span className={plugData?.is_on ? 'text-emerald-400 font-extrabold' : 'text-zinc-400'}>
+                        {plugData?.is_on ? 'Allumée (Secteur)' : 'Éteinte (Sur batterie)'}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-zinc-500">
+                      {plugData?.connected
+                        ? '🟢 Connecté à Home Assistant'
+                        : plugData?.configured
+                        ? '🟠 Home Assistant injoignable'
+                        : '⚪ Mode local autonome'}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleTogglePlug}
+                  disabled={isTogglingPlug}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 ${
+                    plugData?.is_on
+                      ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40'
+                      : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40'
+                  }`}
+                >
+                  <Power className="w-3.5 h-3.5" />
+                  <span>{plugData?.is_on ? 'Éteindre' : 'Allumer'}</span>
+                </button>
+              </div>
+
+              {/* Formulaire de configuration Home Assistant */}
+              <form onSubmit={handleSavePlugConfig} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-300">
+                    URL Home Assistant
+                  </label>
+                  <input
+                    type="text"
+                    value={plugConfig.hass_url || ''}
+                    onChange={(e) => setPlugConfig({ ...plugConfig, hass_url: e.target.value })}
+                    placeholder="ex: http://homeassistant.local:8123 ou http://192.168.1.50:8123"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-100 font-medium placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500"
+                  />
+                  <span className="text-[10px] text-zinc-500">
+                    Accessible sur votre réseau local ou via reverse proxy.
+                  </span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-300">
+                    Jeton d'accès longue durée (Token)
+                  </label>
+                  <input
+                    type="password"
+                    value={plugConfig.hass_token || ''}
+                    onChange={(e) => setPlugConfig({ ...plugConfig, hass_token: e.target.value })}
+                    placeholder={plugConfig.has_token ? '•••••••••••••••• (inchangé)' : 'Collez votre jeton Home Assistant'}
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-100 font-mono placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500"
+                  />
+                  <span className="text-[10px] text-zinc-500">
+                    Généré dans Home Assistant : Profil (en bas à gauche) → Sécurité → Jetons d'accès longue durée.
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-zinc-300">
+                      Entité Home Assistant
+                    </label>
+                    <input
+                      type="text"
+                      value={plugConfig.entity_id || ''}
+                      onChange={(e) => setPlugConfig({ ...plugConfig, entity_id: e.target.value })}
+                      placeholder="switch.prise_serveur"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-100 font-mono placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-zinc-300">
+                      Pièce
+                    </label>
+                    <input
+                      type="text"
+                      value={plugConfig.room || ''}
+                      onChange={(e) => setPlugConfig({ ...plugConfig, room: e.target.value })}
+                      placeholder="Salon"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-100 font-medium placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => setIsPlugModalOpen(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                  >
+                    Fermer
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingPlugConfig}
+                    className="px-5 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>{isSavingPlugConfig ? 'Enregistrement...' : 'Enregistrer la liaison'}</span>
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}

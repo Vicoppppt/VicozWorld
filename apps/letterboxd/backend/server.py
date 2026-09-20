@@ -29,6 +29,7 @@ from routers.news import router as news_router
 from routers.ai import router as ai_router
 from routers.admin import router as admin_router
 from routers.hub import router as hub_router
+from routers.plug import router as plug_router
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
 
@@ -293,6 +294,7 @@ app.include_router(news_router)
 app.include_router(ai_router)
 app.include_router(admin_router)
 app.include_router(hub_router)
+app.include_router(plug_router)
 
 
 if __name__ == "__main__":

@@ -80,3 +80,19 @@ class HubPermissionsRequest(BaseModel):
 
 class HubUrlsRequest(BaseModel):
     urls: Dict[str, str]
+
+
+# ─── Prise Connectée (Home Assistant / TP-Link P100) ──────────────────────────
+
+class PlugConfigRequest(BaseModel):
+    hass_url: Optional[str] = None
+    hass_token: Optional[str] = None
+    entity_id: Optional[str] = "switch.prise_serveur"
+    name: Optional[str] = "Prise Serveur"
+    device_model: Optional[str] = "TP-Link P100"
+    room: Optional[str] = "Salon"
+
+
+class PlugSetStateRequest(BaseModel):
+    state: str  # "on" | "off"
+

@@ -39,6 +39,9 @@ services:
       - DB_ENCRYPTION_KEY=${DB_ENCRYPTION_KEY:-}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://vw.vicopetit.dedyn.io}
+      - HASS_URL=${HASS_URL:-}
+      - HASS_TOKEN=${HASS_TOKEN:-}
+      - HASS_PLUG_ENTITY_ID=${HASS_PLUG_ENTITY_ID:-switch.prise_serveur}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://127.0.0.1:8000/api/health || exit 1"]
       interval: 10s
