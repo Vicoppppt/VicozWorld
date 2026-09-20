@@ -139,9 +139,9 @@ export function Layout({ children }) {
                 title={isVictor ? "Ouvrir CasaOS (https://casa.vicopetit.dedyn.io/#/)" : "Accueil"}
               >
                 <img 
-                  src="/logo.png" 
+                  src="/logo-white.svg" 
                   alt="VicozWorld" 
-                  className="h-9 sm:h-10 w-auto object-contain drop-shadow-[0_2px_12px_rgba(139,92,246,0.45)] group-hover:scale-105 transition-transform" 
+                  className="h-7 sm:h-8 w-auto object-contain drop-shadow-[0_0_14px_rgba(168,85,247,0.6)] group-hover:drop-shadow-[0_0_20px_rgba(168,85,247,0.9)] group-hover:scale-105 transition-all" 
                 />
                 {isMaman && (
                   <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-300 border border-pink-500/20">

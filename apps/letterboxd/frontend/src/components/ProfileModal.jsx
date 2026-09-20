@@ -29,9 +29,9 @@ export function ProfileModal() {
         >
           <div className="space-y-3 flex flex-col items-center">
             <img 
-              src="/logo.png" 
+              src="/logo-white.svg" 
               alt="VicozWorld" 
-              className="h-12 sm:h-14 object-contain drop-shadow-[0_4px_16px_rgba(139,92,246,0.3)]" 
+              className="h-12 sm:h-16 w-auto object-contain drop-shadow-[0_0_24px_rgba(168,85,247,0.75)]" 
             />
             <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
               Qui utilise le Hub ?
@@ -49,8 +49,8 @@ export function ProfileModal() {
               onClick={() => selectProfile('victor')}
               className="p-5 rounded-3xl bg-zinc-900/80 hover:bg-zinc-900 border border-zinc-800 hover:border-indigo-500/50 transition-all text-left flex flex-col items-center sm:items-start group shadow-2xl relative overflow-hidden"
             >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-600/30 border border-indigo-500/40 flex items-center justify-center p-2 shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform mb-3">
-                <img src="/logo-icon.png" alt="Victor" className="w-full h-full object-contain" />
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-600/30 border border-indigo-500/40 flex items-center justify-center p-2.5 shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform mb-3">
+                <img src="/logo-icon-gradient.svg" alt="Victor" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.6)]" />
               </div>
               <div className="text-lg font-bold text-white group-hover:text-indigo-300 transition-colors">
                 Victor
