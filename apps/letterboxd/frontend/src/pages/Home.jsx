@@ -38,6 +38,8 @@ import {
   FileSpreadsheet,
   Layers,
   Mail,
+  Scissors,
+  Maximize2,
   Server,
   ExternalLink,
   User,
@@ -816,7 +818,65 @@ export function Home() {
             <span className="text-[11px] text-zinc-500 font-medium">100% Locaux & Navigateur</span>
           </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Détourage Précis IA */}
+          <a
+            href="/tools/detourage_ia.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-5 rounded-3xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-pink-500/40 transition-all flex flex-col justify-between space-y-4 group shadow-lg"
+          >
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="p-2.5 rounded-2xl bg-pink-500/10 text-pink-400 border border-pink-500/20 group-hover:scale-105 transition-transform">
+                  <Scissors className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold text-pink-300 bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/20 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-pink-400" /> Bria RMBG IA
+                </span>
+              </div>
+              <h3 className="text-sm font-bold text-zinc-100 group-hover:text-pink-300 transition-colors">
+                Détourage Précis IA
+              </h3>
+              <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                Suppression de fond ultra-précise (cheveux, poils, objets fins) avec studio de remplacement.
+              </p>
+            </div>
+            <div className="flex items-center justify-between text-xs font-semibold text-pink-400 pt-2 border-t border-zinc-800/80">
+              <span>Détourer une photo</span>
+              <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </a>
+
+          {/* Upscale & Super-Résolution IA */}
+          <a
+            href="/tools/upscale_ia.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-5 rounded-3xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-cyan-500/40 transition-all flex flex-col justify-between space-y-4 group shadow-lg"
+          >
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="p-2.5 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 group-hover:scale-105 transition-transform">
+                  <Maximize2 className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-cyan-400" /> Style Upscayl
+                </span>
+              </div>
+              <h3 className="text-sm font-bold text-zinc-100 group-hover:text-cyan-300 transition-colors">
+                Upscale & Super-Résolution
+              </h3>
+              <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                Agrandissement neuronal 2x à 8x, restauration des textures et micro-détails en qualité 4K.
+              </p>
+            </div>
+            <div className="flex items-center justify-between text-xs font-semibold text-cyan-400 pt-2 border-t border-zinc-800/80">
+              <span>Agrandir une image</span>
+              <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </a>
+
           {/* Correcteur de rédactions IA */}
           <a
             href="/tools/correcteur_redaction.html"

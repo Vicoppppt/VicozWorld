@@ -2404,7 +2404,7 @@ def get_hub_permissions():
         except Exception as e:
             logger.warning(f"Erreur lecture {PERMISSIONS_FILE}: {e}")
     # Valeurs par défaut si le fichier n'existe pas encore
-    return {"allowed_modules": ["cinematheque", "quiz", "extracteur_texte", "editeur_pdf", "convertisseur_excel", "notes", "genealogie"]}
+    return {"allowed_modules": ["cinematheque", "quiz", "extracteur_texte", "correcteur_redaction", "detourage_ia", "upscale_ia", "editeur_pdf", "convertisseur_excel", "notes", "genealogie"]}
 
 @app.post("/api/hub/permissions")
 def set_hub_permissions(req: HubPermissionsRequest):

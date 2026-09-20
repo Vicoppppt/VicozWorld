@@ -22,7 +22,9 @@ import {
   Mail,
   ShieldCheck,
   BookOpen,
-  Library
+  Library,
+  Scissors,
+  Maximize2
 } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import { useProfile } from "../context/ProfileContext";
@@ -50,6 +52,8 @@ export function Layout({ children }) {
 
   const toolsItems = [
     { name: "Gmail Assistant IA", desc: "Tri de boîte mail & IA Gemini", href: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:8501`, icon: Mail },
+    { name: "Détourage Précis IA", desc: "Suppression fond HD (RMBG)", href: "/tools/detourage_ia.html", icon: Scissors },
+    { name: "Upscale & 4K IA", desc: "Super-résolution type Upscayl", href: "/tools/upscale_ia.html", icon: Maximize2 },
     { name: "Correcteur Rédactions", desc: "IA Gemini & Barème Français", href: "/tools/correcteur_redaction.html", icon: PenTool },
     { name: "OCR & Extraction", desc: "PDF & Images vers Texte", href: "/tools/extracteur_texte.html", icon: FileText },
     { name: "Éditeur & Fusion PDF", desc: "Organiser & compresser PDF", href: "/tools/editeur_pdf.html", icon: Layers },
