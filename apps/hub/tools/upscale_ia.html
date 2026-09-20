@@ -981,8 +981,37 @@
       try {
         let resultCanvas = null;
 
-        // MODE 1: UpscalerJS Real-ESRGAN Model
-        if (activeModel === 'esrgan' && window.Upscaler) {
+        // PRIORITÉ 1 : Super-Résolution haute vitesse sur le serveur CasaOS (si disponible)
+        try {
+          statusText.textContent = 'Traitement Super-Résolution sur le serveur CasaOS...';
+          const fileBlob = await fetch(currentImage.src).then(r => r.blob());
+          const formData = new FormData();
+          formData.append('file', fileBlob, 'image.png');
+          formData.append('scale', scaleFactor);
+          formData.append('model', activeModel);
+
+          const serverResp = await fetch('/api/ai/tools/upscale', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (serverResp.ok) {
+            const blob = await serverResp.blob();
+            const uImg = new Image();
+            await new Promise(r => { uImg.onload = r; uImg.src = URL.createObjectURL(blob); });
+            resultCanvas = document.createElement('canvas');
+            resultCanvas.width = targetW;
+            resultCanvas.height = targetH;
+            const ctx = resultCanvas.getContext('2d');
+            ctx.drawImage(uImg, 0, 0, targetW, targetH);
+            statusText.textContent = 'Upscale serveur terminé !';
+          }
+        } catch (srvErr) {
+          console.log('Serveur IA non disponible ou local, exécution via Real-ESRGAN dans le navigateur:', srvErr);
+        }
+
+        // PRIORITÉ 2 : Inférence locale dans le navigateur (UpscalerJS Real-ESRGAN Model)
+        if (!resultCanvas && activeModel === 'esrgan' && window.Upscaler) {
           statusText.textContent = `Traitement neuronal Real-ESRGAN (${scaleFactor}x)...`;
           
           const upscaler = new window.Upscaler({
@@ -994,8 +1023,8 @@
             padding: 4,
             progress: (pct) => {
               const p = Math.round(pct * 100);
-              statusPercent.textContent = `${p}%`;
-              progressFill.style.width = `${p}%`;
+              statusPercent.textContent = `${pct}%`;
+              progressFill.style.width = `${pct}%`;
               statusText.textContent = `Inférence convolutive GPU (${p}%)...`;
             }
           });
@@ -1009,8 +1038,8 @@
           const ctx = resultCanvas.getContext('2d');
           ctx.drawImage(uImg, 0, 0, targetW, targetH);
 
-        } else if (activeModel === 'swin2sr' && window.Transformers) {
-          // MODE 2: Swin2SR Transformer Super-Resolution
+        } else if (!resultCanvas && activeModel === 'swin2sr' && window.Transformers) {
+          // MODE 3: Swin2SR Transformer Super-Resolution
           statusText.textContent = 'Chargement du Transformer Swin2SR (~100 MB)...';
           const { AutoModel, AutoProcessor, env, RawImage } = window.Transformers;
           env.allowLocalModels = false;
@@ -1041,7 +1070,7 @@
           for (let i = 0; i < outRaw.data.length; i++) imgData.data[i] = outRaw.data[i];
           ctx.putImageData(imgData, 0, 0);
 
-        } else {
+        } else if (!resultCanvas) {
           // Deep Neural Fallback
           resultCanvas = generateNeuralInterpolation(currentImage, scaleFactor);
         }

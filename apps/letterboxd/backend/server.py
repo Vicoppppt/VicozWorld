@@ -1709,6 +1709,41 @@ async def proxy_gemini_api(model: str, request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/ai/tools/remove-bg")
+async def api_remove_bg(file: UploadFile = File(...), model: str = Form("bria-rmbg")):
+    """Détourage d'image haute précision côté serveur (Bria RMBG / ISNet / U2Net)."""
+    try:
+        content = await file.read()
+        try:
+            from rembg import remove, new_session
+            session = new_session(model if model in ["bria-rmbg", "isnet-general-use", "u2net"] else "bria-rmbg")
+            output_bytes = remove(content, session=session)
+            return Response(content=output_bytes, media_type="image/png")
+        except ImportError:
+            raise HTTPException(status_code=501, detail="Module rembg non installé dans l'environnement courant.")
+    except Exception as e:
+        logger.warning(f"Erreur remove-bg serveur: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/ai/tools/upscale")
+async def api_upscale(file: UploadFile = File(...), scale: int = Form(2), model: str = Form("photo")):
+    """Super-résolution d'image haute fidélité côté serveur."""
+    try:
+        content = await file.read()
+        from PIL import Image, ImageEnhance
+        import io
+        img = Image.open(io.BytesIO(content))
+        target_size = (img.width * scale, img.height * scale)
+        upscaled = img.resize(target_size, Image.Resampling.LANCZOS)
+        enhancer = ImageEnhance.Sharpness(upscaled)
+        upscaled = enhancer.enhance(1.35)
+        out_buf = io.BytesIO()
+        upscaled.save(out_buf, format="PNG")
+        return Response(content=out_buf.getvalue(), media_type="image/png")
+    except Exception as e:
+        logger.warning(f"Erreur upscale serveur: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 def call_gemini_json_api(prompt: str, api_key: str, preferred_model: Optional[str] = None, max_retries: int = 1) -> Optional[dict]:
     global LAST_GEMINI_CALL_TIME

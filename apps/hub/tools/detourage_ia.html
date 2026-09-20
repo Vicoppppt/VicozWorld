@@ -957,8 +957,29 @@
       try {
         let resultBlob = null;
 
-        // MODE 1: Official Bria RMBG 1.4 via Transformers.js ONNX
-        if (activeModelEngine === 'rmbg' && window.Transformers) {
+        // PRIORITÉ 1 : Inférence ultra-rapide sur le serveur CasaOS (si disponible)
+        try {
+          statusText.textContent = 'Traitement par le serveur IA CasaOS...';
+          const fileBlob = await fetch(currentImage.src).then(r => r.blob());
+          const formData = new FormData();
+          formData.append('file', fileBlob, 'image.png');
+          formData.append('model', activeModelEngine === 'rmbg' ? 'bria-rmbg' : 'isnet-general-use');
+
+          const serverResp = await fetch('/api/ai/tools/remove-bg', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (serverResp.ok) {
+            resultBlob = await serverResp.blob();
+            statusText.textContent = 'Détourage serveur terminé !';
+          }
+        } catch (srvErr) {
+          console.log('Serveur IA non disponible ou local, exécution via Transformers.js dans le navigateur:', srvErr);
+        }
+
+        // PRIORITÉ 2 : Inférence locale dans le navigateur via Transformers.js (Bria RMBG 1.4)
+        if (!resultBlob && activeModelEngine === 'rmbg' && window.Transformers) {
           statusText.textContent = 'Téléchargement des poids Bria RMBG 1.4 (~170 MB au 1er lancement)...';
           
           const { AutoModel, AutoProcessor, env, RawImage } = window.Transformers;
@@ -1018,8 +1039,8 @@
 
           resultBlob = await new Promise(r => finalC.toBlob(r, 'image/png'));
 
-        } else if (window.imglyRemoveBackground) {
-          // MODE 2: ISNet General HD via @imgly/background-removal
+        } else if (!resultBlob && window.imglyRemoveBackground) {
+          // MODE 3: ISNet General HD via @imgly/background-removal
           statusText.textContent = 'Calcul du masque neuronal ISNet HD...';
           resultBlob = await window.imglyRemoveBackground(currentImage.src, {
             publicPath: 'https://staticimgly.com/@imgly/background-removal-data@1.5.7/dist/',
