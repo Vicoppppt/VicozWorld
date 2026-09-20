@@ -54,7 +54,7 @@ def _get_plug_config() -> dict:
             "hass_url": url.rstrip("/"),
             "hass_token": token,  # Strictement depuis l'env
             "entity_id": entity,
-            "name": d.get("name") or "Prise Serveur",
+            "name": d.get("name") or "Ventilos Serveur",
             "device_model": d.get("device_model") or "TP-Link P100",
             "room": d.get("room") or "Salon",
             "last_known_state": d.get("last_known_state") or "off",
@@ -64,7 +64,7 @@ def _get_plug_config() -> dict:
         "hass_url": env_url.rstrip("/"),
         "hass_token": token,
         "entity_id": env_entity or "switch.prise_serveur",
-        "name": "Prise Serveur",
+        "name": "Ventilos Serveur",
         "device_model": "TP-Link P100",
         "room": "Salon",
         "last_known_state": "off",

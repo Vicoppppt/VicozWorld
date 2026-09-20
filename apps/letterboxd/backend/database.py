@@ -225,10 +225,10 @@ def init_db():
                 hass_url TEXT DEFAULT '',
                 hass_token TEXT DEFAULT '',
                 entity_id TEXT DEFAULT 'switch.prise_serveur',
-                name TEXT DEFAULT 'Prise Serveur',
+                name TEXT DEFAULT 'Ventilos Serveur',
                 device_model TEXT DEFAULT 'TP-Link P100',
                 room TEXT DEFAULT 'Salon',
-                last_known_state TEXT DEFAULT 'on',
+                last_known_state TEXT DEFAULT 'off',
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
@@ -252,7 +252,7 @@ def init_db():
         """)
         cursor.execute("""
             INSERT OR IGNORE INTO plug_settings (id, hass_url, hass_token, entity_id, name, device_model, room, last_known_state)
-            VALUES (1, '', '', 'switch.prise_serveur', 'Prise Serveur', 'TP-Link P100', 'Salon', 'on')
+            VALUES (1, '', '', 'switch.prise_serveur', 'Ventilos Serveur', 'TP-Link P100', 'Salon', 'off')
         """)
 
         # Nettoyage des colonnes secrètes gérées via variables d'env

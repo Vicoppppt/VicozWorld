@@ -48,6 +48,7 @@ import {
   GraduationCap,
   Power,
   PlugZap,
+  Fan,
   X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -255,12 +256,10 @@ export function Home() {
           state: data.state ?? targetState
         }));
         if (targetIsOn) {
-          toast.success("Prise Serveur allumée (Alimentation secteur)", { icon: "⚡" });
+          toast.success("Ventilateurs activés (Refroidissement ON) ❄️", { icon: "💨" });
         } else {
-          toast.success("Prise Serveur éteinte (Sur batterie)", { icon: "🔌" });
+          toast.success("Ventilateurs éteints (Silence) 🛑", { icon: "💤" });
         }
-        // Rafraîchir l'état de la batterie après 2 secondes
-        setTimeout(fetchBattery, 2000);
       } else {
         // Rollback en cas d'échec
         setPlugData(prev => ({ ...prev, is_on: currentlyOn, state: currentlyOn ? 'on' : 'off' }));
@@ -427,46 +426,46 @@ export function Home() {
               </div>
             )}
 
-            {/* Bouton Commutateur Prise Serveur (TP-Link P100 / Home Assistant) */}
+            {/* Bouton Commutateur Ventilos Serveur (TP-Link P100 / Home Assistant) */}
             <div className="flex items-center">
               <button
                 type="button"
                 onClick={handleTogglePlug}
                 disabled={isTogglingPlug || plugData?.is_on === null}
-                className={`group relative flex items-center gap-2.5 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+                className={`group relative flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer ${
                   plugData?.is_on === true
-                    ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-emerald-500/10'
+                    ? 'bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-cyan-500/10'
                     : plugData?.is_on === false
                     ? 'bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 border-zinc-700/80'
                     : 'bg-zinc-900 text-zinc-500 border-zinc-800'
                 }`}
-                title={`Prise Serveur (${plugData?.device_model || 'TP-Link P100'}) : ${
+                title={`Ventilateurs de refroidissement (${plugData?.device_model || 'TP-Link P100'}) : ${
                   plugData?.is_on === true
-                    ? 'Allumée (Alimente le serveur)'
+                    ? 'En marche (Refroidissement PC actif)'
                     : plugData?.is_on === false
-                    ? 'Éteinte (Serveur sur batterie)'
+                    ? 'Arrêtés (Silencieux)'
                     : 'Chargement...'
                 } — Cliquer pour basculer`}
               >
                 <div className="relative flex items-center justify-center">
-                  <Power className={`w-4 h-4 transition-all ${
+                  <Fan className={`w-4 h-4 transition-all ${
                     plugData?.is_on === true
-                      ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]'
+                      ? 'text-cyan-400 animate-spin drop-shadow-[0_0_8px_rgba(34,211,238,0.7)]'
                       : plugData?.is_on === false
                       ? 'text-zinc-500'
                       : 'text-zinc-600'
-                  } ${isTogglingPlug ? 'animate-spin' : ''}`} />
+                  } ${isTogglingPlug ? 'animate-pulse' : ''}`} style={plugData?.is_on === true ? { animationDuration: '2.5s' } : undefined} />
                   {plugData?.is_on === true && (
-                    <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-cyan-400 opacity-75"></span>
                   )}
                 </div>
 
                 <div className="flex flex-col text-left leading-tight">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-zinc-100">{plugData?.name || 'Prise Serveur'}</span>
+                    <span className="font-bold text-zinc-100">{plugData?.name || 'Ventilos Serveur'}</span>
                     <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md transition-colors ${
                       plugData?.is_on === true
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                         : plugData?.is_on === false
                         ? 'bg-zinc-700/70 text-zinc-400 border border-zinc-600/50'
                         : 'bg-zinc-800 text-zinc-500 border border-zinc-700/40'
@@ -475,8 +474,8 @@ export function Home() {
                     </span>
                   </div>
                   <span className="text-[9px] text-zinc-400 flex items-center gap-1">
-                    <span>{plugData?.is_on === true ? 'Secteur actif' : plugData?.is_on === false ? 'Sur batterie' : 'Connexion...'}</span>
-                    {plugData?.connected && <span className="text-emerald-400 font-bold">• HA</span>}
+                    <span>{plugData?.is_on === true ? 'Refroidissement actif ❄️' : plugData?.is_on === false ? 'Ventilation coupée' : 'Connexion...'}</span>
+                    {plugData?.connected && <span className="text-cyan-400 font-bold">• HA</span>}
                   </span>
                 </div>
 
@@ -1405,13 +1404,13 @@ export function Home() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
-                      <span>Prise Serveur</span>
-                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      <span>Ventilos Serveur</span>
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                         TP-Link P100
                       </span>
                     </h3>
                     <p className="text-xs text-zinc-400">
-                      Salon • Contrôle de l'alimentation électrique du serveur
+                      Salon • Support ventilé de refroidissement du PC portable
                     </p>
                   </div>
                 </div>
@@ -1427,18 +1426,18 @@ export function Home() {
               {/* État en direct & Test rapide */}
               <div className="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800/80 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-xl border ${
+                  <div className={`p-2.5 rounded-xl border ${
                     plugData?.is_on 
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+                      ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30' 
                       : 'bg-zinc-800 text-zinc-400 border-zinc-700'
                   }`}>
-                    <Power className={`w-5 h-5 ${isTogglingPlug ? 'animate-spin' : ''}`} />
+                    <Fan className={`w-5 h-5 ${plugData?.is_on ? 'animate-spin' : ''}`} style={plugData?.is_on ? { animationDuration: '2.5s' } : undefined} />
                   </div>
                   <div>
                     <div className="text-xs font-bold text-zinc-200 flex items-center gap-2">
-                      <span>État en direct :</span>
-                      <span className={plugData?.is_on ? 'text-emerald-400 font-extrabold' : 'text-zinc-400'}>
-                        {plugData?.is_on ? 'Allumée (Secteur)' : 'Éteinte (Sur batterie)'}
+                      <span>Refroidissement :</span>
+                      <span className={plugData?.is_on ? 'text-cyan-400 font-extrabold' : 'text-zinc-400'}>
+                        {plugData?.is_on ? 'Ventilation active ❄️' : 'Ventilation coupée'}
                       </span>
                     </div>
                     <span className="text-[10px] text-zinc-500">
@@ -1458,11 +1457,11 @@ export function Home() {
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 ${
                     plugData?.is_on
                       ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40'
-                      : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40'
+                      : 'bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40'
                   }`}
                 >
-                  <Power className="w-3.5 h-3.5" />
-                  <span>{plugData?.is_on ? 'Éteindre' : 'Allumer'}</span>
+                  <Fan className="w-3.5 h-3.5" />
+                  <span>{plugData?.is_on ? 'Couper' : 'Allumer'}</span>
                 </button>
               </div>
 
