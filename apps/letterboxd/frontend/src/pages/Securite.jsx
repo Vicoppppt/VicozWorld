@@ -95,7 +95,16 @@ export function Securite() {
       const res = await fetch('/api/admin/certs');
       if (res.ok) {
         const data = await res.json();
-        setCertsData(data);
+        if (Array.isArray(data)) {
+          setCertsData({ ca_exists: true, certs: data });
+        } else if (data && typeof data === 'object') {
+          setCertsData({
+            ca_exists: !!data.ca_exists,
+            certs: Array.isArray(data.certs) ? data.certs : []
+          });
+        } else {
+          setCertsData({ ca_exists: false, certs: [] });
+        }
       }
     } catch (e) {
       console.warn('Erreur récupération certificats:', e);
@@ -367,6 +376,10 @@ export function Securite() {
 
   const isVicozWorld = selectedProxy.id === 'vw';
 
+  const certsList = Array.isArray(certsData?.certs)
+    ? certsData.certs
+    : (Array.isArray(certsData) ? certsData : []);
+
   const npmSnippet = isVicozWorld
     ? `# Configuration VicozWorld (mTLS strict + Pass Invité OTP 2 min) :
 ssl_client_certificate /data/custom_ssl/ca.crt;
@@ -606,7 +619,7 @@ ssl_verify_client on;`;
                 <Laptop className="w-5 h-5 text-cyan-400" />
                 <h2 className="text-lg font-bold text-white">Appareils Certifiés</h2>
                 <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400">
-                  {certsData.certs.length} actif{certsData.certs.length > 1 ? 's' : ''}
+                  {certsList.length} actif{certsList.length > 1 ? 's' : ''}
                 </span>
               </div>
               <button
@@ -618,23 +631,27 @@ ssl_verify_client on;`;
               </button>
             </div>
 
-            {certsData.certs.length === 0 ? (
+            {certsList.length === 0 ? (
               <div className="text-center py-8 text-zinc-500 text-sm">
                 Aucun certificat client généré pour le moment.
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {certsData.certs.map((c) => {
-                  const color = getDeviceColor(c.name);
+                {certsList.map((c) => {
+                  const devName = c.name || c.device_name || 'Appareil';
+                  const color = getDeviceColor(devName);
+                  const expiry = c.expires_at || c.expiry_date || 'N/A';
+                  const created = c.created_at || '';
+                  const downloadUrl = c.download_url || `/api/admin/certs/download/${encodeURIComponent(devName)}`;
                   return (
                     <div
-                      key={c.name}
+                      key={devName}
                       className={`p-4 rounded-xl bg-zinc-950/70 border ${color.border} hover:border-zinc-500 transition-all flex flex-col justify-between space-y-3 shadow-md`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           <div className={`w-9 h-9 rounded-lg ${color.bg} ${color.text} flex items-center justify-center border ${color.border}`}>
-                            {c.name.toLowerCase().includes('phone') ? (
+                            {devName.toLowerCase().includes('phone') ? (
                               <Smartphone className="w-5 h-5" />
                             ) : (
                               <Laptop className="w-5 h-5" />
@@ -643,16 +660,16 @@ ssl_verify_client on;`;
                           <div>
                             <div className={`text-sm font-bold flex items-center gap-1.5 ${color.text}`}>
                               <span className={`w-2 h-2 rounded-full ${color.dot}`} />
-                              {c.name}
+                              {devName}
                             </div>
                             <div className="text-[11px] text-zinc-400 flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-zinc-500" /> {c.expires_at}
+                              <Clock className="w-3 h-3 text-zinc-500" /> {expiry}
                             </div>
                           </div>
                         </div>
 
                         <button
-                          onClick={() => handleDelete(c.name)}
+                          onClick={() => handleDelete(devName)}
                           className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                           title="Révoquer / Supprimer ce badge"
                         >
@@ -661,10 +678,14 @@ ssl_verify_client on;`;
                       </div>
 
                       <div className="pt-2 border-t border-zinc-800/50 flex items-center justify-between">
-                        <span className="text-[10px] text-zinc-500">Créé le {c.created_at}</span>
+                        {created ? (
+                          <span className="text-[10px] text-zinc-500">Créé le {created}</span>
+                        ) : (
+                          <span />
+                        )}
                         <a
-                          href={c.download_url}
-                          download={`${c.name}.p12`}
+                          href={downloadUrl}
+                          download={`${devName}.p12`}
                           className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium flex items-center gap-1.5 transition-colors"
                         >
                           <Download className="w-3 h-3 text-cyan-400" />

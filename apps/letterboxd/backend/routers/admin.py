@@ -106,39 +106,69 @@ def list_backups(request: Request):
 def list_certs(request: Request):
     """Liste les certificats clients générés avec leur date d'expiration."""
     verify_victor_admin(request)
+    ca_crt = os.path.join(CERTS_DIR, "ca.crt")
+    ca_exists = os.path.exists(ca_crt)
+
     if not os.path.isdir(CERTS_DIR):
-        return []
+        return {
+            "ca_exists": ca_exists,
+            "certs": []
+        }
 
     certs = []
     for device_name in os.listdir(CERTS_DIR):
         device_dir = os.path.join(CERTS_DIR, device_name)
-        cert_file = os.path.join(device_dir, "client.crt")
-        p12_file = os.path.join(device_dir, "client.p12")
-
-        if not os.path.isdir(device_dir) or not os.path.exists(cert_file):
+        if not os.path.isdir(device_dir):
             continue
 
-        expiry_date = None
+        cert_file = os.path.join(device_dir, "client.crt")
+        if not os.path.exists(cert_file):
+            alt_cert = os.path.join(device_dir, f"{device_name}.crt")
+            if os.path.exists(alt_cert):
+                cert_file = alt_cert
+            else:
+                continue
+
+        p12_file = os.path.join(device_dir, "client.p12")
+        if not os.path.exists(p12_file):
+            alt_p12 = os.path.join(device_dir, f"{device_name}.p12")
+            if os.path.exists(alt_p12):
+                p12_file = alt_p12
+
+        expiry_date = "Valide (5 ans)"
         try:
             result = subprocess.run(
                 ["openssl", "x509", "-enddate", "-noout", "-in", cert_file],
                 capture_output=True, text=True, timeout=10
             )
-            if result.returncode == 0:
+            if result.returncode == 0 and "notAfter=" in result.stdout:
                 # Format: notAfter=Jan  1 00:00:00 2026 GMT
-                raw = result.stdout.strip().replace("notAfter=", "")
-                expiry_date = raw
+                expiry_date = result.stdout.strip().replace("notAfter=", "")
         except Exception as e:
             logger.warning(f"Impossible de lire la date d'expiration pour {device_name}: {e}")
 
+        try:
+            created_at = datetime.fromtimestamp(os.path.getmtime(cert_file)).strftime("%Y-%m-%d %H:%M")
+        except Exception:
+            created_at = ""
+
         certs.append({
+            "name": device_name,
             "device_name": device_name,
+            "expires_at": expiry_date,
             "expiry_date": expiry_date,
             "has_p12": os.path.exists(p12_file),
             "cert_path": cert_file,
+            "created_at": created_at,
+            "download_url": f"/api/admin/certs/download/{device_name}",
         })
 
-    return certs
+    certs.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+
+    return {
+        "ca_exists": ca_exists,
+        "certs": certs
+    }
 
 
 @router.post("/certs/generate")
@@ -172,10 +202,19 @@ def generate_cert(request: Request, body: CertCreateRequest):
     ca_key = os.path.join(CERTS_DIR, "ca.key")
 
     if not os.path.exists(ca_cert) or not os.path.exists(ca_key):
-        raise HTTPException(
-            status_code=500,
-            detail="CA introuvable. Vérifiez CERTS_DIR et la présence de ca.crt / ca.key."
-        )
+        try:
+            subprocess.run(["openssl", "genrsa", "-out", ca_key, "4096"], check=True, timeout=15)
+            os.chmod(ca_key, 0o600)
+            subprocess.run([
+                "openssl", "req", "-x509", "-new", "-nodes", "-key", ca_key, "-sha256", "-days", "3650",
+                "-out", ca_cert, "-subj", "/C=FR/ST=IDF/O=VicozWorld/OU=Security/CN=VicozWorld-Root-CA"
+            ], check=True, timeout=15)
+            npm_ssl_dir = os.getenv("NPM_SSL_DIR", "/data/custom_ssl")
+            if os.path.isdir(npm_ssl_dir):
+                shutil.copy2(ca_cert, os.path.join(npm_ssl_dir, "ca.crt"))
+        except Exception as e:
+            logger.error(f"Erreur création CA: {e}")
+            raise HTTPException(status_code=500, detail=f"Échec initialisation CA: {e}")
 
     key_file = os.path.join(device_dir, "client.key")
     csr_file = os.path.join(device_dir, "client.csr")
@@ -285,8 +324,13 @@ def generate_cert(request: Request, body: CertCreateRequest):
 
     return {
         "success": True,
+        "name": safe_name,
         "device_name": safe_name,
+        "download_url": f"/api/admin/certs/download/{safe_name}",
+        "email_sent": email_status == "sent",
+        "email_error": email_status if email_status and email_status != "sent" else None,
         "email_status": email_status,
+        "message": f"Certificat client pour {safe_name} généré avec succès !"
     }
 
 
@@ -297,12 +341,20 @@ def download_cert(request: Request, device_name: str):
 
     safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", device_name)
     p12_file = os.path.join(CERTS_DIR, safe_name, "client.p12")
-
     if not os.path.exists(p12_file):
-        raise HTTPException(
-            status_code=404,
-            detail=f"Fichier .p12 introuvable pour '{safe_name}'."
-        )
+        for alt in [
+            os.path.join(CERTS_DIR, safe_name, f"{safe_name}.p12"),
+            os.path.join(CERTS_DIR, device_name, f"{device_name}.p12"),
+            os.path.join(CERTS_DIR, device_name, "client.p12"),
+        ]:
+            if os.path.exists(alt):
+                p12_file = alt
+                break
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Fichier .p12 introuvable pour '{safe_name}'."
+            )
 
     return FileResponse(
         path=p12_file,
@@ -318,6 +370,8 @@ def delete_cert(request: Request, device_name: str):
 
     safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", device_name)
     device_dir = os.path.join(CERTS_DIR, safe_name)
+    if not os.path.isdir(device_dir):
+        device_dir = os.path.join(CERTS_DIR, device_name)
 
     if not os.path.isdir(device_dir):
         raise HTTPException(
@@ -330,7 +384,7 @@ def delete_cert(request: Request, device_name: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Impossible de supprimer : {e}")
 
-    return {"success": True, "device_name": safe_name}
+    return {"success": True, "device_name": safe_name, "name": safe_name}
 
 
 # ─── Proxies ─────────────────────────────────────────────────────────────────
