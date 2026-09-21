@@ -175,6 +175,13 @@ def health_check():
         raise HTTPException(status_code=503, detail=f"Base de données inaccessible: {e}")
 
 
+@app.get("/api/config/tmdb")
+def get_tmdb_config():
+    """Fournit la clé API TMDB configurée au frontend."""
+    api_key = os.getenv("TMDB_API_KEY") or os.getenv("VITE_TMDB_API_KEY") or "1b56c06b2e0416b656713300ca07fc81"
+    return {"api_key": api_key}
+
+
 @app.post("/api/audit/page-view")
 def log_page_view(request: Request):
     """Enregistre la visite d'une page dans le journal d'audit."""

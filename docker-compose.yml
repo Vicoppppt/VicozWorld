@@ -5,6 +5,8 @@ services:
     build:
       context: ./apps/letterboxd/frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_TMDB_API_KEY=${VITE_TMDB_API_KEY:-1b56c06b2e0416b656713300ca07fc81}
     container_name: letterboxd-frontend
     restart: unless-stopped
     ports:
@@ -14,6 +16,7 @@ services:
         condition: service_healthy
     environment:
       - TZ=Europe/Paris
+      - VITE_TMDB_API_KEY=${VITE_TMDB_API_KEY:-1b56c06b2e0416b656713300ca07fc81}
     networks:
       - app-network
 
@@ -32,6 +35,8 @@ services:
     environment:
       - DATA_DIR=/app/data
       - TZ=Europe/Paris
+      - TMDB_API_KEY=${TMDB_API_KEY:-${VITE_TMDB_API_KEY:-1b56c06b2e0416b656713300ca07fc81}}
+      - VITE_TMDB_API_KEY=${VITE_TMDB_API_KEY:-${TMDB_API_KEY:-1b56c06b2e0416b656713300ca07fc81}}
       - GMAIL_EMAIL=${GMAIL_EMAIL:-}
       - GMAIL_PASSWORD=${GMAIL_PASSWORD:-}
       - ENEDIS_PDL=${ENEDIS_PDL:-}
