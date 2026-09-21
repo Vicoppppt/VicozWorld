@@ -229,6 +229,12 @@ def init_db():
             )
         """)
         cursor.execute("DROP TABLE IF EXISTS plug_settings")
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS admin_devices (
+                device_cn TEXT PRIMARY KEY
+            )
+        """)
 
         # Données par défaut
         cursor.execute("""

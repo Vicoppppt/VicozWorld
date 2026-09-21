@@ -43,6 +43,19 @@ def get_device_info(request: Request):
     cn_lower = device_cn.lower()
     if "claire" in cn_lower or "maman" in cn_lower:
         profile_hint = "claire"
+        
+    is_admin = False
+    if "victor" in cn_lower:
+        is_admin = True
+    else:
+        from database import get_db_ctx
+        try:
+            with get_db_ctx() as conn:
+                row = conn.execute("SELECT 1 FROM admin_devices WHERE LOWER(device_cn) = ?", (cn_lower,)).fetchone()
+                if row:
+                    is_admin = True
+        except Exception:
+            pass
 
     return {
         "authenticated": verified,
@@ -50,5 +63,6 @@ def get_device_info(request: Request):
         "verified": verified,
         "is_guest": False,
         "profile_hint": profile_hint,
+        "is_admin": is_admin,
         "serial": request.headers.get("x-client-cert-serial", None),
     }

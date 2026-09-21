@@ -64,7 +64,7 @@ function getDeviceColor(deviceName) {
 
 export function Securite() {
   const { deviceInfo, isMaman } = useProfile();
-  const isVictor = !isMaman && (!deviceInfo?.device_cn || deviceInfo.device_cn.toLowerCase().includes('victor'));
+  const isVictor = deviceInfo?.is_admin || (!isMaman && (!deviceInfo?.device_cn || deviceInfo.device_cn.toLowerCase().includes('victor')));
 
   const [certsData, setCertsData] = useState({ ca_exists: false, certs: [] });
   const [logs, setLogs] = useState([]);
@@ -257,6 +257,21 @@ export function Securite() {
       if (res.ok) {
         setGuestCodeState({ active: false, code: null, remaining_seconds: 0, guest_url: null });
         toast.success("Code invité révoqué instantanément.");
+      }
+    } catch (e) {
+      toast.error("Erreur réseau.");
+    }
+  };
+
+  const handleToggleAdmin = async (name) => {
+    try {
+      const res = await fetch(`/api/admin/certs/${encodeURIComponent(name)}/toggle-admin`, { method: 'PUT' });
+      if (res.ok) {
+        toast.success(`Droits admin mis à jour pour ${name}`);
+        await fetchCerts();
+      } else {
+        const data = await res.json();
+        toast.error(data.detail || "Erreur lors de la modification des droits.");
       }
     } catch (e) {
       toast.error("Erreur réseau.");
@@ -668,13 +683,26 @@ ssl_verify_client on;`;
                           </div>
                         </div>
 
-                        <button
-                          onClick={() => handleDelete(devName)}
-                          className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                          title="Révoquer / Supprimer ce badge"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleToggleAdmin(devName)}
+                            className={`p-1.5 rounded-lg transition-colors ${
+                              c.is_admin 
+                                ? "text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20" 
+                                : "text-zinc-500 hover:text-cyan-400 hover:bg-cyan-500/10"
+                            }`}
+                            title={c.is_admin ? "Révoquer droits Admin" : "Accorder droits Admin (accès à cette page)"}
+                          >
+                            <Shield className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(devName)}
+                            className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                            title="Révoquer / Supprimer ce badge"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="pt-2 border-t border-zinc-800/50 flex items-center justify-between">

@@ -36,14 +36,26 @@ BACKUP_DIR = os.path.join(os.getenv("DATA_DIR", "."), "backups")
 # ─── Guard admin ─────────────────────────────────────────────────────────────
 
 def verify_victor_admin(request: Request):
-    """Vérifie que la requête provient de Victor (CN contenant 'victor')."""
+    """Vérifie que la requête provient de Victor ou d'un équipement admin autorisé."""
     device_cn = getattr(request.state, "device_cn", "")
     is_guest = getattr(request.state, "is_guest", True)
-    if is_guest or not device_cn or "victor" not in device_cn.lower():
+    if is_guest or not device_cn:
         raise HTTPException(
             status_code=403,
-            detail="Accès interdit : réservé à Victor."
+            detail="Accès interdit : authentification requise."
         )
+        
+    cn_lower = device_cn.lower()
+    if "victor" in cn_lower:
+        return
+        
+    with get_db_ctx() as conn:
+        row = conn.execute("SELECT 1 FROM admin_devices WHERE LOWER(device_cn) = ?", (cn_lower,)).fetchone()
+        if not row:
+            raise HTTPException(
+                status_code=403,
+                detail="Accès interdit : réservé aux administrateurs."
+            )
 
 
 # ─── Access logs ──────────────────────────────────────────────────────────────
@@ -152,6 +164,15 @@ def list_certs(request: Request):
         except Exception:
             created_at = ""
 
+        is_admin_cert = False
+        if "victor" in device_name.lower():
+            is_admin_cert = True
+        else:
+            with get_db_ctx() as conn:
+                row = conn.execute("SELECT 1 FROM admin_devices WHERE LOWER(device_cn) = ?", (device_name.lower(),)).fetchone()
+                if row:
+                    is_admin_cert = True
+
         certs.append({
             "name": device_name,
             "device_name": device_name,
@@ -160,6 +181,7 @@ def list_certs(request: Request):
             "has_p12": os.path.exists(p12_file),
             "cert_path": cert_file,
             "created_at": created_at,
+            "is_admin": is_admin_cert,
             "download_url": f"/api/admin/certs/download/{device_name}",
         })
 
@@ -385,6 +407,30 @@ def delete_cert(request: Request, device_name: str):
         raise HTTPException(status_code=500, detail=f"Impossible de supprimer : {e}")
 
     return {"success": True, "device_name": safe_name, "name": safe_name}
+
+
+@router.put("/certs/{device_name}/toggle-admin")
+def toggle_admin_cert(request: Request, device_name: str):
+    """Accorde ou révoque le statut administrateur d'un équipement."""
+    verify_victor_admin(request)
+    
+    if "victor" in device_name.lower():
+        raise HTTPException(
+            status_code=400,
+            detail="Les équipements 'Victor' sont administrateurs par défaut et ne peuvent être modifiés."
+        )
+
+    with get_db_ctx() as conn:
+        row = conn.execute("SELECT 1 FROM admin_devices WHERE LOWER(device_cn) = ?", (device_name.lower(),)).fetchone()
+        if row:
+            conn.execute("DELETE FROM admin_devices WHERE LOWER(device_cn) = ?", (device_name.lower(),))
+            is_admin = False
+        else:
+            conn.execute("INSERT INTO admin_devices (device_cn) VALUES (?)", (device_name,))
+            is_admin = True
+        conn.commit()
+
+    return {"success": True, "device_name": device_name, "is_admin": is_admin}
 
 
 # ─── Proxies ─────────────────────────────────────────────────────────────────
