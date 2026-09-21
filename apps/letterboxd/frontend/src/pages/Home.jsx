@@ -438,181 +438,6 @@ export function Home() {
 
         {isVictor && (
           <div className="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
-            {cpuPercent !== undefined && cpuPercent !== null && (
-              <div 
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
-                  cpuPercent >= 85 
-                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
-                    : cpuPercent >= 50
-                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                    : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30'
-                }`}
-                title={`Charge CPU : ${cpuPercent}%`}
-              >
-                <Cpu className="w-4 h-4" />
-                <div className="flex flex-col text-left leading-tight">
-                  <span className="font-bold text-zinc-100">{cpuPercent}%</span>
-                  <span className="text-[9px] text-zinc-400">CPU</span>
-                </div>
-              </div>
-            )}
-            
-            {cpuTemp !== undefined && cpuTemp !== null && (
-              <div 
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
-                  cpuTemp >= 75 
-                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
-                    : cpuTemp >= 60
-                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                    : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                }`}
-                title={`Température CPU : ${cpuTemp}°C`}
-              >
-                <Thermometer className="w-4 h-4" />
-                <div className="flex flex-col text-left leading-tight">
-                  <span className="font-bold text-zinc-100">{cpuTemp}°C</span>
-                  <span className="text-[9px] text-zinc-400">Temp</span>
-                </div>
-              </div>
-            )}
-
-            {batteryPercent !== null && batteryPercent !== undefined && (
-              <div 
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
-                  batteryPercent <= 20
-                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
-                    : batteryPercent <= 40
-                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                    : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                }`}
-                title={`Batterie du serveur : ${batteryPercent}% - ${isBatteryPlugged ? 'Branché sur secteur' : 'Sur batterie'}`}
-              >
-                {isBatteryPlugged ? (
-                  <BatteryCharging className="w-4 h-4 animate-pulse text-emerald-400" />
-                ) : (
-                  <Battery className={`w-4 h-4 ${batteryPercent <= 20 ? 'text-rose-400' : 'text-emerald-400'}`} />
-                )}
-                <div className="flex flex-col text-left leading-tight">
-                  <span className="font-bold text-zinc-100">{batteryPercent}%</span>
-                  <span className="text-[9px] text-zinc-400">{isBatteryPlugged ? 'Secteur' : 'Serveur'}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Bouton Commutateur Ventilos Serveur (TP-Link P100 / Home Assistant) */}
-            <div className="flex items-center">
-              <button
-                type="button"
-                onClick={handleTogglePlug}
-                disabled={isTogglingPlug || plugData?.is_on === null}
-                className={`group relative flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer ${
-                  plugData?.is_on === true
-                    ? 'bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-cyan-500/10'
-                    : plugData?.is_on === false
-                    ? 'bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 border-zinc-700/80'
-                    : 'bg-zinc-900 text-zinc-500 border-zinc-800'
-                }`}
-                title={`Ventilateurs de refroidissement (${plugData?.device_model || 'TP-Link P100'}) : ${
-                  plugData?.is_on === true
-                    ? 'En marche (Refroidissement PC actif)'
-                    : plugData?.is_on === false
-                    ? 'Arrêtés (Silencieux)'
-                    : 'Chargement...'
-                } — Cliquer pour basculer`}
-              >
-                <div className="relative flex items-center justify-center">
-                  <Fan className={`w-4 h-4 transition-all ${
-                    plugData?.is_on === true
-                      ? 'text-cyan-400 animate-spin drop-shadow-[0_0_8px_rgba(34,211,238,0.7)]'
-                      : plugData?.is_on === false
-                      ? 'text-zinc-500'
-                      : 'text-zinc-600'
-                  } ${isTogglingPlug ? 'animate-pulse' : ''}`} style={plugData?.is_on === true ? { animationDuration: '2.5s' } : undefined} />
-                  {plugData?.is_on === true && (
-                    <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-cyan-400 opacity-75"></span>
-                  )}
-                </div>
-
-                <div className="flex flex-col text-left leading-tight">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-zinc-100">{plugData?.name || 'Ventilos Serveur'}</span>
-                    <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md transition-colors ${
-                      plugData?.is_on === true
-                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                        : plugData?.is_on === false
-                        ? 'bg-zinc-700/70 text-zinc-400 border border-zinc-600/50'
-                        : 'bg-zinc-800 text-zinc-500 border border-zinc-700/40'
-                    }`}>
-                      {plugData?.is_on === true ? 'ON' : plugData?.is_on === false ? 'OFF' : '...'}
-                    </span>
-                  </div>
-                  <span className="text-[9px] text-zinc-400 flex items-center gap-1">
-                    <span>
-                      {plugData?.is_on === true 
-                        ? (plugAutomation?.is_auto_cooling ? 'Refroidissement AUTO ⚡' : 'Refroidissement actif ❄️')
-                        : plugData?.is_on === false 
-                        ? (plugAutomation?.enabled ? 'Auto en veille (CPU calme)' : 'Ventilation coupée') 
-                        : 'Connexion...'}
-                    </span>
-                    {plugData?.connected && <span className="text-cyan-400 font-bold">• HA</span>}
-                  </span>
-                </div>
-
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsPlugModalOpen(true);
-                    fetchPlugConfig();
-                    fetchPlugAutomation();
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.stopPropagation();
-                      setIsPlugModalOpen(true);
-                      fetchPlugConfig();
-                      fetchPlugAutomation();
-                    }
-                  }}
-                  className="p-1 -mr-0.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700/60 transition-colors cursor-pointer"
-                  title="Configurer la liaison Home Assistant et la régulation CPU"
-                >
-                  <SlidersHorizontal className="w-3 h-3 opacity-60 hover:opacity-100" />
-                </div>
-              </button>
-            </div>
-
-            {/* Indicateur Modèles IA cliquable pour configurer les modèles */}
-            <button
-              onClick={() => {
-                setIsAiModalOpen(true);
-                fetchAiData();
-              }}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all hover:scale-105 cursor-pointer ${
-                hubData?.has_gemini_key
-                  ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                  : 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/30'
-              }`}
-              title="Cliquer pour configurer les modèles par service"
-            >
-              {hubData?.has_gemini_key ? (
-                <div className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                </div>
-              ) : (
-                <div className="h-3 w-3 rounded-full bg-red-500"></div>
-              )}
-              <div className="flex flex-col text-left leading-tight">
-                <div className="flex items-center gap-1">
-                  <span className="font-bold">{hubData?.has_gemini_key ? 'Assistance IA' : 'IA Désactivée'}</span>
-                  <SlidersHorizontal className="w-3 h-3 opacity-60" />
-                </div>
-                <span className="text-[9px] opacity-80">{hubData?.has_gemini_key ? 'Paramétrage IA' : 'Clé requise'}</span>
-              </div>
-            </button>
-
             <button
               onClick={() => fetchHubData(true)}
               disabled={isRefreshing || isLoading}
@@ -712,55 +537,209 @@ export function Home() {
             </Link>
           </motion.div>
 
-          {/* WIDGET 2 : FLASH ACTUALITÉS */}
+          {/* WIDGET 2 : MONITORING SYSTEME */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="p-6 rounded-3xl bg-zinc-900/60 border border-zinc-800 hover:border-indigo-500/40 transition-all flex flex-col justify-between space-y-5 group"
+            className="p-6 rounded-3xl bg-zinc-900/60 border border-zinc-800 hover:border-cyan-500/40 transition-all flex flex-col justify-between space-y-5 group shadow-lg"
           >
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 bg-indigo-500/10 rounded-xl text-indigo-400 border border-indigo-500/20">
-                    <Newspaper className="w-5 h-5" />
+                  <div className="p-2 bg-cyan-500/10 rounded-xl text-cyan-400 border border-cyan-500/20">
+                    <Cpu className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-zinc-100">Kiosque d'Actualités</h3>
-                    <span className="text-[11px] text-zinc-500">5 Médias • Trié par l'IA</span>
+                    <h3 className="text-sm font-bold text-zinc-100">Monitoring Serveur</h3>
+                    <span className="text-[11px] text-zinc-500">Performances & Matériel</span>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
-                  Flash Info
+                <span className="text-[10px] font-bold text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">
+                  En Direct
                 </span>
               </div>
 
-              {newsBriefing.global_takeaway ? (
-                <div className="space-y-3 pt-1">
-                  <p className="text-xs font-bold text-zinc-200 leading-snug">
-                    « {newsBriefing.global_takeaway} »
-                  </p>
-                  {newsBriefing.top_stories && newsBriefing.top_stories[0] && (
-                    <div className="text-[11px] text-zinc-400 bg-zinc-950/40 p-3 rounded-xl border border-zinc-800/60 flex items-start gap-2">
-                      <span className="text-sm">🔥</span>
-                      <strong className="text-zinc-300 leading-tight">{newsBriefing.top_stories[0].headline}</strong>
+              <div className="flex flex-col gap-3 pt-2">
+                <div className="flex flex-wrap gap-2.5">
+            {cpuPercent !== undefined && cpuPercent !== null && (
+                  <div 
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
+                      cpuPercent >= 85 
+                        ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                        : cpuPercent >= 50
+                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                        : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30'
+                    }`}
+                    title={`Charge CPU : ${cpuPercent}%`}
+                  >
+                    <Cpu className="w-4 h-4" />
+                    <div className="flex flex-col text-left leading-tight">
+                      <span className="font-bold text-zinc-100">{cpuPercent}%</span>
+                      <span className="text-[9px] text-zinc-400">CPU</span>
                     </div>
-                  )}
-                </div>
-              ) : (
-                <p className="text-xs text-zinc-400 pt-2">
-                  Consultez les dernières dépêches internationales et nationales filtrées.
-                </p>
-              )}
+                  </div>
+            )}
+            
+            {cpuTemp !== undefined && cpuTemp !== null && (
+                  <div 
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
+                      cpuTemp >= 75 
+                        ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                        : cpuTemp >= 60
+                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                    }`}
+                    title={`Température CPU : ${cpuTemp}°C`}
+                  >
+                    <Thermometer className="w-4 h-4" />
+                    <div className="flex flex-col text-left leading-tight">
+                      <span className="font-bold text-zinc-100">{cpuTemp}°C</span>
+                      <span className="text-[9px] text-zinc-400">Temp</span>
+                    </div>
+                  </div>
+            )}
+
+            {batteryPercent !== null && batteryPercent !== undefined && (
+                  <div 
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
+                      batteryPercent <= 20
+                        ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                        : batteryPercent <= 40
+                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                    }`}
+                    title={`Batterie du serveur : ${batteryPercent}% - ${isBatteryPlugged ? 'Branché sur secteur' : 'Sur batterie'}`}
+                  >
+                    {isBatteryPlugged ? (
+                      <BatteryCharging className="w-4 h-4 animate-pulse text-emerald-400" />
+                    ) : (
+                      <Battery className={`w-4 h-4 ${batteryPercent <= 20 ? 'text-rose-400' : 'text-emerald-400'}`} />
+                    )}
+                    <div className="flex flex-col text-left leading-tight">
+                      <span className="font-bold text-zinc-100">{batteryPercent}%</span>
+                      <span className="text-[9px] text-zinc-400">{isBatteryPlugged ? 'Secteur' : 'Serveur'}</span>
+                    </div>
+                  </div>
+            )}
+
+            {/* Bouton Commutateur Ventilos Serveur (TP-Link P100 / Home Assistant) */}
+            <div className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={handleTogglePlug}
+                    disabled={isTogglingPlug || plugData?.is_on === null}
+                    className={`group relative flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+                      plugData?.is_on === true
+                        ? 'bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-cyan-500/10'
+                        : plugData?.is_on === false
+                        ? 'bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 border-zinc-700/80'
+                        : 'bg-zinc-900 text-zinc-500 border-zinc-800'
+                    }`}
+                    title={`Ventilateurs de refroidissement (${plugData?.device_model || 'TP-Link P100'}) : ${
+                      plugData?.is_on === true
+                        ? 'En marche (Refroidissement PC actif)'
+                        : plugData?.is_on === false
+                        ? 'Arrêtés (Silencieux)'
+                        : 'Chargement...'
+                    } — Cliquer pour basculer`}
+                  >
+                    <div className="relative flex items-center justify-center">
+                      <Fan className={`w-4 h-4 transition-all ${
+                        plugData?.is_on === true
+                          ? 'text-cyan-400 animate-spin drop-shadow-[0_0_8px_rgba(34,211,238,0.7)]'
+                          : plugData?.is_on === false
+                          ? 'text-zinc-500'
+                          : 'text-zinc-600'
+                      } ${isTogglingPlug ? 'animate-pulse' : ''}`} style={plugData?.is_on === true ? { animationDuration: '2.5s' } : undefined} />
+                      {plugData?.is_on === true && (
+                        <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-cyan-400 opacity-75"></span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col text-left leading-tight">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-zinc-100">{plugData?.name || 'Ventilos Serveur'}</span>
+                        <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md transition-colors ${
+                          plugData?.is_on === true
+                            ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                            : plugData?.is_on === false
+                            ? 'bg-zinc-700/70 text-zinc-400 border border-zinc-600/50'
+                            : 'bg-zinc-800 text-zinc-500 border border-zinc-700/40'
+                        }`}>
+                          {plugData?.is_on === true ? 'ON' : plugData?.is_on === false ? 'OFF' : '...'}
+                        </span>
+                      </div>
+                      <span className="text-[9px] text-zinc-400 flex items-center gap-1">
+                        <span>
+                          {plugData?.is_on === true 
+                            ? (plugAutomation?.is_auto_cooling ? 'Refroidissement AUTO ⚡' : 'Refroidissement actif ❄️')
+                            : plugData?.is_on === false 
+                            ? (plugAutomation?.enabled ? 'Auto en veille (CPU calme)' : 'Ventilation coupée') 
+                            : 'Connexion...'}
+                        </span>
+                        {plugData?.connected && <span className="text-cyan-400 font-bold">• HA</span>}
+                      </span>
+                    </div>
+
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsPlugModalOpen(true);
+                        fetchPlugConfig();
+                        fetchPlugAutomation();
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                          setIsPlugModalOpen(true);
+                          fetchPlugConfig();
+                          fetchPlugAutomation();
+                        }
+                      }}
+                      className="p-1 -mr-0.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700/60 transition-colors cursor-pointer"
+                      title="Configurer la liaison Home Assistant et la régulation CPU"
+                    >
+                      <SlidersHorizontal className="w-3 h-3 opacity-60 hover:opacity-100" />
+                    </div>
+                  </button>
             </div>
 
-            <Link
-              to="/actualites"
-              className="flex items-center justify-between text-xs font-semibold text-indigo-400 group-hover:text-indigo-300 pt-3 border-t border-zinc-800/80 transition-colors"
+            {/* Indicateur Modèles IA cliquable pour configurer les modèles */}
+            <button
+                  onClick={() => {
+                    setIsAiModalOpen(true);
+                    fetchAiData();
+                  }}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all hover:scale-105 cursor-pointer ${
+                    hubData?.has_gemini_key
+                      ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                      : 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/30'
+                  }`}
+                  title="Cliquer pour configurer les modèles par service"
             >
-              <span>Accéder au kiosque complet</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+                  {hubData?.has_gemini_key ? (
+                    <div className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                    </div>
+                  ) : (
+                    <div className="h-3 w-3 rounded-full bg-red-500"></div>
+                  )}
+                  <div className="flex flex-col text-left leading-tight">
+                    <div className="flex items-center gap-1">
+                      <span className="font-bold">{hubData?.has_gemini_key ? 'Assistance IA' : 'IA Désactivée'}</span>
+                      <SlidersHorizontal className="w-3 h-3 opacity-60" />
+                    </div>
+                    <span className="text-[9px] opacity-80">{hubData?.has_gemini_key ? 'Paramétrage IA' : 'Clé requise'}</span>
+                  </div>
+            </button>
+
+                </div>
+              </div>
+            </div>
           </motion.div>
 
           {/* WIDGET 3 : SUIVI ÉNERGIE LINKY */}
