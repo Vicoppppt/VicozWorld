@@ -236,7 +236,33 @@ Réponds STRICTEMENT au format JSON :
 # ─── Batterie serveur ─────────────────────────────────────────────────────────
 
 def _get_server_battery() -> dict:
-    """Récupère l'état de la batterie du PC serveur via sysfs ou psutil."""
+    """Récupère l'état de la batterie du PC serveur, ainsi que l'utilisation CPU et température."""
+    import psutil
+    
+    cpu_percent = None
+    cpu_temp = None
+    try:
+        # psutil.cpu_percent with interval=None gives the percent since last call
+        # We can pass 0.1 for a quick measurement if we want, but None is non-blocking.
+        cpu_percent = psutil.cpu_percent(interval=None)
+        temps = psutil.sensors_temperatures()
+        if temps:
+            for name, entries in temps.items():
+                if "coretemp" in name or "acpitz" in name or "k10temp" in name:
+                    cpu_temp = round(entries[0].current)
+                    break
+            if cpu_temp is None and len(temps) > 0:
+                for entries in temps.values():
+                    cpu_temp = round(entries[0].current)
+                    break
+    except Exception as e:
+        logger.warning(f"Erreur lecture CPU stats: {e}")
+
+    stats = {
+        "cpu_percent": cpu_percent,
+        "cpu_temp": cpu_temp
+    }
+
     power_supply_path = "/sys/class/power_supply"
 
     if os.path.exists(power_supply_path):
@@ -294,33 +320,35 @@ def _get_server_battery() -> dict:
                     is_charging = s_lower == "charging"
                     plugged_in = s_lower in ("charging", "full", "not charging")
                     pct = max(0, min(100, percentage))
-                    return {
+                    stats.update({
                         "available": True, "percentage": pct, "percent": pct,
                         "status": status, "is_charging": is_charging,
                         "plugged_in": plugged_in, "plugged": plugged_in, "device": item,
-                    }
+                    })
+                    return stats
         except Exception as e:
             logger.warning(f"Erreur lecture sysfs batterie: {e}")
 
-    # Fallback psutil
+    # Fallback psutil pour batterie
     try:
-        import psutil
         bat = psutil.sensors_battery()
         if bat is not None and bat.percent is not None:
             is_charging = bool(bat.power_plugged) and bat.percent < 99
             pct = round(bat.percent)
             plugged_in = bool(bat.power_plugged)
-            return {
+            stats.update({
                 "available": True, "percentage": pct, "percent": pct,
                 "status": "En charge" if is_charging else ("Sur secteur" if plugged_in else "Sur batterie"),
                 "is_charging": is_charging, "plugged_in": plugged_in, "plugged": plugged_in, "device": "psutil",
-            }
+            })
+            return stats
     except Exception:
         pass
 
     # Fallback secteur
-    return {
+    stats.update({
         "available": True, "percentage": 100, "percent": 100,
-        "status": "Sur secteur 🔌", "is_charging": False,
+        "status": "Sur secteur ⚡", "is_charging": False,
         "plugged_in": True, "plugged": True, "device": "AC",
-    }
+    })
+    return stats

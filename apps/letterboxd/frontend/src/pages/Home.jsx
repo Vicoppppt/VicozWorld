@@ -345,7 +345,7 @@ export function Home() {
         fetchBattery();
         fetchPlugStatus();
         fetchPlugAutomation();
-      }, 30000);
+      }, 5000);
       return () => clearInterval(timer);
     }
   }, [isVictor]);
@@ -416,6 +416,8 @@ export function Home() {
     : (greeting && greeting.includes("Victor") ? greeting : `${greeting || (new Date().getHours() >= 18 ? "Bonsoir" : "Bonjour")} Victor`);
   const batteryPercent = battery ? (battery.percentage ?? battery.percent) : null;
   const isBatteryPlugged = battery ? Boolean(battery.plugged_in ?? battery.plugged ?? false) : false;
+  const cpuPercent = battery?.cpu_percent;
+  const cpuTemp = battery?.cpu_temp;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
@@ -436,9 +438,47 @@ export function Home() {
 
         {isVictor && (
           <div className="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+            {cpuPercent !== undefined && cpuPercent !== null && (
+              <div 
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
+                  cpuPercent >= 85 
+                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                    : cpuPercent >= 50
+                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                    : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30'
+                }`}
+                title={`Charge CPU : ${cpuPercent}%`}
+              >
+                <Cpu className="w-4 h-4" />
+                <div className="flex flex-col text-left leading-tight">
+                  <span className="font-bold text-zinc-100">{cpuPercent}%</span>
+                  <span className="text-[9px] text-zinc-400">CPU</span>
+                </div>
+              </div>
+            )}
+            
+            {cpuTemp !== undefined && cpuTemp !== null && (
+              <div 
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
+                  cpuTemp >= 75 
+                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                    : cpuTemp >= 60
+                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                    : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                }`}
+                title={`Température CPU : ${cpuTemp}°C`}
+              >
+                <Thermometer className="w-4 h-4" />
+                <div className="flex flex-col text-left leading-tight">
+                  <span className="font-bold text-zinc-100">{cpuTemp}°C</span>
+                  <span className="text-[9px] text-zinc-400">Temp</span>
+                </div>
+              </div>
+            )}
+
             {batteryPercent !== null && batteryPercent !== undefined && (
               <div 
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-semibold shadow-sm transition-all ${
                   batteryPercent <= 20
                     ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
                     : batteryPercent <= 40
