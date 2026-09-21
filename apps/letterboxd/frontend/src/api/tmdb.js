@@ -1,4 +1,4 @@
-const DEFAULT_KEY = "1b56c06b2e0416b656713300ca07fc81";
+const DEFAULT_KEY = "";
 let cachedApiKey = import.meta.env.VITE_TMDB_API_KEY || "";
 let fetchPromise = null;
 

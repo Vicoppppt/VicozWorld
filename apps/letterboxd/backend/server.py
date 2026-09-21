@@ -178,7 +178,7 @@ def health_check():
 @app.get("/api/config/tmdb")
 def get_tmdb_config():
     """Fournit la clé API TMDB configurée au frontend."""
-    api_key = os.getenv("TMDB_API_KEY") or os.getenv("VITE_TMDB_API_KEY") or "1b56c06b2e0416b656713300ca07fc81"
+    api_key = os.getenv("TMDB_API_KEY") or os.getenv("VITE_TMDB_API_KEY") or ""
     return {"api_key": api_key}
 
 
