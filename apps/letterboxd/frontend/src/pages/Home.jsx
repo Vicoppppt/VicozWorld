@@ -1528,11 +1528,11 @@ export function Home() {
                   </button>
                 </div>
 
-                {/* Statut CPU actuel */}
+                {/* Statuts CPU et Température */}
                 <div className="p-2.5 rounded-xl bg-zinc-900/80 border border-zinc-800/60 flex items-center justify-between text-xs">
                   <span className="text-zinc-400 flex items-center gap-1.5">
                     <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                    Charge CPU actuelle :
+                    Charge :
                   </span>
                   <div className="flex items-center gap-2">
                     <span className={`font-mono font-bold ${
@@ -1543,6 +1543,24 @@ export function Home() {
                         : 'text-emerald-400'
                     }`}>
                       {plugAutomation.current_cpu !== null ? `${plugAutomation.current_cpu}%` : 'Mesure...'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-zinc-900/80 border border-zinc-800/60 flex items-center justify-between text-xs mt-2">
+                  <span className="text-zinc-400 flex items-center gap-1.5">
+                    <span className="inline-block w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
+                    Température :
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`font-mono font-bold ${
+                      (plugAutomation.current_temp || 0) >= plugAutomation.temperature_threshold
+                        ? 'text-rose-400 font-extrabold'
+                        : (plugAutomation.current_temp || 0) >= 65
+                        ? 'text-orange-400'
+                        : 'text-emerald-400'
+                    }`}>
+                      {plugAutomation.current_temp !== null && plugAutomation.current_temp > 0 ? `${plugAutomation.current_temp}°C` : 'N/A'}
                     </span>
                     {plugAutomation.is_auto_cooling && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 animate-pulse">
@@ -1557,7 +1575,7 @@ export function Home() {
                     {/* Seuil de déclenchement CPU */}
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-zinc-300 font-medium">Seuil de déclenchement CPU</span>
+                        <span className="text-zinc-300 font-medium">Seuil Charge CPU</span>
                         <span className="font-mono font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/30">
                           {plugAutomation.cpu_threshold}%
                         </span>
@@ -1572,9 +1590,33 @@ export function Home() {
                         className="w-full accent-cyan-400 h-1.5 bg-zinc-800 rounded-lg cursor-pointer"
                       />
                       <div className="flex justify-between text-[10px] text-zinc-500">
-                        <span>25% (Sensible)</span>
-                        <span>50% (Standard)</span>
-                        <span>85% (Forte charge)</span>
+                        <span>25%</span>
+                        <span>50%</span>
+                        <span>85%</span>
+                      </div>
+                    </div>
+
+                    {/* Seuil de déclenchement Température */}
+                    <div className="space-y-1.5 mt-3">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-zinc-300 font-medium">Seuil Température CPU</span>
+                        <span className="font-mono font-bold text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/30">
+                          {plugAutomation.temperature_threshold || 75}°C
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="40"
+                        max="90"
+                        step="5"
+                        value={plugAutomation.temperature_threshold || 75}
+                        onChange={(e) => setPlugAutomation({ ...plugAutomation, temperature_threshold: Number(e.target.value) })}
+                        className="w-full accent-orange-400 h-1.5 bg-zinc-800 rounded-lg cursor-pointer"
+                      />
+                      <div className="flex justify-between text-[10px] text-zinc-500">
+                        <span>40°C</span>
+                        <span>65°C</span>
+                        <span>90°C</span>
                       </div>
                     </div>
 

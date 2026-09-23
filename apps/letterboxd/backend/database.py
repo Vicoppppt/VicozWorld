@@ -230,6 +230,11 @@ def init_db():
         """)
         cursor.execute("DROP TABLE IF EXISTS plug_settings")
         
+        try:
+            cursor.execute("ALTER TABLE plug_automation_settings ADD COLUMN temperature_threshold REAL DEFAULT 75.0")
+        except Exception:
+            pass
+        
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS admin_devices (
                 device_cn TEXT PRIMARY KEY
@@ -273,16 +278,17 @@ def get_plug_automation_config() -> dict:
     """Récupère les préférences de régulation automatique du ventilateur."""
     try:
         with get_db_ctx() as conn:
-            row = conn.execute("SELECT enabled, cpu_threshold, duration_minutes FROM plug_automation_settings WHERE id = 1").fetchone()
+            row = conn.execute("SELECT enabled, cpu_threshold, temperature_threshold, duration_minutes FROM plug_automation_settings WHERE id = 1").fetchone()
             if row:
                 return {
                     "enabled": bool(row["enabled"]),
                     "cpu_threshold": float(row["cpu_threshold"]),
+                    "temperature_threshold": float(row["temperature_threshold"] if row["temperature_threshold"] is not None else 75.0),
                     "duration_minutes": int(row["duration_minutes"]),
                 }
     except Exception as e:
         logger.warning(f"Erreur lecture plug_automation_settings: {e}")
-    return {"enabled": False, "cpu_threshold": 50.0, "duration_minutes": 10}
+    return {"enabled": False, "cpu_threshold": 50.0, "temperature_threshold": 75.0, "duration_minutes": 10}
 
 
 def save_plug_automation_config(cfg: dict) -> bool:
@@ -290,16 +296,18 @@ def save_plug_automation_config(cfg: dict) -> bool:
     try:
         with get_db_ctx() as conn:
             conn.execute("""
-                INSERT INTO plug_automation_settings (id, enabled, cpu_threshold, duration_minutes)
-                VALUES (1, ?, ?, ?)
+                INSERT INTO plug_automation_settings (id, enabled, cpu_threshold, temperature_threshold, duration_minutes)
+                VALUES (1, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     enabled=excluded.enabled,
                     cpu_threshold=excluded.cpu_threshold,
+                    temperature_threshold=excluded.temperature_threshold,
                     duration_minutes=excluded.duration_minutes,
                     updated_at=CURRENT_TIMESTAMP
             """, (
                 1 if cfg.get("enabled") else 0,
                 float(cfg.get("cpu_threshold", 50.0)),
+                float(cfg.get("temperature_threshold", 75.0)),
                 int(cfg.get("duration_minutes", 10)),
             ))
             conn.commit()

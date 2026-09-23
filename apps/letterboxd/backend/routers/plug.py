@@ -132,6 +132,36 @@ def _call_hass_service(hass_url: str, hass_token: str, service: str, entity_id: 
 
 # ─── Moteur de Régulation Automatique CPU ────────────────────────────────────
 
+_CURRENT_TEMP = 0.0
+
+def _measure_cpu_temp() -> float:
+    """Mesure la température du CPU."""
+    global _CURRENT_TEMP
+    try:
+        import psutil
+        temps = psutil.sensors_temperatures()
+        if not temps:
+            return _CURRENT_TEMP
+        for name, entries in temps.items():
+            for entry in entries:
+                if entry.current:
+                    _CURRENT_TEMP = float(entry.current)
+                    return _CURRENT_TEMP
+    except Exception:
+        pass
+    
+    try:
+        if os.path.exists("/sys/class/thermal/thermal_zone0/temp"):
+            with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
+                val = float(f.read().strip())
+                _CURRENT_TEMP = round(val / 1000.0, 1)
+                return _CURRENT_TEMP
+    except Exception:
+        pass
+
+    return _CURRENT_TEMP
+
+
 def _measure_cpu_percent() -> float:
     """Mesure la charge CPU isolée dans le conteneur Docker sans installation hôte."""
     global _CURRENT_CPU
@@ -160,8 +190,8 @@ def _measure_cpu_percent() -> float:
 def _evaluate_cooling_regulation(force_check_hass: bool = False):
     """
     Évalue et applique la régulation thermique :
-    - Si CPU >= seuil : active la ventilation et arme la minuterie.
-    - Si CPU < seuil :
+    - Si CPU >= seuil OU Temp >= seuil : active la ventilation et arme la minuterie.
+    - Si CPU < seuil ET Temp < seuil :
         - Si la minuterie est en cours : maintient la ventilation jusqu'à la fin de la durée.
         - Si la minuterie est expirée OU qu'aucun cycle auto n'est actif : éteint le ventilateur !
     """
@@ -172,10 +202,12 @@ def _evaluate_cooling_regulation(force_check_hass: bool = False):
         _CONSECUTIVE_OVER_THRESHOLD = 0
         return
 
-    threshold = float(config.get("cpu_threshold", 50.0))
+    cpu_threshold = float(config.get("cpu_threshold", 50.0))
+    temp_threshold = float(config.get("temperature_threshold", 75.0))
     duration_sec = int(config.get("duration_minutes", 10)) * 60
     now = time.time()
     cpu = _measure_cpu_percent()
+    temp = _measure_cpu_temp()
     cfg = _get_plug_config()
 
     if not cfg["hass_url"] or not cfg["hass_token"]:
@@ -189,21 +221,21 @@ def _evaluate_cooling_regulation(force_check_hass: bool = False):
     else:
         is_currently_on = (_LAST_STATE == "on")
 
-    # CAS 1 : Charge CPU élevée (surchauffe)
-    if cpu >= threshold:
+    # CAS 1 : Charge CPU élevée ou Surchauffe
+    if cpu >= cpu_threshold or temp >= temp_threshold:
         _CONSECUTIVE_OVER_THRESHOLD += 1
         # Déclenchement si 2 mesures consécutives (~30s) ou forçage
         if _CONSECUTIVE_OVER_THRESHOLD >= 2 or force_check_hass:
             if not is_currently_on:
                 _call_hass_service(cfg["hass_url"], cfg["hass_token"], "turn_on", cfg["entity_id"])
                 _LAST_STATE = "on"
-                logger.info(f"Régulation auto: Allumage ventilateurs (CPU {cpu}% >= seuil {threshold}%)")
+                logger.info(f"Régulation auto: Allumage ventilateurs (CPU {cpu}% >= {cpu_threshold}% OU Temp {temp}°C >= {temp_threshold}°C)")
             _AUTO_COOLING_ACTIVE = True
             _AUTO_COOLING_UNTIL = max(_AUTO_COOLING_UNTIL, now + duration_sec)
     else:
         _CONSECUTIVE_OVER_THRESHOLD = 0
 
-        # CAS 2 : Charge CPU normale / calme (< seuil)
+        # CAS 2 : Charge CPU et Temp normales / calme
         if _AUTO_COOLING_ACTIVE and now < _AUTO_COOLING_UNTIL:
             # Minuterie encore active, on laisse tourner
             pass
@@ -212,7 +244,7 @@ def _evaluate_cooling_regulation(force_check_hass: bool = False):
             if is_currently_on:
                 _call_hass_service(cfg["hass_url"], cfg["hass_token"], "turn_off", cfg["entity_id"])
                 _LAST_STATE = "off"
-                logger.info(f"Régulation auto: Extinction ventilateurs (CPU calme {cpu}% < seuil {threshold}%)")
+                logger.info(f"Régulation auto: Extinction ventilateurs (CPU calme {cpu}% < {cpu_threshold}% ET Temp {temp}°C < {temp_threshold}°C)")
             _AUTO_COOLING_ACTIVE = False
             _AUTO_COOLING_UNTIL = 0.0
 
@@ -445,12 +477,15 @@ def get_plug_automation():
     now = time.time()
     remaining = max(0, int(_AUTO_COOLING_UNTIL - now)) if _AUTO_COOLING_ACTIVE else 0
     current_cpu = _measure_cpu_percent()
+    current_temp = _measure_cpu_temp()
 
     return {
         "enabled": cfg["enabled"],
         "cpu_threshold": cfg["cpu_threshold"],
+        "temperature_threshold": cfg.get("temperature_threshold", 75.0),
         "duration_minutes": cfg["duration_minutes"],
         "current_cpu": current_cpu,
+        "current_temp": current_temp,
         "is_auto_cooling": _AUTO_COOLING_ACTIVE and remaining > 0,
         "remaining_seconds": remaining,
     }
@@ -462,6 +497,7 @@ def update_plug_automation(req: PlugAutomationRequest):
     cfg = {
         "enabled": req.enabled,
         "cpu_threshold": req.cpu_threshold,
+        "temperature_threshold": req.temperature_threshold,
         "duration_minutes": req.duration_minutes,
     }
     ok = save_plug_automation_config(cfg)
@@ -483,6 +519,7 @@ def update_plug_automation(req: PlugAutomationRequest):
         "success": True,
         **cfg,
         "current_cpu": round(_CURRENT_CPU, 1),
+        "current_temp": round(_CURRENT_TEMP, 1),
         "is_auto_cooling": _AUTO_COOLING_ACTIVE and remaining > 0,
         "remaining_seconds": remaining,
     }

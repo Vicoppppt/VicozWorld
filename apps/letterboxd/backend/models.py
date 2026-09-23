@@ -91,5 +91,6 @@ class PlugSetStateRequest(BaseModel):
 class PlugAutomationRequest(BaseModel):
     enabled: bool = False
     cpu_threshold: float = 50.0
+    temperature_threshold: float = 75.0
     duration_minutes: int = 10
 
