@@ -231,11 +231,19 @@ except ImportError:
 @app.get("/api/balances")
 def get_balances():
     from fastapi import HTTPException
+    import time
     from models import AccountBalance, BalancesResponse
     from constants import BANK_NAMES
+    from caches import get_bank_cache, set_bank_cache
 
     if not _WOOB_AVAILABLE:
         raise HTTPException(status_code=500, detail="La librairie Woob n'est pas installée.")
+    
+    cached = get_bank_cache()
+    current_time = time.time()
+    if cached["data"] and (current_time - cached["timestamp"]) < 14400:
+        return cached["data"]
+
     try:
         woob = Woob()
         woob.load_backends(caps=CapBank)
@@ -263,7 +271,10 @@ def get_balances():
                 currency=account.currency or "EUR",
                 bank_name=BANK_NAMES.get(backend_name.lower(), backend_name.capitalize()),
             ))
-        return BalancesResponse(accounts=accounts_data, total=total_balance)
+        
+        result = BalancesResponse(accounts=accounts_data, total=total_balance).dict()
+        set_bank_cache(result)
+        return result
     except Exception as e:
         logger.error(f"Erreur soldes Woob: {e}")
         raise HTTPException(status_code=500, detail=str(e))

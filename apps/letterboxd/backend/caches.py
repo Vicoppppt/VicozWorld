@@ -112,6 +112,23 @@ def revoke_guest_otp():
         _guest_otp["expires_at"] = 0.0
 
 
+# ─── Cache Banque ───────────────────────────────────────────────────────────────
+
+_bank_lock = threading.Lock()
+_bank_cache: dict = {"timestamp": 0.0, "data": None}
+
+
+def get_bank_cache() -> dict:
+    with _bank_lock:
+        return dict(_bank_cache)
+
+
+def set_bank_cache(data: dict):
+    with _bank_lock:
+        _bank_cache["timestamp"] = time.time()
+        _bank_cache["data"] = data
+
+
 # ─── Rate-limiting Gemini ─────────────────────────────────────────────────────
 
 _gemini_lock = threading.Lock()

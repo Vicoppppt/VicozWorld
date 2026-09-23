@@ -133,25 +133,35 @@ def get_hub_summary(request: Request, force: Optional[bool] = False):
     if not force and cached["data"] and (current_time - cached["timestamp"]) < 1800:
         return cached["data"]
 
-    # ─── Collecte des données des modules ──────────────
-    try:
-        weather_data = get_weather_report(force=force)
-    except Exception as e:
-        logger.warning(f"Hub: erreur weather: {e}")
-        weather_data = {}
+    # ─── Collecte des données des modules (en parallèle) ──────────────
+    import concurrent.futures
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        f_weather = executor.submit(get_weather_report, force=force)
+        
+        def safe_get_news():
+            from routers.news import get_news_briefing
+            return get_news_briefing()
+            
+        f_news = executor.submit(safe_get_news)
+        f_elec = executor.submit(get_electricity_stats)
 
-    try:
-        from routers.news import get_news_briefing
-        news_briefing = get_news_briefing()
-    except Exception as e:
-        logger.warning(f"Hub: erreur news: {e}")
-        news_briefing = {}
+        try:
+            weather_data = f_weather.result()
+        except Exception as e:
+            logger.warning(f"Hub: erreur weather: {e}")
+            weather_data = {}
 
-    try:
-        electricity_stats = get_electricity_stats()
-    except Exception as e:
-        logger.warning(f"Hub: erreur electricity: {e}")
-        electricity_stats = {}
+        try:
+            news_briefing = f_news.result()
+        except Exception as e:
+            logger.warning(f"Hub: erreur news: {e}")
+            news_briefing = {}
+
+        try:
+            electricity_stats = f_elec.result()
+        except Exception as e:
+            logger.warning(f"Hub: erreur electricity: {e}")
+            electricity_stats = {}
 
     # ─── Suggestion film du jour ───────────────────────
     gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
