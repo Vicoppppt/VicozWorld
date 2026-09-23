@@ -1414,7 +1414,7 @@ export function Home() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 relative overflow-hidden"
+              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 relative overflow-y-auto max-h-[90vh]"
             >
               {/* Header Modal */}
               <div className="flex items-start justify-between gap-4">
@@ -1529,12 +1529,12 @@ export function Home() {
                 </div>
 
                 {/* Statuts CPU et Température */}
-                <div className="p-2.5 rounded-xl bg-zinc-900/80 border border-zinc-800/60 flex items-center justify-between text-xs">
-                  <span className="text-zinc-400 flex items-center gap-1.5">
-                    <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                    Charge :
-                  </span>
-                  <div className="flex items-center gap-2">
+                <div className="p-2.5 rounded-xl bg-zinc-900/80 border border-zinc-800/60 text-xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-400 flex items-center gap-1.5">
+                      <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                      Charge CPU :
+                    </span>
                     <span className={`font-mono font-bold ${
                       (plugAutomation.current_cpu || 0) >= plugAutomation.cpu_threshold
                         ? 'text-rose-400 font-extrabold'
@@ -1545,28 +1545,27 @@ export function Home() {
                       {plugAutomation.current_cpu !== null ? `${plugAutomation.current_cpu}%` : 'Mesure...'}
                     </span>
                   </div>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-zinc-900/80 border border-zinc-800/60 flex items-center justify-between text-xs mt-2">
-                  <span className="text-zinc-400 flex items-center gap-1.5">
-                    <span className="inline-block w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
-                    Température :
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className={`font-mono font-bold ${
-                      (plugAutomation.current_temp || 0) >= plugAutomation.temperature_threshold
-                        ? 'text-rose-400 font-extrabold'
-                        : (plugAutomation.current_temp || 0) >= 65
-                        ? 'text-orange-400'
-                        : 'text-emerald-400'
-                    }`}>
-                      {plugAutomation.current_temp !== null && plugAutomation.current_temp > 0 ? `${plugAutomation.current_temp}°C` : 'N/A'}
+                  <div className="flex items-center justify-between border-t border-zinc-800/60 pt-2">
+                    <span className="text-zinc-400 flex items-center gap-1.5">
+                      <span className="inline-block w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
+                      Température :
                     </span>
-                    {plugAutomation.is_auto_cooling && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 animate-pulse">
-                        ❄️ Auto ON ({Math.ceil((plugAutomation.remaining_seconds || 0) / 60)}m)
+                    <div className="flex items-center gap-2">
+                      <span className={`font-mono font-bold ${
+                        (plugAutomation.current_temp || 0) >= plugAutomation.temperature_threshold
+                          ? 'text-rose-400 font-extrabold'
+                          : (plugAutomation.current_temp || 0) >= 65
+                          ? 'text-orange-400'
+                          : 'text-emerald-400'
+                      }`}>
+                        {plugAutomation.current_temp !== null && plugAutomation.current_temp > 0 ? `${plugAutomation.current_temp}°C` : 'N/A'}
                       </span>
-                    )}
+                      {plugAutomation.is_auto_cooling && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 animate-pulse">
+                          ❄️ Auto ON ({Math.ceil((plugAutomation.remaining_seconds || 0) / 60)}m)
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -1597,7 +1596,7 @@ export function Home() {
                     </div>
 
                     {/* Seuil de déclenchement Température */}
-                    <div className="space-y-1.5 mt-3">
+                    <div className="space-y-1.5 pt-3 border-t border-zinc-800/60">
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-zinc-300 font-medium">Seuil Température CPU</span>
                         <span className="font-mono font-bold text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/30">
@@ -1621,7 +1620,7 @@ export function Home() {
                     </div>
 
                     {/* Durée minimale de refroidissement */}
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 pt-3 border-t border-zinc-800/60">
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-zinc-300 font-medium">Durée minimale de refroidissement</span>
                         <span className="text-zinc-400 text-[10px]">
