@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { 
@@ -99,12 +99,18 @@ export function Home() {
   const [plugAutomation, setPlugAutomation] = useState({
     enabled: false,
     cpu_threshold: 50,
+    temperature_threshold: 75,
     duration_minutes: 10,
     current_cpu: null,
+    current_temp: null,
     is_auto_cooling: false,
     remaining_seconds: 0,
   });
   const [isSavingAutomation, setIsSavingAutomation] = useState(false);
+  const isPlugModalOpenRef = useRef(false);
+  useEffect(() => {
+    isPlugModalOpenRef.current = isPlugModalOpen;
+  }, [isPlugModalOpen]);
 
   const fetchAiData = async () => {
     setIsLoadingAiModels(true);
@@ -237,10 +243,18 @@ export function Home() {
       const res = await fetch('/api/hub/plug/automation');
       if (res.ok) {
         const data = await res.json();
-        setPlugAutomation(prev => ({
-          ...prev,
-          ...data,
-        }));
+        setPlugAutomation(prev => {
+          if (isPlugModalOpenRef.current) {
+            return {
+              ...prev,
+              current_cpu: data.current_cpu,
+              current_temp: data.current_temp,
+              is_auto_cooling: data.is_auto_cooling,
+              remaining_seconds: data.remaining_seconds,
+            };
+          }
+          return { ...prev, ...data };
+        });
       }
     } catch (e) {
       console.warn("Erreur chargement automatisation prise:", e);
@@ -251,6 +265,7 @@ export function Home() {
     const payload = overrideCfg || {
       enabled: plugAutomation.enabled,
       cpu_threshold: Number(plugAutomation.cpu_threshold),
+      temperature_threshold: Number(plugAutomation.temperature_threshold),
       duration_minutes: Number(plugAutomation.duration_minutes),
     };
     setIsSavingAutomation(true);
